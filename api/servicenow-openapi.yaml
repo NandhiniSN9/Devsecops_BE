@@ -166,6 +166,17 @@ components:
     SyncProjectRequest:
       type: object
       required:
+        - projects
+      properties:
+        projects:
+          type: array
+          description: List of project objects to sync from ServiceNow
+          items:
+            $ref: '#/components/schemas/SyncProjectItem'
+
+    SyncProjectItem:
+      type: object
+      required:
         - sn_project_id
         - project_name
         - onboarded_date

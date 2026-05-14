@@ -181,15 +181,15 @@ components:
               properties:
                 metrics:
                   $ref: '#/components/schemas/OverviewMetrics'
-                statusDistribution:
+                status_distribution:
                   $ref: '#/components/schemas/StatusDistribution'
-                attentionBanner:
+                attention_banner:
                   $ref: '#/components/schemas/AttentionBanner'
 
     OverviewMetrics:
       type: object
       properties:
-        totalProjects:
+        total_projects:
           type: object
           properties:
             count:
@@ -245,7 +245,7 @@ components:
             change:
               type: integer
               example: 0
-        atRisk:
+        at_risk:
           type: object
           properties:
             count:
@@ -259,7 +259,7 @@ components:
             change:
               type: integer
               example: 1
-        notApplicable:
+        not_applicable:
           type: object
           properties:
             count:
@@ -302,7 +302,7 @@ components:
         message:
           type: string
           example: "6 projects are at risk and require immediate attention"
-        atRiskCount:
+        at_risk_count:
           type: integer
           example: 6
         severity:

@@ -9,30 +9,34 @@ sequenceDiagram
     participant Database
 
     %% === Project Sync ===
-    ServiceNow->>Middleware: POST /api/v1/sync/servicenow/projects<br/>{sn_project_id, project_name, onboarded_date, ...}
+    ServiceNow->>Middleware: POST /api/v1/sync/servicenow/projects<br/>{projects: [{sn_project_id, project_name, ...}]}
     Middleware->>Middleware: Decrypt token, extract ServiceNow email
     Middleware->>Middleware: Validate email against<br/>SERVICENOW_ALLOWED_EMAIL env var
     Middleware->>Route: Request authenticated
     Route->>Service: Process project sync
-    Service->>Service: Validate payload (Pydantic schema)
-    Service->>Repository: Check if project exists by sn_project_id
-    Repository->>Database: SELECT * FROM projects<br/>WHERE sn_project_id = '{sn_project_id}'
-    alt Project already exists
-        Database-->>Repository: Existing record found
-        Repository-->>Service: Project exists
-        Service->>Service: Skip - no duplicate created
-    else Project not found
-        Database-->>Repository: No record
-        Repository-->>Service: Not found
-        Service->>Repository: Get Inactive status_id
-        Repository->>Database: SELECT status_id FROM statuses<br/>WHERE status_name = 'Inactive'
-        Database-->>Repository: status_id
-        Repository-->>Service: status_id
-        Service->>Repository: Insert new project
-        Repository->>Database: INSERT INTO projects<br/>(project_id, sn_project_id, project_name,<br/>onboarded_date, status_id, is_active=1)
-        Database-->>Repository: Project created
-        Repository-->>Service: Success
+    Service->>Service: Validate payload (non-empty projects array)
+
+    loop For each project in batch
+        Service->>Repository: Check if project exists by sn_project_id
+        Repository->>Database: SELECT * FROM projects<br/>WHERE sn_project_id = '{sn_project_id}'
+        alt Project already exists
+            Database-->>Repository: Existing record found
+            Repository-->>Service: Project exists
+            Service->>Service: Skip - no duplicate created
+        else Project not found
+            Database-->>Repository: No record
+            Repository-->>Service: Not found
+            Service->>Repository: Get Inactive status_id
+            Repository->>Database: SELECT status_id FROM statuses<br/>WHERE status_name = 'Inactive'
+            Database-->>Repository: status_id
+            Repository-->>Service: status_id
+            Service->>Repository: Insert new project
+            Repository->>Database: INSERT INTO projects<br/>(project_id, sn_project_id, project_name,<br/>onboarded_date, status_id, is_active=1)
+            Database-->>Repository: Project created
+            Repository-->>Service: Success
+        end
     end
+
     Service-->>Route: Sync result
     Route-->>ServiceNow: 200 - Sync completed successfully
 
@@ -54,7 +58,7 @@ sequenceDiagram
             Database-->>Repository: specialization_id
             Repository-->>Service: specialization_id
 
-            Service->>Repository: Resolve project (3-step fallback)
+            Service->>Repository: Resolve project (4-step fallback)
             Repository->>Database: Step 1: SELECT project_id FROM projects<br/>WHERE sn_project_id = '{sn_project_id}'
             alt Matched by sn_project_id
                 Database-->>Repository: project_id
@@ -63,10 +67,16 @@ sequenceDiagram
                 Repository->>Database: Step 2: SELECT project_id FROM projects<br/>WHERE project_name = '{project_name}'
                 alt Matched by project_name
                     Database-->>Repository: project_id
-                else Use default project
+                else Try client
                     Database-->>Repository: No record
-                    Repository->>Database: Step 3: SELECT project_id<br/>FROM default project
-                    Database-->>Repository: default project_id
+                    Repository->>Database: Step 3: SELECT project_id FROM projects<br/>WHERE client = '{client}'
+                    alt Matched by client
+                        Database-->>Repository: project_id
+                    else Use default project
+                        Database-->>Repository: No record
+                        Repository->>Database: Step 4: SELECT project_id<br/>FROM default project
+                        Database-->>Repository: default project_id
+                    end
                 end
             end
             Repository-->>Service: project_id

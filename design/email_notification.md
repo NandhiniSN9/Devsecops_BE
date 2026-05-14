@@ -8,7 +8,19 @@
 - **Story ID:** ZDAD-60  
 - **Story Name:** Implement Email Notification Service  
 - **Story Description:**  
-  Implement an automated email notification service that generates PDF reports (At-risk and Summary) for each specialization and delivers them to configured recipients. The service is triggered by a daily cron job that evaluates each specialization's configured email digest and at-risk alert frequencies, generates HTML-to-PDF reports using stored templates, uploads them to cloud storage, sends emails via Microsoft Graph API, and tracks delivery history to prevent duplicate sends within the configured frequency window.
+  When there are at-risk projects or pipeline failures, stakeholders need to receive automated email notifications so that they can stay informed and take timely action. Daily digests and weekly reports are available — stakeholders want to receive automated email notifications so that users can stay informed and take timely action.
+- **Scope:**  
+  This issue involves implementing an email notification service. The service will support various business scenarios and provide a reliable API for integration by other components. It will handle message composition, recipient management, and interaction with the email provider, ensuring traceability and basic error handling.
+- **Acceptance Criteria:**
+  - Generate Story Definition (SD) for email notification scenarios.
+  - Confirm functional and non-functional requirements.
+  - Design and implement the Email Service API with: request/response models, validation, and integration with the email delivery mechanism.
+  - Create and execute unit tests for email service components.
+  - Fix defects identified during unit testing.
+  - Conduct developer pre-verification of end-to-end notification flows.
+  - Perform System Integration Testing (SIT 1 and SIT 2) for email notification scenarios.
+  - Ensure regression testing of impacted components.
+  - Review code and implementation for: adherence to coding standards, logging, and configuration management.
 
 ### <u> Table of Contents </u>
 - [Section 1: Functional Requirements](#Section-1:-Functional-Requirements)
@@ -34,7 +46,7 @@
 
 #### <u> 1.1 Overview </u>
 
-The Email Notification Service automates the generation and delivery of PDF reports for the DevSecOps Jira Dashboard. The service exposes a `POST /api/v1/reports/generate` endpoint that is triggered by an external daily cron job with no request body. Upon invocation, the service internally fetches all active specializations and evaluates each one's configured report frequencies (`email_digest` for Summary reports and `at_risk_alert` for At-risk reports) from the `settings` table. It checks the `email_history` table to determine whether a report has already been sent within the current frequency window (e.g., weekly, monthly). If a report is due, the service fetches the corresponding HTML email template from the `email_templates` table, retrieves the relevant report data (KPI metrics for Summary reports or at-risk project details for At-risk reports), processes the HTML using BeautifulSoup to inject dynamic data, converts the populated HTML to a PDF document using WeasyPrint, uploads the PDF to cloud storage (AWS S3 or Azure Blob Storage), sends the email with the report link to all active recipients configured for that specialization via Microsoft Graph API, and finally records the delivery status in the `email_history` table. The cron job execution status is tracked in the `cron_jobs` table. All errors are logged to the `error_log` table for traceability.
+The Email Notification Service automates the generation and delivery of PDF reports for the DevSecOps Jira Dashboard. The service exposes a `POST /api/v1/reports/generate` endpoint that is triggered by an external daily cron job with no request body. Upon invocation, the service internally fetches all active specializations and evaluates each one's configured report frequencies (`email_digest` for Summary reports and `at_risk_alert` for At-risk reports) from the `settings` table. It checks the `email_history` table to determine whether a report has already been sent within the current frequency window (e.g., weekly, monthly). If a report is due, the service fetches the corresponding HTML email template from the `email_templates` table, retrieves the relevant report data (KPI metrics for Summary reports or at-risk project details for At-risk reports), processes the HTML using BeautifulSoup to inject dynamic data, converts the populated HTML to a PDF document using WeasyPrint, uploads the PDF to AWS S3, sends the email with the report link to all active recipients configured for that specialization via Microsoft Graph API, and finally records the delivery status in the `email_history` table. The cron job execution status is tracked in the `cron_jobs` table. All errors are logged to the `error_log` table for traceability.
 
 #### <u> 1.2 Requirement Details </u>
 
@@ -99,7 +111,10 @@ No request body required. The endpoint is called without any payload.
 ##### Description:
 The system shall implement frequency-based evaluation logic that determines whether a report should be sent for a given specialization. The daily cron job (external trigger) calls the report generation endpoint for each specialization. Before generating and sending a report, the service checks the `email_history` table to determine if a report of the same type has already been sent within the current frequency window. The frequency is configured per specialization in the `settings` table via `email_digest` (for Summary reports) and `at_risk_alert` (for At-risk reports).
 
+**Important:** Report settings are controlled at the specialization/domain level, NOT per user. Each specialization (e.g., DevSecOps, Platform Engineering, Frontend, SRE) maintains its own independent configuration. If one specialization head updates the settings for a domain, the settings apply to ALL specialization heads/users within that same domain. For example, if DevSecOps is configured with Risk Report = Daily and Summary Report = Weekly, then all DevSecOps specialization heads receive daily Risk Reports and weekly Summary Reports — but these settings do NOT affect other domains like Platform Engineering or SRE.
+
 ##### Frequency Options:
+- `daily` — Send every day (check if sent in the last 24 hours)
 - `weekly` — Send once per week (check if sent in the last 7 days)
 - `bi-weekly` — Send once every two weeks (check if sent in the last 14 days)
 - `monthly` — Send once per month (check if sent in the last 30 days)
@@ -108,9 +123,10 @@ The system shall implement frequency-based evaluation logic that determines whet
 ##### Evaluation Logic:
 1. For each active specialization, read the `settings` record to get `email_digest` and `at_risk_alert` frequency values.
 2. For each report type (Summary and At-risk):
-   a. If the frequency is `disabled` or `null`, skip this report type.
+   a. If the frequency is `not_required`, skip this report type.
    b. Query `email_history` for the most recent record where `email_type` matches the report type, `setting_id` matches, and `email_status = "sent"`.
    c. Calculate whether the time elapsed since `last_synced` exceeds the frequency window:
+      - `daily`: 24 hours
       - `weekly`: 7 days
       - `bi-weekly`: 14 days
       - `monthly`: 30 days
@@ -122,7 +138,7 @@ The system shall implement frequency-based evaluation logic that determines whet
 - A specialization with `email_digest = "weekly"` receives a Summary report only once per 7 days.
 - A specialization with `at_risk_alert = "not_required"` never receives At-risk reports.
 - First-time execution (no history) triggers report generation immediately.
-- The evaluation logic correctly handles all frequency options (weekly, bi-weekly, monthly, not_required).
+- The evaluation logic correctly handles all frequency options (daily, weekly, bi-weekly, monthly, not_required).
 - Skipped reports are logged at DEBUG level with the reason.
 
 ##### <u> 1.2.3 ZDAD-60-FR03: HTML Template Processing and PDF Generation </u>
@@ -160,29 +176,25 @@ The system shall fetch the HTML email template from the `email_templates` table,
 ##### <u> 1.2.4 ZDAD-60-FR04: Cloud Storage Upload </u>
 
 ##### Description:
-The system shall upload the generated PDF document to cloud storage (AWS S3 or Azure Blob Storage) and return a publicly accessible or pre-signed URL for download. The storage provider is configurable via environment variables, allowing deployment flexibility between AWS and Azure environments.
+The system shall upload the generated PDF document to AWS S3 and return a pre-signed URL for download.
 
 ##### Upload Configuration:
-- **Storage provider**: Determined by `STORAGE_PROVIDER` environment variable (`s3` or `azure_blob`).
-- **Bucket/Container name**: Configured via `STORAGE_BUCKET_NAME` environment variable.
+- **Bucket name**: Configured via `S3_BUCKET_NAME` environment variable.
 - **File path pattern**: `reports/{specialization_name}/{report_type}/{YYYY}/{MM}/{filename}.pdf`
 - **Filename format**: `{report_type}_{specialization_name}_{YYYYMMDD_HHmmss}.pdf`
 
 ##### Processing Logic:
 1. Generate the file path and filename based on the report metadata.
 2. Upload the PDF bytes to the configured storage provider.
-3. Generate a download URL:
-   - **S3**: Generate a pre-signed URL with configurable expiration (default: 7 days).
-   - **Azure Blob**: Generate a SAS token URL with configurable expiration (default: 7 days).
+3. Generate a pre-signed URL with configurable expiration (default: 7 days).
 4. Return the URL for inclusion in the email body and `email_history.report_url`.
 
 ##### Acceptance Criteria:
-- The PDF is uploaded successfully to the configured cloud storage.
+- The PDF is uploaded successfully to S3.
 - The generated URL is accessible and allows PDF download.
 - The URL has a configurable expiration period (default 7 days).
 - Upload failures are caught, logged to `error_log`, and result in HTTP 500 response.
 - The file path follows the organized folder structure for easy management.
-- Both S3 and Azure Blob Storage are supported based on configuration.
 
 ##### <u> 1.2.5 ZDAD-60-FR05: Email Delivery </u>
 
@@ -332,9 +344,9 @@ All application configuration shall be managed through environment variables. Th
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `STORAGE_PROVIDER` | Cloud storage provider: `s3` or `azure_blob` | Yes |
-| `STORAGE_BUCKET_NAME` | S3 bucket or Azure Blob container name | Yes |
-| `STORAGE_URL_EXPIRY_DAYS` | Pre-signed URL expiration in days (default: 7) | No |
+| `S3_BUCKET_NAME` | AWS S3 bucket name for PDF uploads | Yes |
+| `S3_URL_EXPIRY_DAYS` | Pre-signed URL expiration in days (default: 7) | No |
+| `AWS_REGION` | AWS region for S3 | Yes |
 | `GRAPH_CLIENT_ID` | Microsoft Graph API client ID | Yes |
 | `GRAPH_CLIENT_SECRET` | Microsoft Graph API client secret | Yes |
 | `GRAPH_TENANT_ID` | Microsoft Graph API tenant ID | Yes |
@@ -352,7 +364,7 @@ All application configuration shall be managed through environment variables. Th
 - Fetching active email recipients from `email_recipient` table filtered by `specialization_id`
 - HTML template processing using BeautifulSoup to inject dynamic report data
 - PDF generation from populated HTML using WeasyPrint (in-memory, no temp files)
-- PDF upload to cloud storage (AWS S3 or Azure Blob Storage) with pre-signed/SAS URL generation
+- PDF upload to AWS S3 with pre-signed URL generation
 - Email delivery to all active recipients via Microsoft Graph API
 - Skip-and-continue pattern for individual recipient email failures
 - Email history tracking in `email_history` table (status, URL, timestamp)

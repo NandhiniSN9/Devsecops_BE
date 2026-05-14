@@ -6,7 +6,7 @@ sequenceDiagram
     participant Service as Service<br/>(src/services/report_service.py)
     participant Repository as Repository<br/>(src/repositories/)
     participant Database
-    participant Storage as Cloud Storage<br/>(S3 / Azure Blob)
+    participant Storage as AWS S3
     participant Email as Microsoft Graph API
 
     %% Trigger
@@ -35,7 +35,7 @@ sequenceDiagram
         Repository->>Database: SELECT email_history<br/>WHERE setting_id AND email_type<br/>AND email_status="sent"<br/>ORDER BY last_synced DESC LIMIT 1
         Database-->>Repository: Last sent timestamp (or null)
         Repository-->>Service: Last sent record
-        Service->>Service: Evaluate frequency window<br/>(weekly=7d, bi-weekly=14d, monthly=30d)
+        Service->>Service: Evaluate frequency window<br/>(daily=24h, weekly=7d, bi-weekly=14d, monthly=30d)
 
         alt Report already sent within window
             Service->>Service: Skip - log DEBUG

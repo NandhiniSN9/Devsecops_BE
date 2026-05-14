@@ -54,9 +54,15 @@ The ServiceNow Integration story implements two inbound sync endpoints that enab
 The system shall expose a `POST /api/v1/sync/servicenow/projects` endpoint that receives project data from ServiceNow and inserts a new record in the `projects` table. The `sn_project_id` field serves as the unique identifier — if a project with the same `sn_project_id` already exists, the record is skipped (no duplicate created). This endpoint is triggered by a webhook configured in ServiceNow when a new project is created.
 
 ##### Request Payload:
+**Root object:**
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| sn_project_id | VARCHAR | ServiceNow project identifier (unique key for deduplication) |
+| `projects` | array | Yes | List of project objects to sync |
+
+**Each project object:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `sn_project_id` | string | Yes | ServiceNow project identifier (unique key for deduplication) |
 | `project_name` | string | Yes | Name of the project |
 | `onboarded_date` | date (ISO 8601) | Yes | Date when the project was onboarded (format: YYYY-MM-DD) |
 | `project_type` | string | Yes | Type/category of the project (e.g., "Infrastructure") |
@@ -66,16 +72,17 @@ The system shall expose a `POST /api/v1/sync/servicenow/projects` endpoint that 
 
 ##### Processing Logic:
 1. Authenticate the request by decrypting the token and validating the ServiceNow email against the `SERVICENOW_ALLOWED_EMAIL` environment variable. Return 401 if email does not match.
-2. Validate the request payload against the Pydantic schema (required fields, data types, date format).
-3. Look up the project by `sn_project_id` in the `projects` table:
-   - **If found** → Skip the record (project already exists). Return success.
-   - **If not found** → Create a new project record with:
-     - A generated UUID as `project_id`
-     - `status_id` set to the "Inactive" status (looked up from the `statuses` table by name)
-     - `is_active` set to 1
-     - `created_at` set to current timestamp
-     - `created_by` set to the authenticated service account identifier
-5. Return a success response with HTTP 200.
+2. Validate the request payload against the Pydantic schema (must contain a non-empty `projects` array, required fields, data types, date format).
+3. For each project in the array:
+   a. Look up the project by `sn_project_id` in the `projects` table:
+      - **If found** → Skip the record (project already exists).
+      - **If not found** → Create a new project record with:
+        - A generated UUID as `project_id`
+        - `status_id` set to the "Inactive" status (looked up from the `statuses` table by name)
+        - `is_active` set to 1
+        - `created_at` set to current timestamp
+        - `created_by` set to the authenticated service account identifier
+4. Return a success response with HTTP 200.
 
 ##### Success Response:
 ```json
@@ -136,10 +143,11 @@ The system shall expose a `POST /api/v1/sync/servicenow/devsecops-tickets` endpo
 2. Validate the root payload structure (must contain a non-empty `tickets` array).
 3. For each ticket in the array:
    a. **Resolve `specialization_name`** → Query the `specializations` table for a record where `specialization_name` matches (case-insensitive) and `is_active = 1`. If not found, mark this ticket as failed and continue to the next ticket.
-   b. **Resolve project (3-step fallback)**:
+   b. **Resolve project (4-step fallback)**:
       1. **Match by `sn_project_id`** → Query the `projects` table for a record where `sn_project_id` matches the request's `sn_project_id` and `is_active = 1`. If found, use that project's `project_id` and `sn_project_id`.
       2. **Match by `project_name`** → If no `sn_project_id` match, query the `projects` table for a record where `project_name` matches the request's `project_name` and `is_active = 1`. If found, use that project's `project_id` and `sn_project_id`.
-      3. **Use default project** → If neither match is found, use the pre-existing default project record in the `projects` table. Map the ticket to the default project's `project_id` and `sn_project_id`.
+      3. **Match by `client`** → If no `project_name` match, query the `projects` table for a record where `client` matches the request's `client` and `is_active = 1`. If found, use that project's `project_id` and `sn_project_id`.
+      4. **Use default project** → If none of the above match, use the pre-existing default project record in the `projects` table. Map the ticket to the default project's `project_id` and `sn_project_id`.
    c. **Insert the ticket** → Create a new record in `devsecops_tickets` with:
       - Generated UUID as `ticket_id`
       - Resolved `specialization_id` and `project_id`
@@ -175,8 +183,8 @@ The system shall expose a `POST /api/v1/sync/servicenow/devsecops-tickets` endpo
 
 ##### Acceptance Criteria:
 - A new ticket is always created in `devsecops_tickets` for each incoming ticket in the batch (one project can have multiple tickets).
-- Project resolution follows the 3-step fallback: match by `sn_project_id` → match by `project_name` → use default project.
-- When matched by `project_name`, the existing project's `project_id` and `sn_project_id` are used for the ticket.
+- Project resolution follows the 4-step fallback: match by `sn_project_id` → match by `project_name` → match by `client` → use default project.
+- When matched by `project_name` or `client`, the existing project's `project_id` and `sn_project_id` are used for the ticket.
 - When no match is found, the ticket is mapped to the pre-existing default project in the database.
 - Repositories are created and linked to the correct ticket via `ticket_id`. Existing repositories are skipped.
 - Unknown `specialization_name` values cause the individual ticket to be skipped (not the entire batch).
@@ -190,13 +198,15 @@ The system shall expose a `POST /api/v1/sync/servicenow/devsecops-tickets` endpo
 The system shall validate all incoming request payloads for the sync endpoints using Pydantic v2 models. Validation errors are returned as HTTP 400 responses with descriptive messages identifying which field failed validation and why.
 
 ##### Validation Rules — Project Sync:
-- `sn_project_id`: Required, non-empty string.
-- `project_name`: Required, non-empty string.
-- `onboarded_date`: Required, valid ISO 8601 date format (YYYY-MM-DD).
-- `project_type`: Required, non-empty string.
-- `is_applicable`: Optional, must be boolean if provided.
-- `client`: Optional, string.
-- `approver`: Optional, string.
+- `projects`: Required, must be a non-empty array.
+- Each project:
+  - `sn_project_id`: Required, non-empty string.
+  - `project_name`: Required, non-empty string.
+  - `onboarded_date`: Required, valid ISO 8601 date format (YYYY-MM-DD).
+  - `project_type`: Required, non-empty string.
+  - `is_applicable`: Optional, must be boolean if provided.
+  - `client`: Optional, string.
+  - `approver`: Optional, string.
 
 ##### Validation Rules — DevSecOps Tickets Sync:
 - `tickets`: Required, must be a non-empty array.
@@ -294,7 +304,7 @@ All application configuration shall be managed through environment variables. Th
 - Pydantic v2 request models for payload validation
 - Insert logic for projects keyed on `sn_project_id` (duplicates skipped)
 - Insert logic for tickets — each incoming ticket is always created (one project can have multiple tickets)
-- 3-step project resolution fallback for tickets: match `sn_project_id` → match `project_name` → use default project
+- 4-step project resolution fallback for tickets: match `sn_project_id` → match `project_name` → match `client` → use default project
 - Insert logic for repositories keyed on `repo_name` + `ticket_id` combination (existing records skipped)
 - Resolution of `specialization_name` to `specialization_id` from the `specializations` table
 - Default status assignment ("Inactive") for newly created projects

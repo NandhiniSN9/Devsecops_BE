@@ -656,20 +656,20 @@ components:
               properties:
                 metrics:
                   $ref: '#/components/schemas/OverviewMetrics'
-                statusDistribution:
+                status_distribution:
                   $ref: '#/components/schemas/StatusDistribution'
 
     OverviewMetrics:
       type: object
       properties:
-        totalProjects:
+        total_projects:
           type: object
           properties:
             count:
               type: integer
               description: Total number of projects
               example: 44
-            newThisMonth:
+            new_this_month:
               type: string
               description: Trend direction (increase/decrease/null)
               example: "increase"
@@ -937,12 +937,12 @@ components:
           type: string
           description: Name of the project
           example: "Project Xenon"
-        onboardedDate:
+        onboarded_date:
           type: string
           format: date
           description: Date when the project was onboarded
           example: "2026-02-20"
-        repositoryCount:
+        repository_count:
           type: integer
           description: Number of repositories under this project
           example: 3
@@ -968,7 +968,7 @@ components:
           type: string
           description: Name of the repository
           example: "xenon-infra-core"
-        onboardedDate:
+        onboarded_date:
           type: string
           format: date
           description: Date when the repository was onboarded
@@ -989,7 +989,7 @@ components:
           type: integer
           description: Items per page
           example: 10
-        totalItems:
+        total_items:
           type: integer
           description: Total number of items
           example: 44
@@ -1089,27 +1089,27 @@ components:
       type: object
       required:
         - header
-        - pipelineMetrics
-        - adoptionTimeline
-        - pipelineActivity
+        - pipeline_metrics
+        - adoption_timeline
+        - pipeline_activity
         - commits
-        - pullRequests
-        - securityScans
+        - pull_requests
+        - security_scans
         - artifacts
       properties:
         header:
           $ref: '#/components/schemas/RepositoryHeader'
-        pipelineMetrics:
+        pipeline_metrics:
           $ref: '#/components/schemas/PipelineMetrics'
-        adoptionTimeline:
+        adoption_timeline:
           $ref: '#/components/schemas/AdoptionTimeline'
-        pipelineActivity:
+        pipeline_activity:
           $ref: '#/components/schemas/PipelineActivitySection'
         commits:
           $ref: '#/components/schemas/CommitsSection'
-        pullRequests:
+        pull_requests:
           $ref: '#/components/schemas/PullRequestsSection'
-        securityScans:
+        security_scans:
           $ref: '#/components/schemas/SecurityScansSection'
         artifacts:
           $ref: '#/components/schemas/ArtifactsSection'
@@ -1135,18 +1135,18 @@ components:
           type: string
           description: Client name associated with the repository
           example: "Internal"
-        onboardingDate:
+        onboarding_date:
           type: string
           format: date
           description: Date when the repository was onboarded (ISO 8601)
           example: "2026-02-27"
-        closedBy:
+        closed_by:
           type: string
           format: date
           nullable: true
           description: Expected completion date or null if not set (ISO 8601)
           example: "2026-04-13"
-        projectType:
+        project_type:
           type: string
           description: Specialization and category label
           example: "Internal · Infrastructure"
@@ -1167,16 +1167,16 @@ components:
     PipelineMetrics:
       type: object
       properties:
-        totalRuns:
+        total_runs:
           type: integer
           description: Total pipeline runs since first connection
           example: 142
-        lastPipelineRun:
+        last_pipeline_run:
           type: string
           nullable: true
           description: Human-readable time elapsed since last pipeline run
           example: "5 days ago"
-        lastPipelineRunAt:
+        last_pipeline_run_at:
           type: string
           format: date-time
           nullable: true
@@ -1192,19 +1192,19 @@ components:
         - step: "kicked_off"
           label: "Kicked Off"
           status: "completed"
-          completedAt: "2026-02-20"
+          completed_at: "2026-02-20"
         - step: "pipeline_detected"
           label: "Pipeline Detected"
           status: "completed"
-          completedAt: "2026-03-10"
+          completed_at: "2026-03-10"
         - step: "first_run"
           label: "First Run"
           status: "in_progress"
-          completedAt: null
+          completed_at: null
         - step: "adopted"
           label: "Adopted"
           status: "pending"
-          completedAt: null
+          completed_at: null
 
     AdoptionTimelineStep:
       type: object
@@ -1230,7 +1230,7 @@ components:
             - pending
           description: Current status of the timeline step
           example: "completed"
-        completedAt:
+        completed_at:
           type: string
           format: date
           nullable: true
@@ -1249,7 +1249,7 @@ components:
     PipelineRun:
       type: object
       properties:
-        runNumber:
+        run_number:
           type: integer
           description: Pipeline run number
           example: 142
@@ -1295,7 +1295,7 @@ components:
           type: string
           description: Author name
           example: "Tom Walsh"
-        committedAt:
+        committed_at:
           type: string
           format: date-time
           description: ISO 8601 timestamp of the commit
@@ -1321,7 +1321,7 @@ components:
               type: integer
               description: Number of declined pull requests
               example: 1
-        pullRequests:
+        pull_requests:
           type: array
           items:
             $ref: '#/components/schemas/PullRequestItem'
@@ -1345,7 +1345,7 @@ components:
             - declined
           description: Current status of the pull request
           example: "open"
-        updatedAt:
+        updated_at:
           type: string
           format: date-time
           description: ISO 8601 timestamp of the last update
@@ -1355,7 +1355,7 @@ components:
     SecurityScansSection:
       type: object
       properties:
-        totalFindings:
+        total_findings:
           type: integer
           description: Total findings across all scan types
           example: 21
@@ -1397,24 +1397,24 @@ components:
           type: string
           description: Name of the artifact file
           example: "build-output.zip"
-        sizeBytes:
+        size_bytes:
           type: integer
           description: File size in bytes
           example: 4404019
-        sizeLabel:
+        size_label:
           type: string
           description: Human-readable file size
           example: "4.2 MB"
-        buildNumber:
+        build_number:
           type: integer
           description: Associated pipeline build number
           example: 142
-        createdAt:
+        created_at:
           type: string
           format: date-time
           description: ISO 8601 timestamp when the artifact was created
           example: "2026-05-07T10:32:00Z"
-        downloadUrl:
+        download_url:
           type: string
           format: uri
           description: Pre-signed URL to download the artifact
@@ -1606,11 +1606,11 @@ components:
           example: 10
         email_digest:
           type: string
-          description: Frequency for email digest reports (weekly, bi-weekly, monthly, not_required)
+          description: Frequency for email digest reports (daily, weekly, bi-weekly, monthly, not_required)
           example: "weekly"
         at_risk_alert:
           type: string
-          description: Frequency for at-risk alert reports (weekly, bi-weekly, monthly, not_required)
+          description: Frequency for at-risk alert reports (daily, weekly, bi-weekly, monthly, not_required)
           example: "weekly"
         email_recipients:
           type: array
@@ -1638,12 +1638,12 @@ components:
         email_digest:
           type: string
           nullable: true
-          description: Frequency for email digest reports (weekly, bi-weekly, monthly, not_required)
+          description: Frequency for email digest reports (daily, weekly, bi-weekly, monthly, not_required)
           example: "weekly"
         at_risk_alert:
           type: string
           nullable: true
-          description: Frequency for at-risk alert reports (weekly, bi-weekly, monthly, not_required)
+          description: Frequency for at-risk alert reports (daily, weekly, bi-weekly, monthly, not_required)
           example: "weekly"
         email_recipients:
           type: array
