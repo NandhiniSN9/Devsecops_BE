@@ -1171,11 +1171,15 @@ components:
           type: integer
           description: Total pipeline runs since first connection
           example: 142
+        success_rate:
+          type: number
+          description: Success rate percentage from the last 30 pipeline runs
+          example: 85.5
         last_pipeline_run:
-          type: string
+          type: integer
           nullable: true
-          description: Human-readable time elapsed since last pipeline run
-          example: "5 days ago"
+          description: Number of days since the last pipeline run
+          example: 5
         last_pipeline_run_at:
           type: string
           format: date-time
@@ -1270,12 +1274,17 @@ components:
           type: string
           description: Human-readable duration of the run
           example: "2m 14s"
+        triggered_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the pipeline run was triggered
+          example: "2026-05-07T10:30:00Z"
 
     # Commits Tab
     CommitsSection:
       type: object
       properties:
-        commits:
+        commit_details:
           type: array
           items:
             $ref: '#/components/schemas/CommitItem'
@@ -1321,7 +1330,7 @@ components:
               type: integer
               description: Number of declined pull requests
               example: 1
-        pull_requests:
+        pull_requests_details:
           type: array
           items:
             $ref: '#/components/schemas/PullRequestItem'
@@ -1385,7 +1394,7 @@ components:
     ArtifactsSection:
       type: object
       properties:
-        artifacts:
+        artifacts_details:
           type: array
           items:
             $ref: '#/components/schemas/ArtifactItem'
@@ -1606,12 +1615,16 @@ components:
           example: 10
         email_digest:
           type: string
-          description: Frequency for email digest reports (daily, weekly, bi-weekly, monthly, not_required)
+          description: Email digest schedule value
           example: "weekly"
         at_risk_alert:
           type: string
           description: Frequency for at-risk alert reports (daily, weekly, bi-weekly, monthly, not_required)
           example: "weekly"
+        last_synced:
+          type: string
+          description: Timestamp of the last sync operation
+          example: "2026-05-10T14:30:00Z"
         email_recipients:
           type: array
           description: List of recipient email addresses
@@ -1638,7 +1651,7 @@ components:
         email_digest:
           type: string
           nullable: true
-          description: Frequency for email digest reports (daily, weekly, bi-weekly, monthly, not_required)
+          description: Email digest schedule value
           example: "weekly"
         at_risk_alert:
           type: string
