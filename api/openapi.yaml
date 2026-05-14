@@ -1606,11 +1606,11 @@ components:
           example: 10
         email_digest:
           type: string
-          description: Frequency for email digest reports (e.g., daily, weekly, monthly, disabled)
+          description: Frequency for email digest reports (weekly, bi-weekly, monthly, not_required)
           example: "weekly"
         at_risk_alert:
           type: string
-          description: Frequency for at-risk alert reports (e.g., daily, weekly, monthly, disabled)
+          description: Frequency for at-risk alert reports (weekly, bi-weekly, monthly, not_required)
           example: "weekly"
         email_recipients:
           type: array
@@ -1638,12 +1638,12 @@ components:
         email_digest:
           type: string
           nullable: true
-          description: Frequency for email digest reports (daily, weekly, monthly, disabled)
+          description: Frequency for email digest reports (weekly, bi-weekly, monthly, not_required)
           example: "weekly"
         at_risk_alert:
           type: string
           nullable: true
-          description: Frequency for at-risk alert reports (daily, weekly, monthly, disabled)
+          description: Frequency for at-risk alert reports (weekly, bi-weekly, monthly, not_required)
           example: "weekly"
         email_recipients:
           type: array

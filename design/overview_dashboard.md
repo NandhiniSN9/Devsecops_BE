@@ -22,28 +22,18 @@
 - [Section 1: Functional Requirements](#Section-1:-Functional-Requirements)
     - [1.1 Overview](#1.1-Overview)
     - [1.2 Requirement Details](#1.2-Requirement-Details)
+        - [1.2.1 ZDAD-34-FR01: Overview Dashboard Metrics and Data Retrieval](#1.2.1-ZDAD-34-FR01:-Overview-Dashboard-Metrics-and-Data-Retrieval)
+        - [1.2.2 ZDAD-34-FR02: Filters Endpoint](#1.2.2-ZDAD-34-FR02:-Filters-Endpoint)
+        - [1.2.3 ZDAD-34-FR03: Attention Banner](#1.2.3-ZDAD-34-FR03:-Attention-Banner)
+        - [1.2.4 ZDAD-34-FR04: Query Parameter Validation](#1.2.4-ZDAD-34-FR04:-Query-Parameter-Validation)
+        - [1.2.5 ZDAD-34-FR05: Error Logging](#1.2.5-ZDAD-34-FR05:-Error-Logging)
     - [1.3 Database Schema](#1.3-Database-Schema)
     - [1.4 Project Artifacts](#1.4-Project-Artifacts)
-    - [1.5 Dependencies](#1.5-Dependencies)
-- [Section 2: Non Functional Requirements](#Section-2:-Non-Functional-Requirements)
-- [2.1 Infrastructure and Deployment](#2.1-Infrastructure-and-Deployment)
-    - [2.1.1 Overview](#2.1-Overview)
-    - [2.1.2 Requirement Details](#2.2-Requirement-Details)
-    - [2.1.3 Project Artifacts](#2.3-Project-Artifacts)
-- [2.2 Architecture and System Design](#2.2-Architecture-and-System-Design)
-    - [2.2.1 Security and Compliance](#2.2.1-Security-and-Compliance)
-    - [2.2.2 System Performance](#2.2.2-System-Performance)
-    - [2.2.3 Availability and Reliability](#2.2.3-Availability-and-Reliability)
-    - [2.2.4 Cost Efficiency](#2.2.4-Cost-Efficiency)
-    - [2.2.5 Traceability and Observability](#2.2.5-Traceability-and-Observability)
-- [Section 3: In Scope and Out Scope](#Section-3:-In-Scope-and-Out-Scope)
-    - [3.1 In Scope Details](#3.1-In-Scope-Details)
-    - [3.2 Out Scope Details](#3.2-Out-Scope-Details)
-- [Section 4: Solution Diagrams](#Section-4:-Solution-Diagrams)
-    - [4.1 UI/UX Design Diagram](#4.1-UI/UX-Design-Diagram)
-    - [4.2 Architecture Design Diagram](#4.2-Architecture-Design-Diagram)
-    - [4.3 Infrastructure Design Diagram](#4.3-Infrastructure-Design-Diagram)
-
+    - [1.5 Environment Variables](#1.5-Environment-Variables)
+- [Section 2: In Scope and Out Scope](#Section-2:-In-Scope-and-Out-Scope)
+    - [2.1 In Scope Details](#2.1-In-Scope-Details)
+    - [2.2 Out Scope Details](#2.2-Out-Scope-Details)
+- [Section 3: Solution Diagrams](#Section-3:-Solution-Diagrams)
 
 ### <u> Section 1: Functional Requirements </u>
 
@@ -112,7 +102,6 @@ The response `data.statusDistribution` object contains:
 - When specialization filter is provided, only metrics for matching specializations are returned.
 - When specialization filter is omitted, metrics across all specializations are aggregated.
 - Trend values are one of: `increase`, `decrease`, `flat`, or `null`.
-- The attention banner severity is `critical` when at-risk count > 5, `warning` when 1-5, and `info` when 0.
 - Response follows the standardized `BaseResponse` schema with `status_code`, `status`, `message`, and `data` fields.
 - The overview data accurately reflects the current state of all onboarded projects.
 
@@ -220,51 +209,7 @@ The full database schema is defined in `design/er_diagram.mmd`. The following ta
 - `design/requirements.md` — Section 1 (Overview API) contains the high-level requirements for this story.
 - `diagram/ZDAD-34_overview_api_flow.mmd` — Sequence diagram showing the Overview API request flow.
 
-#### <u> 1.5 Dependencies </u>
-
-- **Python 3.12+** — Runtime environment
-- **FastAPI** — Web framework for building the REST API
-- **SQLAlchemy** — ORM for PostgreSQL database access
-- **Pydantic v2** — Request/response model validation and serialization
-- **PostgreSQL** — Primary database storing projects, KPI history, specializations, and error logs
-- **cryptography / PyCryptodome** — Token decryption using private key
-- **Jira API client (atlassian-python-api or httpx)** — Validates Jira email existence
-- **Uvicorn** — ASGI server for running the FastAPI application
-- **ADO Azure Sync Cron** — External dependency that computes and populates the `kpi_history` table (out of scope for this story)
-
-
-### <u> Section 2: Non Functional Requirements </u>
-
-### 2.1 Infrastructure and Deployment
-
-#### <u> 2.1.1 Overview </u>
-
-The Overview Dashboard API is deployed as part of the DevSecOps Jira Dashboard backend application on Azure App Service. The application is a Python FastAPI service running on Uvicorn, connected to a PostgreSQL database for persistent storage. The deployment follows a containerized approach with the application packaged as a Docker image and deployed to Azure App Service. The infrastructure leverages Azure-managed services for database hosting (Azure Database for PostgreSQL), application hosting (Azure App Service), and secret management. The deployment pipeline ensures zero-downtime deployments with health check validation before traffic routing. Environment-specific configurations are managed through Azure App Service application settings and environment variables, ensuring no secrets are hardcoded in the application code.
-
-#### <u> 2.1.2 Requirement Details </u>
-
-- **ZDAD-34-NFR01: Azure App Service Deployment**
-- **ZDAD-34-NFR02: Environment Configuration**
-- **ZDAD-34-NFR03: Health Check Endpoint**
-
-##### <u> 2.1.2.1 ZDAD-34-NFR01: Azure App Service Deployment </u>
-
-##### Description:
-The application shall be deployed to Azure App Service as a containerized Python FastAPI application. The deployment uses a Docker image built from the project's Dockerfile and pushed to a container registry. Azure App Service is configured to pull the latest image and run the application with Uvicorn as the ASGI server.
-
-##### Deployment Configuration:
-- **Runtime:** Python 3.12+ container image
-- **ASGI Server:** Uvicorn with configurable workers
-- **Port:** Application listens on port 8080 (configurable via environment variable)
-- **Startup Command:** `uvicorn main:app --host 0.0.0.0 --port 8080`
-
-##### Acceptance Criteria:
-- The application starts successfully on Azure App Service without errors.
-- The health check endpoint responds within the configured startup timeout.
-- Environment variables are correctly loaded from Azure App Service configuration.
-- The application connects to PostgreSQL using connection string from environment variables.
-
-##### <u> 2.1.2.2 ZDAD-34-NFR02: Environment Configuration </u>
+#### <u> 1.5 Environment Variables </u>
 
 ##### Description:
 All application configuration shall be managed through environment variables. Sensitive values such as database connection strings and the private key for token decryption are stored in Azure App Service application settings. A `.env.sample` file documents all required environment variables for local development.
@@ -276,95 +221,10 @@ All application configuration shall be managed through environment variables. Se
 | `TOKEN_PRIVATE_KEY` | Private key for token decryption (PEM format or path) | Yes |
 | `JIRA_BASE_URL` | Jira instance base URL for email validation | Yes |
 | `JIRA_API_TOKEN` | Jira API token for user lookup requests | Yes |
-| `APP_ENV` | Environment identifier (development, staging, production) | Yes |
-| `LOG_LEVEL` | Application log level (default: INFO) | No |
-| `PORT` | Application port (default: 8080) | No |
 
-##### Acceptance Criteria:
-- The application fails to start with a clear error message if required environment variables are missing.
-- No secrets or credentials are hardcoded in the application source code.
-- A `.env.sample` file exists documenting all required variables with placeholder values.
+### <u> Section 2: In Scope and Out Scope </u>
 
-#### <u> 2.1.3 Project Artifacts </u>
-
-- `api/openapi.yaml` — API specification including health and readiness endpoints
-- `design/er_diagram.mmd` — Database schema reference for readiness check validation
-
-### 2.2 Architecture and System Design
-
-#### <u> 2.2.1 Security and Compliance </u>
-
-##### Token-Based Authentication with Jira Email Validation:
-All API endpoints (except `/health` and `/ready`) require a valid encrypted token in the `Authorization` header. The authentication middleware decrypts the token using a private key to extract the Jira email ID, then validates that the email exists in Jira. Invalid or unrecognized tokens result in an HTTP 401 Unauthorized response.
-
-##### Token Validation Flow:
-1. Extract the `Authorization` header from the incoming request.
-2. Verify the header contains a `Bearer` prefix followed by the encrypted token.
-3. Decrypt the token using the configured private key to extract the payload (contains the Jira email ID).
-4. If decryption fails (invalid token, corrupted data, wrong key), return HTTP 401.
-5. Extract the Jira email ID from the decrypted payload.
-6. Validate the Jira email ID by calling the Jira API to confirm the user exists and is active.
-7. If the Jira email is not found or the user is inactive in Jira, return HTTP 401 with message: "User not found in Jira".
-8. Attach the validated user context (email, display name) to the request for downstream use.
-9. If validation fails at any step, return HTTP 401 with standardized error response.
-
-##### Input Validation:
-- All query parameters are validated using Pydantic models with strict enum constraints.
-- SQL injection is prevented by using SQLAlchemy ORM with parameterized queries (no raw SQL).
-- Request payloads are validated against Pydantic schemas before processing.
-
-#### <u> 2.2.2 System Performance </u>
-
-##### Database Query Optimization:
-- The Overview API reads KPI counts and trend data directly from the `kpi_history` table (pre-populated by ADO Azure Sync cron), avoiding any on-the-fly calculations.
-- Database indexes are maintained on frequently queried columns (`specialization_id`, `is_active`, `status_id`, `created_at`).
-- SQLAlchemy connection pooling is configured to reuse database connections efficiently.
-
-##### Response Efficiency:
-- The API returns all overview data (KPI tiles, status distribution, attention banner) in a single response to minimize round trips.
-- Status distribution is computed with a single aggregation query on the `projects` table.
-- The specializations endpoint response is cacheable with a TTL of 1 hour.
-
-#### <u> 2.2.3 Availability and Reliability </u>
-
-##### Error Resilience:
-- All unhandled exceptions are caught by a global exception handler that returns HTTP 500 and logs the error to the `error_log` table.
-- Database connection failures are handled gracefully with appropriate error responses.
-- The application implements connection retry logic for transient database failures.
-
-##### Deployment Reliability:
-- Azure App Service provides built-in auto-restart on application crashes.
-- Health check endpoints enable Azure to detect and replace unhealthy instances.
-
-#### <u> 2.2.4 Cost Efficiency </u>
-
-##### Resource Optimization:
-- KPI metrics and trend data in `kpi_history` (populated by ADO Azure Sync) eliminate on-the-fly computation, reducing database CPU usage.
-- Azure App Service scaling is configured based on actual traffic patterns.
-- PostgreSQL connection pooling minimizes the number of active database connections.
-- Single consolidated response reduces network overhead and client-side complexity.
-
-#### <u> 2.2.5 Traceability and Observability </u>
-
-##### Structured Logging:
-- All application logs use JSON-formatted structured logging with fields: `timestamp`, `level`, `logger`, `filename`, `line_number`, `message`.
-- Each request is assigned a `trace_id` for end-to-end request tracing.
-- Log levels: DEBUG for development, INFO for production request/response logging, ERROR for exceptions.
-
-##### Error Persistence:
-- All application errors are persisted to the `error_log` database table with full context (function name, file name, stack trace).
-- Error log entries include `created_at` timestamp and `created_by` identifier for audit purposes.
-
-##### Request Logging:
-- Incoming requests are logged at INFO level with method, path, and query parameters.
-- Response status codes and latency are logged for monitoring purposes.
-- Sensitive data (tokens, private keys, credentials) is never included in log output.
-
-
-
-### <u> Section 3: In Scope and Out Scope </u>
-
-#### <u> 3.1 Inscope Details </u>
+#### <u> 2.1 Inscope Details </u>
 
 - Implementation of `GET /api/v1/overview` endpoint returning KPI tiles (Total Projects, Adopted, Adoption Rate, At Risk, Active, Inactive), status distribution, and attention banner in one response
 - Implementation of `GET /api/v1/filters` endpoint returning all filter dropdown options (specializations, clients, statuses) — only specialization is used on the Overview screen
@@ -385,23 +245,16 @@ All API endpoints (except `/health` and `/ready`) require a valid encrypted toke
 - Layered architecture: Routes → Services → Repositories → Data Store
 - Unit tests covering positive and negative cases for both endpoints
 
-#### <u> 3.2 Outscope Details </u>
+#### <u> 2.2 Outscope Details </u>
 
 - UI/Frontend implementation
 - Caching layer implementation (Redis or in-memory)
 - Rate limiting and throttling
 - Role-based access control (RBAC) beyond token authentication
 
-### <u> Section 4: Solution Diagrams </u>
 
-#### <u> 4.1 UI/UX Design Diagram </u>
+### <u> Section 3: Solution Diagrams </u>
 
-**Diagram Location:** Not applicable for this story (backend API only)
+#### <u> 3.1 Architecture Diagram </u>
 
-#### <u> 4.2 Architecture Design Diagram </u>
-
-**Diagram Location:** `diagram/ZDAD-34_overview_api_flow.mmd`
-
-#### <u> 4.3 Infrastructure Design Diagram </u>
-
-**Diagram Location:** Not applicable for this story
+**Diagram Location:** `diagram/email_notification.mmd`

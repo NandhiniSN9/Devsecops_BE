@@ -2,75 +2,94 @@ sequenceDiagram
     title ZDAD-58: ServiceNow Integration - Project & Ticket Sync
 
     participant ServiceNow
-    participant Backend as Backend<br/>(src/routes/servicenow_sync_route.py)
+    participant Middleware as Middleware<br/>(src/middleware/servicenow_auth_middleware.py)
+    participant Route as Route<br/>(src/routes/servicenow_sync_route.py)
+    participant Service as Service<br/>(src/services/servicenow_sync_service.py)
+    participant Repository as Repository<br/>(src/repositories/)
     participant Database
 
     %% === Project Sync ===
-    Note over ServiceNow,Database: Project Sync Flow
-
-    ServiceNow->>Backend: POST /api/v1/sync/servicenow/projects<br/>{sn_project_id, project_name, onboarded_date, ...}
-    Backend->>Backend: Decrypt token, extract ServiceNow email
-    Backend->>Backend: Validate email against<br/>SERVICENOW_ALLOWED_EMAIL env var
-    Backend->>Backend: Check servicenow_sync role
-    Backend->>Backend: Validate payload (Pydantic schema)
-    Backend->>Database: SELECT * FROM projects<br/>WHERE sn_project_id = request.sn_project_id
+    ServiceNow->>Middleware: POST /api/v1/sync/servicenow/projects<br/>{sn_project_id, project_name, onboarded_date, ...}
+    Middleware->>Middleware: Decrypt token, extract ServiceNow email
+    Middleware->>Middleware: Validate email against<br/>SERVICENOW_ALLOWED_EMAIL env var
+    Middleware->>Route: Request authenticated
+    Route->>Service: Process project sync
+    Service->>Service: Validate payload (Pydantic schema)
+    Service->>Repository: Check if project exists by sn_project_id
+    Repository->>Database: SELECT * FROM projects<br/>WHERE sn_project_id = '{sn_project_id}'
     alt Project already exists
-        Database-->>Backend: Existing record found
-        Backend->>Backend: Skip - no duplicate created
+        Database-->>Repository: Existing record found
+        Repository-->>Service: Project exists
+        Service->>Service: Skip - no duplicate created
     else Project not found
-        Database-->>Backend: No record
-        Backend->>Database: SELECT status_id FROM statuses<br/>WHERE status_name = 'Inactive'
-        Database-->>Backend: status_id
-        Backend->>Database: INSERT INTO projects<br/>(project_id, sn_project_id, project_name,<br/>onboarded_date, status_id, is_active=1)
-        Database-->>Backend: Project created
+        Database-->>Repository: No record
+        Repository-->>Service: Not found
+        Service->>Repository: Get Inactive status_id
+        Repository->>Database: SELECT status_id FROM statuses<br/>WHERE status_name = 'Inactive'
+        Database-->>Repository: status_id
+        Repository-->>Service: status_id
+        Service->>Repository: Insert new project
+        Repository->>Database: INSERT INTO projects<br/>(project_id, sn_project_id, project_name,<br/>onboarded_date, status_id, is_active=1)
+        Database-->>Repository: Project created
+        Repository-->>Service: Success
     end
-    Backend-->>ServiceNow: 200 - Sync completed successfully
+    Service-->>Route: Sync result
+    Route-->>ServiceNow: 200 - Sync completed successfully
 
     %% === DevSecOps Tickets Sync ===
-    Note over ServiceNow,Database: DevSecOps Tickets Sync Flow
-
-    ServiceNow->>Backend: POST /api/v1/sync/servicenow/devsecops-tickets<br/>{tickets: [{sn_project_id, project_name,<br/>specialization_name, repositories, ...}]}
-    Backend->>Backend: Decrypt token + validate ServiceNow email
-    Backend->>Backend: Check servicenow_sync role
-    Backend->>Backend: Validate payload (non-empty tickets array)
+    ServiceNow->>Middleware: POST /api/v1/sync/servicenow/devsecops-tickets<br/>{tickets: [...]}
+    Middleware->>Middleware: Decrypt token + validate ServiceNow email
+    Middleware->>Route: Request authenticated
+    Route->>Service: Process tickets batch
+    Service->>Service: Validate payload (non-empty tickets array)
 
     loop For each ticket in batch
-        Backend->>Database: SELECT specialization_id FROM specializations<br/>WHERE specialization_name = ticket.specialization_name
+        Service->>Repository: Resolve specialization by name
+        Repository->>Database: SELECT specialization_id FROM specializations<br/>WHERE specialization_name = '{name}' AND is_active = 1
         alt Specialization not found
-            Database-->>Backend: No record
-            Backend->>Backend: Log WARNING, skip this ticket
+            Database-->>Repository: No record
+            Repository-->>Service: Not found
+            Service->>Service: Log WARNING, skip ticket
         else Specialization found
-            Database-->>Backend: specialization_id
+            Database-->>Repository: specialization_id
+            Repository-->>Service: specialization_id
 
-            %% 3-step project resolution
-            Backend->>Database: Step 1: SELECT project_id FROM projects<br/>WHERE sn_project_id = ticket.sn_project_id
+            Service->>Repository: Resolve project (3-step fallback)
+            Repository->>Database: Step 1: SELECT project_id FROM projects<br/>WHERE sn_project_id = '{sn_project_id}'
             alt Matched by sn_project_id
-                Database-->>Backend: project_id
-            else Not found - try project_name
-                Database-->>Backend: No record
-                Backend->>Database: Step 2: SELECT project_id FROM projects<br/>WHERE project_name = ticket.project_name
+                Database-->>Repository: project_id
+            else Try project_name
+                Database-->>Repository: No record
+                Repository->>Database: Step 2: SELECT project_id FROM projects<br/>WHERE project_name = '{project_name}'
                 alt Matched by project_name
-                    Database-->>Backend: project_id, sn_project_id
-                else Not found - use default
-                    Database-->>Backend: No record
-                    Backend->>Database: Step 3: SELECT project_id FROM projects<br/>WHERE is default project
-                    Database-->>Backend: default project_id
+                    Database-->>Repository: project_id
+                else Use default project
+                    Database-->>Repository: No record
+                    Repository->>Database: Step 3: SELECT project_id<br/>FROM default project
+                    Database-->>Repository: default project_id
                 end
             end
+            Repository-->>Service: project_id
 
-            Backend->>Database: INSERT INTO devsecops_tickets<br/>(ticket_id, specialization_id, project_id,<br/>sn_project_id, project_name, is_active=1)
-            Database-->>Backend: Ticket created
+            Service->>Repository: Insert ticket
+            Repository->>Database: INSERT INTO devsecops_tickets<br/>(ticket_id, specialization_id, project_id,<br/>sn_project_id, project_name, is_active=1)
+            Database-->>Repository: Ticket created
+            Repository-->>Service: Success
 
             loop For each repository in ticket
-                Backend->>Database: INSERT INTO repositories<br/>(repository_id, ticket_id, repository_name,<br/>ado_repo_id, is_active=1)
-                Database-->>Backend: Repository created
+                Service->>Repository: Insert repository
+                Repository->>Database: INSERT INTO repositories<br/>(repository_id, ticket_id, repository_name,<br/>ado_repo_id, is_active=1)
+                Database-->>Repository: Repository created
+                Repository-->>Service: Success
             end
         end
     end
 
-    Backend-->>ServiceNow: 200 - Sync completed successfully
+    Service-->>Route: Batch processing complete
+    Route-->>ServiceNow: 200 - Sync completed successfully
 
     %% Error Scenario
-    Note over Backend,Database: On unhandled exception
-    Backend->>Database: INSERT INTO error_log<br/>(error_message, error_function, stack_trace)
-    Backend-->>ServiceNow: 500 - Internal Server Error
+    Note over Middleware,Database: On unhandled exception
+    Service->>Repository: Log error
+    Repository->>Database: INSERT INTO error_log<br/>(error_message, error_function, stack_trace)
+    Route-->>ServiceNow: 500 - Internal Server Error

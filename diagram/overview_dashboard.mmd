@@ -2,6 +2,7 @@ sequenceDiagram
     title ZDAD-34: Overview Dashboard API
 
     participant User
+    participant Middleware as Middleware<br/>(src/middleware/auth_middleware.py)
     participant Route as Route<br/>(src/routes/overview_route.py)
     participant Service as Service<br/>(src/services/overview_service.py)
     participant Repository as Repository<br/>(src/repositories/)
@@ -9,10 +10,11 @@ sequenceDiagram
     participant Jira
 
     %% Overview Endpoint
-    User->>Route: GET /api/v1/overview?period=last_week&specialization=devsecops
-    Route->>Route: Decrypt token using private key
-    Route->>Jira: Validate Jira email from token
-    Jira-->>Route: User exists and is active
+    User->>Middleware: GET /api/v1/overview?period=last_week&specialization=devsecops
+    Middleware->>Middleware: Decrypt token using private key
+    Middleware->>Jira: Validate Jira email from token
+    Jira-->>Middleware: User exists and is active
+    Middleware->>Route: Request authenticated
     Route->>Service: Get overview metrics (period, specialization)
     Service->>Service: Validate query params (period, specialization)
     Service->>Repository: Fetch kpi_history by specialization and period
@@ -24,8 +26,11 @@ sequenceDiagram
     Route-->>User: 200 OK
 
     %% Filters Endpoint
-    User->>Route: GET /api/v1/filters
-    Route->>Route: Decrypt token + validate Jira email
+    User->>Middleware: GET /api/v1/filters
+    Middleware->>Middleware: Decrypt token using private key
+    Middleware->>Jira: Validate Jira email from token
+    Jira-->>Middleware: User exists and is active
+    Middleware->>Route: Request authenticated
     Route->>Service: Get all filter options
     Service->>Repository: Fetch specializations
     Repository->>Database: SELECT specialization_id, specialization_name<br/>FROM specializations WHERE is_active = 1
@@ -43,7 +48,7 @@ sequenceDiagram
     Route-->>User: 200 OK
 
     %% Error Scenario
-    Note over Route,Database: On unhandled exception
+    Note over Middleware,Database: On unhandled exception
     Service->>Repository: Log error
     Repository->>Database: INSERT INTO error_log<br/>(error_message, error_function, stack_trace)
     Route-->>User: 500 - An unexpected error occurred

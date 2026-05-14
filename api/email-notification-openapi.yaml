@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: DevSecOps Jira Dashboard - Email Notification Service API
-  description: API specification for the report generation and email delivery endpoint (ZDAD-60)
+  description: API specification for the report generation and email delivery endpoint (ZDAD-60). No authentication required — triggered by external cron.
   version: 1.0.0
 servers:
   - url: http://localhost:8080
@@ -16,7 +16,7 @@ paths:
       tags:
         - Reports
       summary: Generate and email reports
-      description: Triggers report generation for all active specializations. The service internally evaluates each specialization's configured frequency, generates PDF reports (At-risk and Summary), uploads to cloud storage, and sends via email to configured recipients. No request body required — the cron simply triggers the endpoint.
+      description: Triggers report generation for all active specializations. The service internally evaluates each specialization's configured frequency, generates PDF reports (At-risk and Summary), uploads to cloud storage, and sends via Microsoft Graph API to configured recipients. No request body or authentication required — the cron simply triggers the endpoint.
       operationId: generateReport
       responses:
         '200':
@@ -25,12 +25,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReportSuccessResponse'
-        '401':
-          description: Unauthorized - missing or invalid token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnauthorizedError'
         '500':
           description: Server error (PDF generation, upload, or email delivery failure)
           content:
@@ -39,12 +33,6 @@ paths:
                 $ref: '#/components/schemas/CommonServerError'
 
 components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      description: Encrypted token decrypted with private key, containing Jira email for validation
-
   schemas:
     BaseResponse:
       type: object
@@ -80,22 +68,6 @@ components:
               items: {}
               example: []
 
-    UnauthorizedError:
-      allOf:
-        - $ref: '#/components/schemas/BaseResponse'
-        - type: object
-          properties:
-            status_code:
-              example: 401
-            status:
-              example: "failed"
-            message:
-              example: "Authentication failed or user not found in Jira"
-            data:
-              type: array
-              items: {}
-              example: []
-
     ReportSuccessResponse:
       type: object
       properties:
@@ -108,6 +80,3 @@ components:
         message:
           type: string
           example: "Email sent successfully"
-
-security:
-  - BearerAuth: []
