@@ -1605,31 +1605,20 @@ components:
           type: integer
           example: 10
         email_digest:
-          type: boolean
-          example: true
-        at_risk_alert:
-          type: boolean
-          example: true
-        report_frequency:
           type: string
-          enum: [daily, weekly, monthly]
-          description: Display name of the report frequency
+          description: Frequency for email digest reports (e.g., daily, weekly, monthly, disabled)
+          example: "weekly"
+        at_risk_alert:
+          type: string
+          description: Frequency for at-risk alert reports (e.g., daily, weekly, monthly, disabled)
           example: "weekly"
         email_recipients:
           type: array
+          description: List of recipient email addresses
           items:
-            $ref: '#/components/schemas/EmailRecipientItem'
-
-    EmailRecipientItem:
-      type: object
-      properties:
-        email_recipient_id:
-          type: string
-          format: uuid
-        alert_recipient:
-          type: string
-          format: email
-          example: "manager@org.com"
+            type: string
+            format: email
+          example: ["manager@org.com", "lead@org.com"]
 
     SettingsUpdateRequest:
       type: object
@@ -1647,46 +1636,23 @@ components:
           description: Days since onboarding without repo before project is at-risk
           example: 10
         email_digest:
-          type: boolean
-          nullable: true
-          description: Enable/disable email digest reports
-          example: true
-        at_risk_alert:
-          type: boolean
-          nullable: true
-          description: Enable/disable at-risk project alerts
-          example: true
-        report_frequency:
           type: string
-          enum: [daily, weekly, monthly]
           nullable: true
-          description: Report frequency value to set
+          description: Frequency for email digest reports (daily, weekly, monthly, disabled)
+          example: "weekly"
+        at_risk_alert:
+          type: string
+          nullable: true
+          description: Frequency for at-risk alert reports (daily, weekly, monthly, disabled)
           example: "weekly"
         email_recipients:
           type: array
           nullable: true
-          description: List of recipient actions to perform (add/remove)
+          description: List of recipient email addresses to set
           items:
-            $ref: '#/components/schemas/EmailRecipientAction'
-
-    EmailRecipientAction:
-      type: object
-      required:
-        - action
-      properties:
-        action:
-          type: string
-          enum: [add, remove]
-          description: Whether to add or remove a recipient
-        alert_recipient:
-          type: string
-          format: email
-          description: Email address to add (required when action is "add")
-          example: "newuser@org.com"
-        email_recipient_id:
-          type: string
-          format: uuid
-          description: ID of the recipient to remove (required when action is "remove")
+            type: string
+            format: email
+          example: ["manager@org.com", "newuser@org.com"]
 
     # ===========================
     # Reports Schemas

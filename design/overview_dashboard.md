@@ -10,10 +10,10 @@
 - **Story Description:**  
   When accessing the DevSecOps dashboard, the ability to view a consolidated overview of project KPIs, status distribution and specialization filters is needed so that delivery leads can quickly assess portfolio health and take timely action on at-risk projects.
 - **Scope:**  
-  The goal is to implement the Overview Dashboard API for the DevSecOps Dashboard. The `GET /api/v1/overview` endpoint will return KPI tiles, status distribution, attention banner and most overdue projects list in a single call. The `GET /api/v1/specializations` endpoint will provide specialization dropdown values for filtering. This consolidation streamlines data retrieval, improves performance and enhances the user experience for team members accessing the dashboard.
+  The goal is to implement the Overview Dashboard API for the DevSecOps Dashboard. The `GET /api/v1/overview` endpoint will return KPI tiles, status distribution, and attention banner in a single call. The `GET /api/v1/filters` endpoint will provide all filter dropdown options (specializations, clients, statuses) — on the Overview screen, only the specialization value is used for filtering. This consolidation streamlines data retrieval, improves performance and enhances the user experience for team members accessing the dashboard.
 - **Acceptance Criteria:**
-  - The `GET /api/v1/overview` endpoint returns KPI tiles (Total Projects, Adopted, Adoption Rate, At Risk, Active, Inactive), status distribution data, attention banner details, and the most overdue projects list in one response.
-  - The `GET /api/v1/specializations` endpoint returns specialization values to populate the dropdown filter on the Overview page.
+  - The `GET /api/v1/overview` endpoint returns KPI tiles (Total Projects, Adopted, Adoption Rate, At Risk, Active, Inactive), status distribution data, and attention banner details in one response.
+  - The `GET /api/v1/filters` endpoint returns filter values (specializations, clients, statuses) — the specialization values are used to populate the dropdown filter on the Overview page.
   - The overview data accurately reflects the current state of all onboarded projects.
   - Both endpoints handle errors like database unavailability and invalid requests, returning meaningful responses.
   - Unit tests cover positive and negative cases for both endpoints; all defects found during testing are fixed before release.
@@ -49,25 +49,25 @@
 
 #### <u> 1.1 Overview </u>
 
-The Overview Dashboard API is the primary data source for the DevSecOps Jira Dashboard landing page. It provides delivery leads and stakeholders with a consolidated view of project health across the organization, enabling them to quickly assess portfolio status and take timely action on at-risk projects. The API exposes two endpoints: `GET /api/v1/overview` which returns KPI tiles (Total Projects, Adopted, Adoption Rate, At Risk, Active, Inactive), status distribution data, an attention banner with critical alerts, and the most overdue projects list — all in a single response. The `GET /api/v1/specializations` endpoint provides specialization dropdown values for filtering the overview data. Both endpoints require encrypted token authentication (with Jira email validation) and return standardized JSON responses. The KPI data is pre-computed and stored in the `kpi_history` table (populated by the ADO Sync API), ensuring the Overview API performs efficient read operations without complex on-the-fly calculations. All errors encountered during request processing are logged to the `error_log` database table for traceability and debugging purposes.
+The Overview Dashboard API is the primary data source for the DevSecOps Jira Dashboard landing page. It provides delivery leads and stakeholders with a consolidated view of project health across the organization, enabling them to quickly assess portfolio status and take timely action on at-risk projects. The API exposes two endpoints: `GET /api/v1/overview` which returns KPI tiles (Total Projects, Adopted, Adoption Rate, At Risk, Active, Inactive), status distribution data, and an attention banner with critical alerts — all in a single response. The `GET /api/v1/filters` endpoint provides all filter dropdown options (specializations, clients, statuses) — on the Overview screen, only the specialization value is used to populate the query param for the overview API. Both endpoints require encrypted token authentication (with Jira email validation) and return standardized JSON responses. The KPI data is read directly from the `kpi_history` table which is populated by the ADO Azure Sync cron, ensuring the Overview API performs efficient read operations without any on-the-fly calculations. All errors encountered during request processing are logged to the `error_log` database table for traceability and debugging purposes.
 
 #### <u> 1.2 Requirement Details </u>
 
 - **ZDAD-34-FR01: Overview Dashboard Metrics and Data Retrieval**
-- **ZDAD-34-FR02: Specializations Filter Endpoint**
-- **ZDAD-34-FR03: Attention Banner and Most Overdue Projects**
+- **ZDAD-34-FR02: Filters Endpoint**
+- **ZDAD-34-FR03: Attention Banner**
 - **ZDAD-34-FR04: Query Parameter Validation**
 - **ZDAD-34-FR05: Error Logging**
 
 ##### <u> 1.2.1 ZDAD-34-FR01: Overview Dashboard Metrics and Data Retrieval </u>
 
 ##### Description:
-The system shall expose a `GET /api/v1/overview` endpoint that returns KPI tiles, status distribution data, attention banner details, and the most overdue projects list in a single consolidated response. The endpoint accepts optional query parameters for filtering by time period and specialization. The KPI data is read from the `kpi_history` table which is pre-computed by the ADO Sync API.
+The system shall expose a `GET /api/v1/overview` endpoint that returns KPI tiles, status distribution data, and attention banner details in a single consolidated response. The endpoint accepts optional query parameters for filtering by time period and specialization. The KPI data is read directly from the `kpi_history` table (populated by the ADO Azure Sync cron — out of scope). The trend is derived from the `increase_count` and `decrease_count` columns already stored in the table.
 
 ##### Request Parameters:
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `period` | string (enum) | No | `last_month` | Time period for metric calculations |
+| `period` | string (enum) | No | `last_week` | Time period for metric calculations |
 | `specialization` | string (CSV) | No | All | Comma-separated specialization IDs to filter by |
 
 ##### Period Options:
@@ -76,107 +76,76 @@ The system shall expose a `GET /api/v1/overview` endpoint that returns KPI tiles
 - `last_3_months` — Last 90 days
 
 ##### Response Structure - KPI Tiles:
-The response `data.metrics` object contains six KPI tiles:
-- `totalProjects` — Total number of onboarded projects. Calculated as: count of unique `sn_project_id` values in the `projects` table (excluding the default project) + count of unique `project_name` values in `devsecops_tickets` that are mapped to the default project. Includes `count`, `trend` (increase/decrease/flat/null), `change` (numeric difference from previous period), and `source` (contextual label e.g., "ServiceNow").
-- `adopted` — Projects that have completed DevSecOps adoption (fully onboarded) with `count`, `description` ("fully onboarded"), `trend`, and `change`.
-- `adoptionRate` — Percentage of projects that have been adopted with `rate` (float percentage), `trend`, and `change`.
-- `atRisk` — Projects where `current_date - onboarded_date` exceeds the `at_risk_threshold` (configured per specialization in the `settings` table) and are not yet completed. Includes `count`, `description` ("overdue onboarding"), `trend`, and `change`.
-- `active` — Projects with pipeline activity within the last 10 days with `count`, `description` ("pipeline run ≤ 10d"), `trend`, and `change`.
-- `inactive` — Projects with no pipeline activity for 10+ days with `count`, `description` ("no activity 10+ d"), `trend`, and `change`.
+The response `data.metrics` object contains KPI tiles read directly from the `kpi_history` table (populated by the ADO Azure Sync cron — out of scope for this story). Each tile contains `count`, `trend`, and `change`:
+
+- `totalProjects` — Total number of onboarded projects. Read from `projects_count`. Trend is determined by checking `projects_increase_count` and `projects_decrease_count`: if increase > 0 → `"increase"`, if decrease > 0 → `"decrease"`, if both are 0 → `"flat"`. Change value is whichever is non-zero.
+- `completed` — Projects that have a `completed_at` date set in the `projects` table. Read from `completed_count`. Trend from `completed_increase_count` / `completed_decrease_count`.
+- `active` — Projects with pipeline activity within the last 10 days. Read from the corresponding count in `kpi_history`. Trend from increase/decrease columns.
+- `inactive` — Projects with no pipeline activity for 10+ days. Read from `inactive_count`. Trend from `inactive_increase_count` / `inactive_decrease_count`.
+- `atRisk` — Projects where days since onboarding exceeds the `at_risk_threshold` (from `settings` table) and not yet completed. Read from `at_risk_count`. Trend from `at_risk_increase_count` / `at_risk_decrease_count`.
+- `notApplicable` — Projects marked as not applicable (exception raised). Read from `not_applicable_count`. Trend from `not_applicable_increase_count` / `not_applicable_decrease_count`.
+
+**Trend Logic (applies to all tiles):**
+- If `{metric}_increase_count > 0` → trend = `"increase"`, change = `{metric}_increase_count`
+- If `{metric}_decrease_count > 0` → trend = `"decrease"`, change = `{metric}_decrease_count`
+- If both are 0 → trend = `"flat"`, change = 0
+
+**Note:** The actual computation and insertion of these values into `kpi_history` is handled by the ADO Azure Sync cron job (out of scope for this story). The Overview API only reads and returns the pre-populated values.
 
 ##### Response Structure - Status Distribution:
 The response `data.statusDistribution` object contains:
 - `total` — Total project count.
 - `breakdown[]` — Array of objects each with `status` (name), `count`, and `percentage` (float).
 
-##### Response Structure - Attention Banner:
-The response `data.attentionBanner` object contains:
-- `message` — Summary alert message (e.g., "6 projects are at risk and require immediate attention").
-- `atRiskCount` — Number of at-risk projects.
-- `overdueCount` — Number of projects past their onboarding deadline.
-- `severity` — Alert severity level (`critical`, `warning`, `info`).
-
-##### Response Structure - Most Overdue Projects:
-The response `data.mostOverdueProjects` is an array of the top overdue projects (limited to 5), each containing:
-- `projectId` — UUID of the project.
-- `projectName` — Name of the project.
-- `client` — Client name.
-- `onboardedDate` — Date the project was onboarded.
-- `daysOverdue` — Number of days past the expected completion date.
-- `specialization` — Specialization name the project belongs to.
-
 ##### Data Source:
-- **Total Projects** is calculated as:
-  - Count of unique `sn_project_id` values in the `projects` table (where `sn_project_id` is not the default project).
-  - PLUS: For tickets mapped to the default project, each unique `project_name` in `devsecops_tickets` is counted as a separate project.
-- **At Risk** is calculated by comparing each project's `onboarded_date` against the `at_risk_threshold` (in days) from the `settings` table. If `current_date - onboarded_date > at_risk_threshold` and the project is not yet completed, it is considered at risk.
-- Other KPI metrics (Adopted, Active, Inactive) are read from the `kpi_history` table joined with `specializations` table for filtering.
+- All KPI tile values (`count`, `trend`, `change`) are read directly from the `kpi_history` table. The Overview API does not compute these values — they are pre-populated by the ADO Azure Sync cron job (out of scope).
+- The `kpi_history` table stores counts and increase/decrease values per specialization, synced periodically by the cron.
+- When a `specialization` filter is applied, the API reads the `kpi_history` record matching that `specialization_id`.
+- When no specialization filter is provided, the API aggregates across all specializations.
 - Status distribution is computed from the `projects` table joined with `statuses` table.
-- Attention banner is derived from the at-risk count (based on threshold calculation).
-- Most overdue projects are queried from projects where days since onboarding exceeds the threshold, ordered by overdue duration descending, limited to 5.
-- The `kpi_history` table is populated and maintained by the ADO Sync API (out of scope for this story).
+- Attention banner is derived from the `at_risk_count` in `kpi_history`.
+- Database schema is defined in `design/er_diagram.mmd`.
 
 ##### Acceptance Criteria:
-- The endpoint returns HTTP 200 with correct KPI tiles, status distribution, attention banner, and most overdue projects when called with valid parameters.
-- Default period is `last_month` when no period parameter is provided.
+- The endpoint returns HTTP 200 with correct KPI tiles, status distribution, and attention banner when called with valid parameters.
+- Default period is `last_week` when no period parameter is provided.
 - When specialization filter is provided, only metrics for matching specializations are returned.
 - When specialization filter is omitted, metrics across all specializations are aggregated.
 - Trend values are one of: `increase`, `decrease`, `flat`, or `null`.
-- The most overdue projects list contains a maximum of 5 entries sorted by days overdue descending.
 - The attention banner severity is `critical` when at-risk count > 5, `warning` when 1-5, and `info` when 0.
 - Response follows the standardized `BaseResponse` schema with `status_code`, `status`, `message`, and `data` fields.
 - The overview data accurately reflects the current state of all onboarded projects.
 
-##### <u> 1.2.2 ZDAD-34-FR02: Specializations Filter Endpoint </u>
+##### <u> 1.2.2 ZDAD-34-FR02: Filters Endpoint </u>
 
 ##### Description:
-The system shall expose a `GET /api/v1/specializations` endpoint that returns specialization values to populate the dropdown filter on the Overview page. This endpoint provides the valid specialization IDs and names that can be used as filter values in the Overview API.
+The system shall expose a `GET /api/v1/filters` endpoint that returns all filter dropdown options (specializations, clients, statuses) in a single consolidated response. On the Overview screen, only the specialization value is used to populate the query param for the overview API. Other filter values (clients, statuses) are available for use by other screens (e.g., Projects list).
 
 ##### Response Structure:
 The response `data` object contains:
 - `specializations` — Array of objects each containing:
   - `id` — Unique identifier for the specialization (UUID).
   - `name` — Display name of the specialization (e.g., "DevSecOps", "DevOps", "Cloud Security").
+- `clients` — Array of objects each containing:
+  - `id` — Unique identifier for the client.
+  - `name` — Display name of the client (e.g., "ABN AMRO", "Barclays").
+- `statuses` — Array of objects each containing:
+  - `id` — Unique identifier for the status.
+  - `name` — Display name of the status (e.g., "Active", "At Risk", "Completed").
 
 ##### Data Source:
 - Specializations are read from the `specializations` table where `is_active = 1`.
+- Clients are derived from distinct `client` values in the `projects` table where `is_active = 1`.
+- Statuses are read from the `statuses` table where `is_active = 1`.
 
 ##### Acceptance Criteria:
-- The endpoint returns HTTP 200 with all active specialization values.
-- Each specialization object contains `id` and `name` fields.
+- The endpoint returns HTTP 200 with all filter options (specializations, clients, statuses) in a single response.
+- Each filter group contains objects with `id` and `name` fields.
 - Only active records (`is_active = 1`) are returned.
 - Response follows the standardized `BaseResponse` schema.
 - The endpoint requires encrypted token authentication with Jira email validation.
 - The response is cacheable with a TTL of 1 hour.
-
-
-##### <u> 1.2.3 ZDAD-34-FR03: Attention Banner and Most Overdue Projects </u>
-
-##### Description:
-The system shall compute and return an attention banner summarizing critical project health alerts, along with a list of the most overdue projects. The attention banner provides delivery leads with an immediate visual indicator of portfolio risk, while the overdue projects list enables targeted action on the highest-priority items.
-
-##### Attention Banner Logic:
-1. For each project linked to the requested specialization(s), calculate whether `current_date - onboarded_date > at_risk_threshold` (from `settings` table for that specialization).
-2. Count projects that exceed the threshold and are not yet completed — these are "At Risk".
-3. Determine severity:
-   - `critical` — More than 5 at-risk projects.
-   - `warning` — 1 to 5 at-risk projects.
-   - `info` — No at-risk projects.
-4. Compose the banner message dynamically (e.g., "{count} projects are at risk and require immediate attention").
-
-##### Most Overdue Projects Logic:
-1. Query projects where `current_date - onboarded_date > at_risk_threshold` and project is not completed and `is_active = 1`.
-2. Filter by specialization if the query parameter is provided (via `devsecops_tickets` → `specialization_id`).
-3. Calculate `daysOverdue` as `(current_date - onboarded_date) - at_risk_threshold`.
-4. Order by `daysOverdue` descending.
-5. Limit results to 5.
-
-##### Acceptance Criteria:
-- The attention banner is included in the overview response with correct counts and severity.
-- The most overdue projects list contains up to 5 projects sorted by overdue duration.
-- Each overdue project entry includes project name, client, onboarded date, days overdue, and specialization.
-- When no projects are at risk, the banner severity is `info` and the overdue list is empty.
-- The banner message dynamically reflects the current at-risk count.
+- On the Overview screen, only the specialization values are used for filtering.
 
 ##### <u> 1.2.4 ZDAD-34-FR04: Query Parameter Validation </u>
 
@@ -226,121 +195,15 @@ The system shall log all unhandled exceptions and application errors to the `err
 
 #### <u> 1.3 Database Schema </u>
 
-The following tables are directly involved in the Overview Dashboard API (as defined in `design/er_diagram.mmd`):
+The full database schema is defined in `design/er_diagram.mmd`. The following tables are directly involved in the Overview Dashboard API:
 
-##### kpi_history
-| Column | Type | Constraints |
-|--------|------|-------------|
-| kpi_history_id | UUID | PK |
-| specialization_id | UUID | FK → specializations.specialization_id |
-| projects_count | INTEGER | DEFAULT 0 |
-| projects_increase_count | INTEGER | DEFAULT 0 |
-| projects_decrease_count | INTEGER | DEFAULT 0 |
-| completed_count | INTEGER | DEFAULT 0 |
-| completed_increase_count | INTEGER | DEFAULT 0 |
-| completed_decrease_count | INTEGER | DEFAULT 0 |
-| inactive_count | INTEGER | DEFAULT 0 |
-| inactive_increase_count | INTEGER | DEFAULT 0 |
-| inactive_decrease_count | INTEGER | DEFAULT 0 |
-| at_risk_count | INTEGER | DEFAULT 0 |
-| at_risk_increase_count | INTEGER | DEFAULT 0 |
-| at_risk_decrease_count | INTEGER | DEFAULT 0 |
-| not_applicable_count | INTEGER | DEFAULT 0 |
-| not_applicable_increase_count | INTEGER | DEFAULT 0 |
-| not_applicable_decrease_count | INTEGER | DEFAULT 0 |
-| created_at | DATETIME | |
-| created_by | VARCHAR | |
-| modified_at | DATETIME | |
-| modified_by | VARCHAR | |
-| is_active | INT | DEFAULT 1 |
-
-##### specializations
-| Column | Type | Constraints |
-|--------|------|-------------|
-| specialization_id | UUID | PK |
-| specialization_name | VARCHAR | NOT NULL |
-| created_at | DATETIME | |
-| created_by | VARCHAR | |
-| modified_at | DATETIME | |
-| modified_by | VARCHAR | |
-| is_active | INT | DEFAULT 1 |
-
-##### statuses
-| Column | Type | Constraints |
-|--------|------|-------------|
-| status_id | UUID | PK |
-| status_name | VARCHAR | NOT NULL |
-| created_at | DATETIME | |
-| created_by | VARCHAR | |
-| modified_at | DATETIME | |
-| modified_by | VARCHAR | |
-| is_active | INT | DEFAULT 1 |
-
-##### projects
-| Column | Type | Constraints |
-|--------|------|-------------|
-| project_id | UUID | PK |
-| status_id | UUID | FK → statuses.status_id |
-| sn_project_id | VARCHAR | ServiceNow project identifier |
-| project_name | VARCHAR | NOT NULL |
-| onboarded_date | DATE | NOT NULL |
-| project_type | VARCHAR | NOT NULL |
-| is_applicable | BOOLEAN | DEFAULT TRUE |
-| client | VARCHAR | |
-| ado_project_id | VARCHAR | |
-| completed_at | DATETIME | |
-| created_at | DATETIME | |
-| created_by | VARCHAR | |
-| modified_at | DATETIME | |
-| modified_by | VARCHAR | |
-| is_active | INT | DEFAULT 1 |
-
-##### devsecops_tickets
-| Column | Type | Constraints |
-|--------|------|-------------|
-| ticket_id | UUID | PK |
-| specialization_id | UUID | FK → specializations.specialization_id |
-| project_id | UUID | NULLABLE |
-| sn_project_id | VARCHAR | FK → projects.sn_project_id |
-| project_name | VARCHAR | NOT NULL |
-| client | VARCHAR | |
-| requested_by | VARCHAR | |
-| approver | VARCHAR | |
-| requested_at | DATETIME | |
-| created_at | DATETIME | |
-| created_by | VARCHAR | |
-| modified_at | DATETIME | |
-| modified_by | VARCHAR | |
-| is_active | INT | DEFAULT 1 |
-
-##### settings (read-only reference for at_risk_threshold)
-| Column | Type | Constraints |
-|--------|------|-------------|
-| setting_id | UUID | PK |
-| specialization_id | UUID | FK → specializations.specialization_id |
-| at_risk_threshold | INTEGER | NOT NULL |
-| email_digest | VARCHAR | |
-| at_risk_alert | VARCHAR | |
-| last_synced | DATETIME | |
-| created_at | DATETIME | |
-| created_by | VARCHAR | |
-| modified_at | DATETIME | |
-| modified_by | VARCHAR | |
-| is_active | INT | DEFAULT 1 |
-
-##### error_log
-| Column | Type | Constraints |
-|--------|------|-------------|
-| error_id | UUID | PK |
-| error_message | TEXT | NOT NULL |
-| error_function | TEXT | NOT NULL |
-| error_file | TEXT | NOT NULL |
-| stack_trace | TEXT | |
-| created_at | DATETIME | |
-| created_by | VARCHAR | |
-| modified_at | DATETIME | |
-| modified_by | VARCHAR | |
-| is_active | INT | DEFAULT 1 |
+- **kpi_history** — Pre-computed KPI counts per specialization (synced by cron). Contains `projects_count`, `completed_count`, `inactive_count`, `at_risk_count`, `not_applicable_count` with corresponding increase/decrease counts. The trend is calculated by comparing today's record with the previous day's record.
+- **specializations** — Specialization lookup (filter source for the overview and the specializations dropdown endpoint).
+- **statuses** — Status definitions (Active, Inactive, At Risk, Completed, Not Applicable).
+- **projects** — Project records with `sn_project_id`, `onboarded_date`, `status_id`, `client`. Used for status distribution, total projects count, and at-risk calculation.
+- **devsecops_tickets** — Tickets linked to projects and specializations. Used for total projects count when tickets are mapped to the default project (each unique `project_name` counts as a separate project).
+- **settings** — Contains `at_risk_threshold` per specialization used to determine at-risk status.
+- **error_log** — Persists unhandled exceptions for debugging.
 
 ##### Key Relationships:
 - `projects.status_id` → `statuses.status_id` (each project has one status)
@@ -367,7 +230,7 @@ The following tables are directly involved in the Overview Dashboard API (as def
 - **cryptography / PyCryptodome** — Token decryption using private key
 - **Jira API client (atlassian-python-api or httpx)** — Validates Jira email existence
 - **Uvicorn** — ASGI server for running the FastAPI application
-- **ADO Sync API** — External dependency that populates the `kpi_history` table (out of scope)
+- **ADO Azure Sync Cron** — External dependency that computes and populates the `kpi_history` table (out of scope for this story)
 
 
 ### <u> Section 2: Non Functional Requirements </u>
@@ -422,17 +285,6 @@ All application configuration shall be managed through environment variables. Se
 - No secrets or credentials are hardcoded in the application source code.
 - A `.env.sample` file exists documenting all required variables with placeholder values.
 
-##### <u> 2.1.2.3 ZDAD-34-NFR03: Health Check Endpoint </u>
-
-##### Description:
-The application shall expose a `/health` endpoint for Azure App Service liveness probes and a `/ready` endpoint for readiness checks. The readiness endpoint validates database connectivity before reporting the application as ready to serve traffic.
-
-##### Acceptance Criteria:
-- `GET /health` returns HTTP 200 with `{"status": "healthy"}` when the application process is running.
-- `GET /ready` returns HTTP 200 when the database connection is active and responsive.
-- `GET /ready` returns HTTP 503 when the database is unreachable.
-- Both endpoints do not require authentication.
-
 #### <u> 2.1.3 Project Artifacts </u>
 
 - `api/openapi.yaml` — API specification including health and readiness endpoints
@@ -464,13 +316,12 @@ All API endpoints (except `/health` and `/ready`) require a valid encrypted toke
 #### <u> 2.2.2 System Performance </u>
 
 ##### Database Query Optimization:
-- The Overview API reads pre-computed KPI data from the `kpi_history` table, avoiding expensive aggregation queries at request time.
-- Database indexes are maintained on frequently queried columns (`specialization_id`, `is_active`, `status_id`).
+- The Overview API reads KPI counts and trend data directly from the `kpi_history` table (pre-populated by ADO Azure Sync cron), avoiding any on-the-fly calculations.
+- Database indexes are maintained on frequently queried columns (`specialization_id`, `is_active`, `status_id`, `created_at`).
 - SQLAlchemy connection pooling is configured to reuse database connections efficiently.
-- The most overdue projects query uses indexed `status_id` and `onboarded_date` columns for efficient sorting.
 
 ##### Response Efficiency:
-- The API returns all overview data (KPI tiles, status distribution, attention banner, overdue projects) in a single response to minimize round trips.
+- The API returns all overview data (KPI tiles, status distribution, attention banner) in a single response to minimize round trips.
 - Status distribution is computed with a single aggregation query on the `projects` table.
 - The specializations endpoint response is cacheable with a TTL of 1 hour.
 
@@ -488,7 +339,7 @@ All API endpoints (except `/health` and `/ready`) require a valid encrypted toke
 #### <u> 2.2.4 Cost Efficiency </u>
 
 ##### Resource Optimization:
-- Pre-computed KPI metrics in `kpi_history` reduce database CPU usage compared to on-the-fly aggregation.
+- KPI metrics and trend data in `kpi_history` (populated by ADO Azure Sync) eliminate on-the-fly computation, reducing database CPU usage.
 - Azure App Service scaling is configured based on actual traffic patterns.
 - PostgreSQL connection pooling minimizes the number of active database connections.
 - Single consolidated response reduces network overhead and client-side complexity.
@@ -515,14 +366,14 @@ All API endpoints (except `/health` and `/ready`) require a valid encrypted toke
 
 #### <u> 3.1 Inscope Details </u>
 
-- Implementation of `GET /api/v1/overview` endpoint returning KPI tiles (Total Projects, Adopted, Adoption Rate, At Risk, Active, Inactive), status distribution, attention banner, and most overdue projects list in one response
-- Implementation of `GET /api/v1/specializations` endpoint returning specialization values for the dropdown filter
+- Implementation of `GET /api/v1/overview` endpoint returning KPI tiles (Total Projects, Adopted, Adoption Rate, At Risk, Active, Inactive), status distribution, and attention banner in one response
+- Implementation of `GET /api/v1/filters` endpoint returning all filter dropdown options (specializations, clients, statuses) — only specialization is used on the Overview screen
 - Encrypted token authentication middleware with Jira email validation for both endpoints
 - Query parameter validation for `period` (enum) and `specialization` (CSV) filters
-- Reading pre-computed KPI data from the `kpi_history` table
+- Reading KPI data from the `kpi_history` table (populated by ADO Azure Sync cron — out of scope)
+- Deriving trend from `increase_count` / `decrease_count` columns (increase > 0 → "increase", decrease > 0 → "decrease", both 0 → "flat")
 - Computing status distribution from the `projects` and `statuses` tables
 - Computing attention banner with severity levels based on at-risk project count
-- Querying and returning the top 5 most overdue projects sorted by days overdue
 - Standardized response format following `BaseResponse` schema (`status_code`, `status`, `message`, `data`)
 - Error handling with HTTP 400, 401, and 500 responses with meaningful messages
 - Error logging to the `error_log` database table for all unhandled exceptions
@@ -536,21 +387,10 @@ All API endpoints (except `/health` and `/ready`) require a valid encrypted toke
 
 #### <u> 3.2 Outscope Details </u>
 
-- `GET /api/v1/projects` — Projects list endpoint (separate story)
-- `POST /api/v1/projects/action` — Project action endpoint (mark_not_applicable, mark_complete)
-- `GET /api/v1/repositories/{repository_id}` — Repository detail endpoint
-- `POST /api/v1/sync/servicenow` — ServiceNow sync endpoints (ZDAD-58)
-- `POST /api/v1/reports/generate` — Email notification service (ZDAD-60)
-- ADO Sync API that populates the `kpi_history` table
-- KPI metric computation logic (handled by ADO Sync API)
 - UI/Frontend implementation
-- Database schema creation and migrations (assumed pre-existing)
 - Caching layer implementation (Redis or in-memory)
 - Rate limiting and throttling
 - Role-based access control (RBAC) beyond token authentication
-- Email notifications and alert system
-- Settings management endpoints
-- Client and status filter endpoints (consolidated into specializations only for this story)
 
 ### <u> Section 4: Solution Diagrams </u>
 

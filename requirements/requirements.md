@@ -18,12 +18,8 @@ The Overview API provides dashboard-level KPI metrics and status distribution fo
 | Specialization | `specialization` | string (CSV) | No | All | Comma-separated specialization IDs to filter by |
 
 #### Period Options
-
-- `last_week` — Last 7 days
-- `last_month` — Last 30 days
 - `last_3_months` — Last 90 days
 - `last_6_months` — Last 180 days
-- `last_year` — Last 365 days
 
 #### Specialization Filter
 
@@ -49,7 +45,6 @@ Each KPI includes:
 - `count` — Current value for the selected period
 - `trend` — Direction compared to previous period (`increase`, `decrease`, `flat`, or `null`)
 - `change` — Numeric difference from the previous period
-- `description` or `source` — Contextual label explaining the metric
 
 ### 1.5 Response — Status Distribution
 

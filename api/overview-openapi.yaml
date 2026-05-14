@@ -1,0 +1,363 @@
+openapi: 3.0.3
+info:
+  title: DevSecOps Jira Dashboard - Overview Dashboard API
+  description: API specification for the Overview Dashboard endpoints (ZDAD-34)
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Development server
+tags:
+  - name: Overview
+    description: Endpoints for the Overview dashboard metrics
+  - name: Filters
+    description: Endpoints for specialization filter dropdown
+
+paths:
+  /api/v1/overview:
+    get:
+      tags:
+        - Overview
+      summary: Get overview dashboard metrics
+      description: Returns all KPI metrics, status distribution, attention banner, and most overdue projects for the overview dashboard. Supports filtering by period and specialization.
+      parameters:
+        - name: period
+          in: query
+          required: false
+          description: Time period filter for the dashboard metrics
+          schema:
+            type: string
+            enum:
+              - last_week
+              - last_month
+              - last_3_months
+            default: last_week
+        - name: specialization
+          in: query
+          required: false
+          description: Comma-separated list of specialization IDs to filter by. Empty means all.
+          schema:
+            type: string
+            example: "devsecops,devops"
+      responses:
+        '200':
+          description: Overview metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverviewSuccessResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '401':
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/filters:
+    get:
+      tags:
+        - Filters
+      summary: Get all filter options
+      description: Returns all filter dropdown options (specializations, clients, statuses) in a single response. On the Overview screen, only the specialization value is used to populate the query param for the overview API. Cacheable with TTL of 1 hour.
+      operationId: getFilters
+      responses:
+        '200':
+          description: Filter options retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiltersSuccessResponse'
+        '401':
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Encrypted token decrypted with private key, containing Jira email for validation
+
+  schemas:
+    BaseResponse:
+      type: object
+      required:
+        - status_code
+        - status
+        - message
+        - data
+      properties:
+        status_code:
+          type: integer
+        status:
+          type: string
+          enum: [success, failed, error]
+        message:
+          type: string
+        data:
+          description: Response data payload
+
+    CommonServerError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              example: 500
+            status:
+              example: "error"
+            message:
+              example: "An unexpected error occurred. Please try again later"
+            data:
+              type: array
+              items: {}
+              example: []
+
+    UnauthorizedError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              example: 401
+            status:
+              example: "failed"
+            message:
+              example: "Authentication failed or user not found in Jira"
+            data:
+              type: array
+              items: {}
+              example: []
+
+    InvalidParameterError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              example: 400
+            status:
+              example: "failed"
+            message:
+              example: "Invalid query parameter: 'period' must be one of [last_week, last_month, last_3_months]"
+            data:
+              type: array
+              items: {}
+              example: []
+
+    OverviewSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              example: 200
+            status:
+              example: "success"
+            message:
+              example: "Overview metrics retrieved successfully"
+            data:
+              type: object
+              properties:
+                metrics:
+                  $ref: '#/components/schemas/OverviewMetrics'
+                statusDistribution:
+                  $ref: '#/components/schemas/StatusDistribution'
+                attentionBanner:
+                  $ref: '#/components/schemas/AttentionBanner'
+
+    OverviewMetrics:
+      type: object
+      properties:
+        totalProjects:
+          type: object
+          properties:
+            count:
+              type: integer
+              example: 44
+            trend:
+              type: string
+              nullable: true
+              enum: [increase, decrease, flat]
+              example: "increase"
+            change:
+              type: integer
+              example: 3
+        completed:
+          type: object
+          properties:
+            count:
+              type: integer
+              example: 11
+            trend:
+              type: string
+              nullable: true
+              enum: [increase, decrease, flat]
+              example: "increase"
+            change:
+              type: integer
+              example: 2
+        active:
+          type: object
+          properties:
+            count:
+              type: integer
+              example: 19
+            trend:
+              type: string
+              nullable: true
+              enum: [increase, decrease, flat]
+              example: "increase"
+            change:
+              type: integer
+              example: 2
+        inactive:
+          type: object
+          properties:
+            count:
+              type: integer
+              example: 7
+            trend:
+              type: string
+              nullable: true
+              enum: [increase, decrease, flat]
+              example: "flat"
+            change:
+              type: integer
+              example: 0
+        atRisk:
+          type: object
+          properties:
+            count:
+              type: integer
+              example: 6
+            trend:
+              type: string
+              nullable: true
+              enum: [increase, decrease, flat]
+              example: "decrease"
+            change:
+              type: integer
+              example: 1
+        notApplicable:
+          type: object
+          properties:
+            count:
+              type: integer
+              example: 1
+            trend:
+              type: string
+              nullable: true
+              enum: [increase, decrease, flat]
+              example: "flat"
+            change:
+              type: integer
+              example: 0
+
+    StatusDistribution:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 44
+        breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+                example: "Active"
+              count:
+                type: integer
+                example: 19
+              percentage:
+                type: number
+                format: float
+                example: 43.2
+
+    AttentionBanner:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "6 projects are at risk and require immediate attention"
+        atRiskCount:
+          type: integer
+          example: 6
+        severity:
+          type: string
+          enum: [critical, warning, info]
+          example: "critical"
+
+    FiltersSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              example: 200
+            status:
+              example: "success"
+            message:
+              example: "Filters retrieved successfully"
+            data:
+              type: object
+              properties:
+                specializations:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "550e8400-e29b-41d4-a716-446655440001"
+                      name:
+                        type: string
+                        example: "DevSecOps"
+                clients:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "660e8400-e29b-41d4-a716-446655440001"
+                      name:
+                        type: string
+                        example: "ABN AMRO"
+                statuses:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "770e8400-e29b-41d4-a716-446655440001"
+                      name:
+                        type: string
+                        example: "Active"
+
+security:
+  - BearerAuth: []

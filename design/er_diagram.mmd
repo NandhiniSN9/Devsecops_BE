@@ -222,6 +222,9 @@ erDiagram
         INTEGER completed_count "DEFAULT 0"
         INTEGER completed_increase_count "DEFAULT 0"
         INTEGER completed_decrease_count "DEFAULT 0"
+        INTEGER active_count "DEFAULT 0"
+        INTEGER active_increase_count "DEFAULT 0"
+        INTEGER active_decrease_count "DEFAULT 0"
         INTEGER inactive_count "DEFAULT 0"
         INTEGER inactive_increase_count "DEFAULT 0"
         INTEGER inactive_decrease_count "DEFAULT 0"
@@ -241,7 +244,6 @@ erDiagram
     email_history {
         UUID email_history_id PK
         UUID setting_id FK
-        VARCHAR report_frequency "NOT NULL"
         VARCHAR email_status "NOT NULL"
         VARCHAR email_type "NOT NULL"
         TEXT report_url

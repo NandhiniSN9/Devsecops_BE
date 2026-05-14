@@ -2,44 +2,48 @@ sequenceDiagram
     title ZDAD-34: Overview Dashboard API
 
     participant User
-    participant UI
-    participant Backend as Backend<br/>(src/routes/overview_route.py)
+    participant Route as Route<br/>(src/routes/overview_route.py)
+    participant Service as Service<br/>(src/services/overview_service.py)
+    participant Repository as Repository<br/>(src/repositories/)
     participant Database
     participant Jira
 
     %% Overview Endpoint
-    User->>UI: Opens Dashboard landing page
-    UI->>Backend: GET /api/v1/overview?period=last_month&specialization=devsecops
-    Backend->>Backend: Decrypt token using private key
-    Backend->>Jira: Validate Jira email from token
-    Jira-->>Backend: User exists and is active
-    Backend->>Backend: Validate query params (period, specialization)
-    Backend->>Database: Fetch total projects count:<br/>COUNT(DISTINCT sn_project_id) WHERE not default<br/>+ COUNT(DISTINCT project_name) from tickets on default project
-    Database-->>Backend: Return total projects count
-    Backend->>Database: Fetch at_risk_threshold from settings<br/>WHERE specialization_id matches
-    Database-->>Backend: threshold value
-    Backend->>Database: Fetch projects WHERE<br/>current_date - onboarded_date > threshold<br/>AND not completed
-    Database-->>Backend: Return at-risk projects + other KPI data
-    Backend->>Database: Fetch status distribution from projects<br/>JOIN statuses WHERE is_active = 1
-    Database-->>Backend: Return status counts per group
-    Backend->>Database: Fetch top 5 overdue projects<br/>WHERE days since onboarding > threshold<br/>ORDER BY days overdue DESC
-    Database-->>Backend: Return overdue projects list
-    Backend->>Backend: Compute attention banner severity<br/>(critical > 5, warning 1-5, info 0)
-    Backend->>Backend: Compute adoption rate percentage
-    Backend-->>UI: 200 OK {metrics, statusDistribution,<br/>attentionBanner, mostOverdueProjects}
-    UI-->>User: Display KPI tiles, charts,<br/>banner, and overdue list
+    User->>Route: GET /api/v1/overview?period=last_week&specialization=devsecops
+    Route->>Route: Decrypt token using private key
+    Route->>Jira: Validate Jira email from token
+    Jira-->>Route: User exists and is active
+    Route->>Service: Get overview metrics (period, specialization)
+    Service->>Service: Validate query params (period, specialization)
+    Service->>Repository: Fetch kpi_history by specialization and period
+    Repository->>Database: SELECT FROM kpi_history<br/>WHERE specialization_id matches<br/>AND within period window
+    Database-->>Repository: KPI record (projects_count, completed_count,<br/>active_count, inactive_count, at_risk_count,<br/>not_applicable_count + increase/decrease columns)
+    Repository-->>Service: KPI data
+    Service->>Service: Determine trend per tile:<br/>increase_count > 0 → "increase"<br/>decrease_count > 0 → "decrease"<br/>both 0 → "flat"
+    Service-->>Route: {metrics, statusDistribution, attentionBanner}
+    Route-->>User: 200 OK
 
-    %% Specializations Endpoint
-    User->>UI: Clicks specialization filter dropdown
-    UI->>Backend: GET /api/v1/specializations
-    Backend->>Backend: Decrypt token + validate Jira email
-    Backend->>Database: SELECT specialization_id, specialization_name<br/>FROM specializations WHERE is_active = 1
-    Database-->>Backend: Return specializations list
-    Backend-->>UI: 200 OK {specializations: [{id, name}]}
-    UI-->>User: Populate dropdown with specialization options
+    %% Filters Endpoint
+    User->>Route: GET /api/v1/filters
+    Route->>Route: Decrypt token + validate Jira email
+    Route->>Service: Get all filter options
+    Service->>Repository: Fetch specializations
+    Repository->>Database: SELECT specialization_id, specialization_name<br/>FROM specializations WHERE is_active = 1
+    Database-->>Repository: Specializations list
+    Repository-->>Service: Specializations
+    Service->>Repository: Fetch clients
+    Repository->>Database: SELECT DISTINCT client<br/>FROM projects WHERE is_active = 1
+    Database-->>Repository: Clients list
+    Repository-->>Service: Clients
+    Service->>Repository: Fetch statuses
+    Repository->>Database: SELECT status_id, status_name<br/>FROM statuses WHERE is_active = 1
+    Database-->>Repository: Statuses list
+    Repository-->>Service: Statuses
+    Service-->>Route: {specializations, clients, statuses}
+    Route-->>User: 200 OK
 
     %% Error Scenario
-    Note over Backend,Database: On unhandled exception
-    Backend->>Database: INSERT INTO error_log<br/>(error_message, error_function, stack_trace)
-    Backend-->>UI: 500 - An unexpected error occurred
-    UI-->>User: Display error message
+    Note over Route,Database: On unhandled exception
+    Service->>Repository: Log error
+    Repository->>Database: INSERT INTO error_log<br/>(error_message, error_function, stack_trace)
+    Route-->>User: 500 - An unexpected error occurred

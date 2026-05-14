@@ -1,0 +1,278 @@
+openapi: 3.0.3
+info:
+  title: DevSecOps Jira Dashboard - ServiceNow Integration API
+  description: API specification for the ServiceNow sync endpoints (ZDAD-58)
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Development server
+tags:
+  - name: Sync
+    description: Endpoints for syncing data from ServiceNow into the database
+
+paths:
+  /api/v1/sync/servicenow/projects:
+    post:
+      tags:
+        - Sync
+      summary: Ingest project from ServiceNow
+      description: Receives project data from ServiceNow webhook and inserts a new project record. If sn_project_id already exists, the record is skipped (no duplicate created).
+      operationId: syncServiceNowProjects
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncProjectRequest'
+      responses:
+        '200':
+          description: Project sync completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncSuccessResponse'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '401':
+          description: Unauthorized - missing/invalid token or insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/sync/servicenow/devsecops-tickets:
+    post:
+      tags:
+        - Sync
+      summary: Ingest DevSecOps tickets from ServiceNow
+      description: Receives DevSecOps ticket data from ServiceNow webhook and inserts ticket records with associated repositories. Each ticket is always created (one project can have multiple tickets). Supports partial success.
+      operationId: syncServiceNowDevSecOpsTickets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncDevSecOpsTicketsRequest'
+      responses:
+        '200':
+          description: DevSecOps tickets sync completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncSuccessResponse'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '401':
+          description: Unauthorized - missing/invalid token or insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Encrypted token decrypted with private key, containing ServiceNow email validated against SERVICENOW_ALLOWED_EMAIL env var
+
+  schemas:
+    BaseResponse:
+      type: object
+      required:
+        - status_code
+        - status
+        - message
+        - data
+      properties:
+        status_code:
+          type: integer
+        status:
+          type: string
+          enum: [success, failed, error]
+        message:
+          type: string
+        data:
+          description: Response data payload
+
+    CommonServerError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              example: 500
+            status:
+              example: "error"
+            message:
+              example: "An unexpected error occurred. Please try again later"
+            data:
+              type: array
+              items: {}
+              example: []
+
+    UnauthorizedError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              example: 401
+            status:
+              example: "failed"
+            message:
+              example: "Insufficient permissions: servicenow_sync role required"
+            data:
+              type: array
+              items: {}
+              example: []
+
+    InvalidParameterError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              example: 400
+            status:
+              example: "failed"
+            message:
+              example: "Validation error: 'sn_project_id' is required"
+            data:
+              type: array
+              items: {}
+              example: []
+
+    SyncProjectRequest:
+      type: object
+      required:
+        - sn_project_id
+        - project_name
+        - onboarded_date
+        - project_type
+      properties:
+        sn_project_id:
+          type: string
+          description: ServiceNow project identifier (unique key for deduplication)
+          example: "SN-PRJ-00456"
+        project_name:
+          type: string
+          description: Name of the project
+          example: "Payments Platform"
+        onboarded_date:
+          type: string
+          format: date
+          description: Date when the project was onboarded (YYYY-MM-DD)
+          example: "2026-03-15"
+        project_type:
+          type: string
+          description: Type/category of the project
+          example: "Infrastructure"
+        is_applicable:
+          type: boolean
+          description: Whether the project is applicable for DevSecOps onboarding
+          default: true
+          example: true
+        client:
+          type: string
+          description: Client name associated with the project
+          example: "ABN AMRO"
+        approver:
+          type: string
+          description: Name or email of the approver
+          example: "barath.uthamasathish@zeb.co"
+
+    SyncDevSecOpsTicketsRequest:
+      type: object
+      required:
+        - tickets
+      properties:
+        tickets:
+          type: array
+          description: List of DevSecOps tickets to ingest
+          items:
+            $ref: '#/components/schemas/SyncDevSecOpsTicketItem'
+
+    SyncDevSecOpsTicketItem:
+      type: object
+      required:
+        - sn_project_id
+        - project_name
+        - specialization_name
+      properties:
+        sn_project_id:
+          type: string
+          description: ServiceNow project identifier (used for 3-step project resolution)
+          example: "SN-PRJ-00456"
+        project_name:
+          type: string
+          description: Name of the project (fallback for project resolution)
+          example: "Payments Platform"
+        client:
+          type: string
+          description: Client name
+          example: "ABN AMRO"
+        specialization_name:
+          type: string
+          description: Specialization name (must match an existing active specialization)
+          example: "DevSecOps"
+        repositories:
+          type: array
+          description: Repositories associated with the ticket
+          items:
+            type: object
+            required:
+              - repo_name
+            properties:
+              repo_name:
+                type: string
+                example: "payments-api"
+              ado_repo_id:
+                type: string
+                example: "ado-repo-001"
+        requested_by:
+          type: string
+          example: "tom.walsh@zeb.co"
+        approver:
+          type: string
+          example: "barath.uthamasathish@zeb.co"
+        requested_at:
+          type: string
+          format: date-time
+          example: "2026-04-15T09:00:00Z"
+
+    SyncSuccessResponse:
+      type: object
+      properties:
+        status_code:
+          type: integer
+          example: 200
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Sync completed successfully"
+
+security:
+  - BearerAuth: []

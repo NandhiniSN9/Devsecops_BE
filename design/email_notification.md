@@ -40,7 +40,7 @@
 
 #### <u> 1.1 Overview </u>
 
-The Email Notification Service automates the generation and delivery of PDF reports for the DevSecOps Jira Dashboard. The service exposes a `POST /api/v1/reports/generate` endpoint that is triggered by an external daily cron job. Upon invocation, the service evaluates each specialization's configured report frequencies (`email_digest` for Summary reports and `at_risk_alert` for At-risk reports) from the `settings` table. It checks the `email_history` table to determine whether a report has already been sent within the current frequency window (e.g., weekly, monthly). If a report is due, the service fetches the corresponding HTML email template from the `email_templates` table, retrieves the relevant report data (KPI metrics for Summary reports or at-risk project details for At-risk reports), processes the HTML using BeautifulSoup to inject dynamic data, converts the populated HTML to a PDF document using WeasyPrint, uploads the PDF to cloud storage (AWS S3 or Azure Blob Storage), sends the email with the report link to all active recipients configured for that specialization via Microsoft Graph API or Amazon SES, and finally records the delivery status in the `email_history` table. The cron job execution status is tracked in the `cron_jobs` table. All errors are logged to the `error_log` table for traceability.
+The Email Notification Service automates the generation and delivery of PDF reports for the DevSecOps Jira Dashboard. The service exposes a `POST /api/v1/reports/generate` endpoint that is triggered by an external daily cron job with no request body. Upon invocation, the service internally fetches all active specializations and evaluates each one's configured report frequencies (`email_digest` for Summary reports and `at_risk_alert` for At-risk reports) from the `settings` table. It checks the `email_history` table to determine whether a report has already been sent within the current frequency window (e.g., weekly, monthly). If a report is due, the service fetches the corresponding HTML email template from the `email_templates` table, retrieves the relevant report data (KPI metrics for Summary reports or at-risk project details for At-risk reports), processes the HTML using BeautifulSoup to inject dynamic data, converts the populated HTML to a PDF document using WeasyPrint, uploads the PDF to cloud storage (AWS S3 or Azure Blob Storage), sends the email with the report link to all active recipients configured for that specialization via Microsoft Graph API or Amazon SES, and finally records the delivery status in the `email_history` table. The cron job execution status is tracked in the `cron_jobs` table. All errors are logged to the `error_log` table for traceability.
 
 #### <u> 1.2 Requirement Details </u>
 
@@ -56,29 +56,29 @@ The Email Notification Service automates the generation and delivery of PDF repo
 ##### <u> 1.2.1 ZDAD-60-FR01: Report Generation Endpoint </u>
 
 ##### Description:
-The system shall expose a `POST /api/v1/reports/generate` endpoint that triggers report generation and email delivery for a given specialization and report type. This endpoint is the entry point for both cron-triggered and manual report generation. When invoked, it orchestrates the full pipeline: data retrieval, template processing, PDF generation, cloud upload, email delivery, and history tracking.
+The system shall expose a `POST /api/v1/reports/generate` endpoint that triggers report generation and email delivery for all active specializations. This endpoint requires no request body — the cron simply calls it, and the service internally iterates over all active specializations, evaluates frequency windows, and generates/sends reports as needed. When invoked, it orchestrates the full pipeline: specialization iteration, frequency evaluation, data retrieval, template processing, PDF generation, cloud upload, email delivery, and history tracking.
 
-##### Request Payload:
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `type` | string (enum) | Yes | Report type: `At-risk` or `Summary report` |
-| `specialization_id` | string (UUID) | Yes | UUID of the target specialization |
+##### Request:
+No request body required. The endpoint is called without any payload.
 
 ##### Processing Logic:
-1. Validate the request payload (required fields, valid enum value for `type`, valid UUID format for `specialization_id`).
-2. Resolve `specialization_id` — verify it exists in the `specializations` table and `is_active = 1`. Return 404 if not found or inactive.
-3. Fetch the email template from `email_templates` table where `template_name` matches the report type.
-4. Fetch report data based on the report type:
-   - **At-risk**: Query projects with "At Risk" status linked to the specialization via `devsecops_tickets` → `specialization_id`. Include project name, client, onboarded date, and overdue duration.
-   - **Summary report**: Query KPI metrics from `kpi_history` for the specialization and status distribution from `projects`.
-5. Fetch active recipient email addresses from `email_recipient` table where `specialization_id` matches and `is_active = 1`.
-6. If no active recipients are configured, return HTTP 400 with message: "No active recipients configured for this specialization".
-7. Process the HTML template with BeautifulSoup, injecting report data into placeholders.
-8. Convert the populated HTML to PDF using WeasyPrint.
-9. Upload the PDF to cloud storage (S3 or Azure Blob Storage) with filename: `{report_type}_{specialization_name}_{YYYYMMDD_HHmmss}.pdf`.
-10. Send the email to all active recipients with the report download link in the email body.
-11. Create a record in `email_history` with delivery status.
-12. Return success or error response.
+1. Authenticate the request (encrypted token validation).
+2. Fetch all active specializations from the `specializations` table.
+3. For each active specialization:
+   a. Read the `settings` record to get `email_digest` and `at_risk_alert` frequency values.
+   b. For each report type (Summary and At-risk), evaluate whether the report is due (see FR02).
+   c. If due, fetch the email template from `email_templates` table where `template_name` matches the report type.
+   d. Fetch report data based on the report type:
+      - **At-risk**: Query projects where days since onboarding exceeds the threshold, linked to the specialization.
+      - **Summary report**: Query KPI metrics from `kpi_history` for the specialization.
+   e. Fetch active recipient email addresses from `email_recipient` table where `specialization_id` matches and `is_active = 1`.
+   f. If no active recipients are configured, skip this specialization and log a warning.
+   g. Process the HTML template with BeautifulSoup, injecting report data into placeholders.
+   h. Convert the populated HTML to PDF using WeasyPrint (in-memory).
+   i. Upload the PDF to cloud storage with filename: `{report_type}_{specialization_name}_{YYYYMMDD_HHmmss}.pdf`.
+   j. Send the email to all active recipients with the report download link.
+   k. Create a record in `email_history` with delivery status.
+4. Return success response.
 
 ##### Success Response:
 ```json
@@ -92,18 +92,15 @@ The system shall expose a `POST /api/v1/reports/generate` endpoint that triggers
 ##### Error Responses:
 | Status Code | Condition |
 |-------------|-----------|
-| 400 | Invalid request body (missing fields, invalid report type, no recipients configured) |
 | 401 | Missing or invalid authentication token |
-| 404 | Specialization not found or inactive |
 | 500 | Unexpected server error (PDF generation failure, email delivery failure, storage upload failure) |
 
 ##### Acceptance Criteria:
-- The endpoint accepts valid requests and triggers the full report generation pipeline.
-- Invalid `type` values return HTTP 400 with a descriptive error message.
-- Non-existent or inactive `specialization_id` returns HTTP 404.
-- Missing recipients return HTTP 400 with a clear message.
-- Successful execution returns HTTP 200 and creates an `email_history` record with status "sent".
-- Failed execution logs the error and creates an `email_history` record with status "failed".
+- The endpoint requires no request body — it processes all active specializations internally.
+- For each specialization, the service evaluates frequency and only generates reports that are due.
+- Specializations with no active recipients are skipped (logged as warning, not an error).
+- Successful execution returns HTTP 200 and creates `email_history` records for each report sent.
+- Failed execution logs the error and creates `email_history` records with status "failed".
 - The endpoint requires encrypted token authentication (shared middleware).
 
 ##### <u> 1.2.2 ZDAD-60-FR02: Cron Job Frequency Evaluation </u>
@@ -245,7 +242,6 @@ The system shall create a record in the `email_history` table after each report 
 |-------|-------|
 | `email_history_id` | Auto-generated UUID |
 | `setting_id` | FK to the `settings` record for the specialization |
-| `report_frequency` | The frequency that triggered this report (e.g., "weekly", "daily", "manual") |
 | `email_status` | "sent" (at least one recipient succeeded) or "failed" (all recipients failed) |
 | `email_type` | Report type: "At-risk" or "Summary report" |
 | `report_url` | URL of the uploaded PDF in cloud storage (null if generation failed before upload) |
@@ -258,7 +254,6 @@ The system shall create a record in the `email_history` table after each report 
 - A record is created in `email_history` for every report generation attempt.
 - Successful deliveries have `email_status = "sent"` and a valid `report_url`.
 - Failed deliveries have `email_status = "failed"` and `report_url` may be null.
-- The `report_frequency` field reflects the configured frequency or "manual" for API-triggered reports.
 - The `setting_id` correctly references the specialization's settings record.
 - History records are never deleted — they serve as a permanent audit trail.
 
@@ -345,7 +340,6 @@ The following tables are directly involved in the Email Notification Service (as
 |--------|------|-------------|
 | email_history_id | UUID | PK |
 | setting_id | UUID | FK → settings.setting_id |
-| report_frequency | VARCHAR | NOT NULL |
 | email_status | VARCHAR | NOT NULL ("sent" or "failed") |
 | email_type | VARCHAR | NOT NULL ("At-risk" or "Summary report") |
 | report_url | TEXT | URL to uploaded PDF (nullable) |
@@ -442,7 +436,7 @@ The following tables are directly involved in the Email Notification Service (as
 - **Python 3.12+** — Runtime environment
 - **FastAPI** — Web framework for building the REST API
 - **SQLAlchemy** — ORM for PostgreSQL database access (queries on email_templates, email_recipient, email_history, settings, kpi_history, projects)
-- **Pydantic v2** — Request payload validation and serialization
+- **Pydantic v2** — Response model serialization
 - **PostgreSQL** — Primary database storing templates, recipients, history, settings, and report data
 - **BeautifulSoup4 (bs4)** — HTML template parsing and dynamic data injection
 - **WeasyPrint** — HTML-to-PDF conversion library
@@ -515,16 +509,17 @@ All email service and cloud storage configuration shall be managed through envir
 ##### <u> 2.1.2.3 ZDAD-60-NFR03: External Cron Trigger Configuration </u>
 
 ##### Description:
-The report generation is triggered by an external scheduler (Azure Function Timer Trigger or AWS EventBridge Rule) that calls `POST /api/v1/reports/generate` on a daily schedule. The external trigger iterates over all active specializations and invokes the endpoint for each applicable report type based on the specialization's settings.
+The report generation is triggered by an external scheduler (Azure Function Timer Trigger or AWS EventBridge Rule) that calls `POST /api/v1/reports/generate` on a daily schedule. No request body is sent — the API internally iterates over all active specializations and evaluates frequency windows.
 
 ##### Trigger Flow:
 1. External cron fires daily (e.g., 06:00 UTC).
-2. The trigger script fetches all active specializations from the API or a configuration source.
-3. For each specialization, it calls `POST /api/v1/reports/generate` with the appropriate report type.
+2. The cron calls `POST /api/v1/reports/generate` with no request body (only the authentication token in the header).
+3. The API internally fetches all active specializations and processes each one.
 4. The API handles frequency evaluation internally (FR02) to determine if the report should actually be sent.
 
 ##### Acceptance Criteria:
 - The external cron trigger is documented with the expected schedule and invocation pattern.
+- The API endpoint requires no request body — it processes all specializations internally.
 - The API endpoint handles being called daily without sending duplicate reports (frequency evaluation).
 - The trigger uses a service account encrypted token for authentication.
 
@@ -626,7 +621,7 @@ The report generation endpoint requires a valid encrypted token in the `Authoriz
 - Cron job status tracking in `cron_jobs` table (pending → success/fail)
 - Error logging to `error_log` table for all unhandled exceptions
 - Encrypted token authentication (shared middleware)
-- Pydantic v2 request validation for the report generation payload
+- Pydantic v2 response models for serialization
 - SQLAlchemy ORM models for `email_templates`, `email_recipient`, `email_history`, `settings`, `cron_jobs`, `kpi_history`, and `projects` tables
 - Environment variable-based configuration for email provider, storage provider, and credentials
 - Standardized response format following `BaseResponse` schema

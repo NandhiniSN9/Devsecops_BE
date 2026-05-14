@@ -8,82 +8,84 @@ sequenceDiagram
     participant Email as Email Provider<br/>(Graph API / SES)
 
     %% Trigger and Authentication
-    Cron->>Backend: POST /api/v1/reports/generate<br/>{type, specialization_id}
+    Cron->>Backend: POST /api/v1/reports/generate<br/>(no request body, token in header)
     Backend->>Backend: Decrypt token using private key
     Backend->>Backend: Validate Jira email from token
-    Backend->>Backend: Validate request payload
 
-    Backend->>Database: Verify specialization exists<br/>WHERE specialization_id AND is_active = 1
-    Database-->>Backend: Specialization found
+    %% Fetch all specializations
+    Backend->>Database: SELECT * FROM specializations<br/>WHERE is_active = 1
+    Database-->>Backend: Active specializations list
 
-    %% Cron Job Tracking
-    Backend->>Database: INSERT INTO cron_jobs<br/>(type="email", sync_status="pending")
-    Database-->>Backend: cron_id created
+    loop For each active specialization
+        %% Cron Job Tracking
+        Backend->>Database: INSERT INTO cron_jobs<br/>(type="email", sync_status="pending")
+        Database-->>Backend: cron_id created
 
-    %% Frequency Evaluation
-    Backend->>Database: SELECT settings<br/>WHERE specialization_id matches
-    Database-->>Backend: {email_digest, at_risk_alert, setting_id}
-    Backend->>Database: SELECT email_history<br/>WHERE setting_id AND email_type<br/>AND email_status="sent"<br/>ORDER BY last_synced DESC LIMIT 1
-    Database-->>Backend: Last sent timestamp (or null)
-    Backend->>Backend: Evaluate frequency window<br/>(daily=24h, weekly=7d, monthly=30d)
+        %% Frequency Evaluation
+        Backend->>Database: SELECT settings<br/>WHERE specialization_id matches
+        Database-->>Backend: {email_digest, at_risk_alert, setting_id}
+        Backend->>Database: SELECT email_history<br/>WHERE setting_id AND email_type<br/>AND email_status="sent"<br/>ORDER BY last_synced DESC LIMIT 1
+        Database-->>Backend: Last sent timestamp (or null)
+        Backend->>Backend: Evaluate frequency window<br/>(daily=24h, weekly=7d, monthly=30d)
 
-    alt Report already sent within window
-        Backend->>Backend: Skip - log DEBUG
-        Backend-->>Cron: 200 OK (no action needed)
-    else Report is due
-        %% Fetch Template and Data
-        Backend->>Database: SELECT template_content FROM email_templates<br/>WHERE template_name = report_type
-        Database-->>Backend: HTML template string
+        alt Report already sent within window
+            Backend->>Backend: Skip - log DEBUG
+        else Report is due
+            %% Fetch Template and Data
+            Backend->>Database: SELECT template_content FROM email_templates<br/>WHERE template_name = report_type
+            Database-->>Backend: HTML template string
 
-        alt Summary report
-            Backend->>Database: SELECT kpi_history<br/>WHERE specialization_id matches
-            Database-->>Backend: KPI metrics data
-        else At-risk report
-            Backend->>Database: SELECT projects WHERE status = At Risk<br/>AND linked to specialization
-            Database-->>Backend: At-risk project list
-        end
+            alt Summary report
+                Backend->>Database: SELECT kpi_history<br/>WHERE specialization_id matches
+                Database-->>Backend: KPI metrics data
+            else At-risk report
+                Backend->>Database: SELECT projects WHERE<br/>days since onboarding > threshold
+                Database-->>Backend: At-risk project list
+            end
 
-        %% Fetch Recipients
-        Backend->>Database: SELECT alert_recipient FROM email_recipient<br/>WHERE specialization_id AND is_active = 1
-        Database-->>Backend: Recipient email list
+            %% Fetch Recipients
+            Backend->>Database: SELECT alert_recipient FROM email_recipient<br/>WHERE specialization_id AND is_active = 1
+            Database-->>Backend: Recipient email list
 
-        alt No active recipients
-            Backend->>Database: UPDATE cron_jobs SET sync_status="fail"
-            Backend-->>Cron: 400 - No active recipients configured
-        else Recipients found
-            %% PDF Generation
-            Backend->>Backend: Parse HTML with BeautifulSoup<br/>Inject report data into placeholders
-            Backend->>Backend: Convert HTML to PDF with WeasyPrint<br/>(in-memory, no temp files)
+            alt No active recipients
+                Backend->>Backend: Log WARNING, skip specialization
+                Backend->>Database: UPDATE cron_jobs SET sync_status="fail"
+            else Recipients found
+                %% PDF Generation
+                Backend->>Backend: Parse HTML with BeautifulSoup<br/>Inject report data into placeholders
+                Backend->>Backend: Convert HTML to PDF with WeasyPrint<br/>(in-memory)
 
-            %% Upload to Storage
-            Backend->>Storage: Upload PDF bytes<br/>Path: reports/{spec}/{type}/{date}.pdf
-            Storage-->>Backend: Pre-signed download URL
+                %% Upload to Storage
+                Backend->>Storage: Upload PDF bytes<br/>Path: reports/{spec}/{type}/{date}.pdf
+                Storage-->>Backend: Pre-signed download URL
 
-            %% Send Emails
-            loop For each recipient
-                Backend->>Email: Send email with report link
-                alt Success
-                    Email-->>Backend: 200 OK
-                else Failed
-                    Email-->>Backend: Error
-                    Backend->>Backend: Log WARNING, continue to next
+                %% Send Emails
+                loop For each recipient
+                    Backend->>Email: Send email with report link
+                    alt Success
+                        Email-->>Backend: 200 OK
+                    else Failed
+                        Email-->>Backend: Error
+                        Backend->>Backend: Log WARNING, continue
+                    end
                 end
-            end
 
-            %% Track History
-            alt At least one email sent
-                Backend->>Database: INSERT INTO email_history<br/>(email_status="sent", report_url, email_type)
-            else All failed
-                Backend->>Database: INSERT INTO email_history<br/>(email_status="failed", email_type)
-            end
+                %% Track History
+                alt At least one email sent
+                    Backend->>Database: INSERT INTO email_history<br/>(email_status="sent", report_url, email_type)
+                else All failed
+                    Backend->>Database: INSERT INTO email_history<br/>(email_status="failed", email_type)
+                end
 
-            Backend->>Database: UPDATE cron_jobs SET sync_status="success"
-            Backend-->>Cron: 200 - Email sent successfully
+                Backend->>Database: UPDATE cron_jobs SET sync_status="success"
+            end
         end
     end
 
+    Backend-->>Cron: 200 - Email sent successfully
+
     %% Error Scenario
-    Note over Backend,Database: On unhandled exception
+    Note over Backend,Database: On unhandled exception at any step
     Backend->>Database: INSERT INTO error_log<br/>(error_message, error_function, stack_trace)
     Backend->>Database: UPDATE cron_jobs SET sync_status="fail"
     Backend-->>Cron: 500 - Internal Server Error
