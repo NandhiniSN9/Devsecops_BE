@@ -75,13 +75,25 @@ class AttentionBanner(BaseModel):
     """Severity level based on at_risk_count thresholds."""
 
 
+class SyncDetail(BaseModel):
+    """Sync status detail containing last sync time and in-progress indicator."""
+
+    model_config = ConfigDict(strict=False)
+
+    last_sync_datetime: str | None
+    """Most recent sync timestamp in 'DD Mon YYYY, HH:MM' format, or null if never synced."""
+
+    is_sync_in_progress: bool
+    """Whether an ADO sync operation is currently in progress (pending status in cron_jobs)."""
+
+
 class OverviewData(BaseModel):
     """Combined overview response payload."""
 
     model_config = ConfigDict(strict=False)
 
-    last_synced: str | None
-    """Most recent sync timestamp from settings, ISO format or null."""
+    sync_detail: SyncDetail
+    """Sync status information including last sync time and in-progress state."""
 
     metrics: OverviewMetrics
     status_distribution: StatusDistribution

@@ -49,6 +49,18 @@ Each KPI includes:
 - `trend` — Direction: `increase`, `decrease`, `flat`, or `null`
 - `change` — Numeric difference (whichever of increase/decrease count is non-zero)
 
+### 1.4.1 Response — Sync Detail
+
+The response `data.sync_detail` object provides synchronization status information:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `last_sync_datetime` | string (nullable) | Most recent sync timestamp in "DD Mon YYYY, HH:MM" format, or null if never synced |
+| `is_sync_in_progress` | boolean | Whether an ADO sync operation is currently in progress |
+
+- `last_sync_datetime` is derived from the `last_synced` column in the `settings` table (max value across matching specializations).
+- `is_sync_in_progress` is determined by checking the `cron_jobs` table for any active record with `type = "azure"` and `sync_status = "pending"`.
+
 #### Trend Logic (applies to all tiles):
 - If `{metric}_increase_count > 0` → trend = `"increase"`, change = `{metric}_increase_count`
 - If `{metric}_decrease_count > 0` → trend = `"decrease"`, change = `{metric}_decrease_count`
@@ -114,7 +126,8 @@ All unhandled exceptions are logged to the `error_log` database table with:
 | `specializations` | Specialization lookup for filters and KPI queries |
 | `statuses` | Status definitions for filters and distribution |
 | `projects` | Project records for status distribution and client filter |
-| `settings` | Contains `at_risk_threshold` per specialization |
+| `settings` | Contains `at_risk_threshold` per specialization and `last_synced` timestamp |
+| `cron_jobs` | Tracks sync operations; used to determine if sync is in progress |
 | `error_log` | Persists unhandled exceptions |
 
 ### 1.12 Environment Variables

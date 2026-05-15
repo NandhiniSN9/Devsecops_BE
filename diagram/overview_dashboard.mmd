@@ -21,8 +21,17 @@ sequenceDiagram
     Repository->>Database: SELECT FROM kpi_history<br/>WHERE specialization_id matches<br/>AND within period window
     Database-->>Repository: KPI record (projects_count, completed_count,<br/>active_count, inactive_count, at_risk_count,<br/>not_applicable_count + increase/decrease columns)
     Repository-->>Service: KPI data
+    Service->>Repository: Fetch last_synced from settings
+    Repository->>Database: SELECT MAX(last_synced) FROM settings<br/>WHERE is_active = 1
+    Database-->>Repository: last_synced datetime
+    Repository-->>Service: last_synced
+    Service->>Repository: Check if sync in progress
+    Repository->>Database: SELECT COUNT(*) FROM cron_jobs<br/>WHERE type='azure' AND sync_status='pending'<br/>AND is_active = 1
+    Database-->>Repository: count
+    Repository-->>Service: is_sync_in_progress (boolean)
+    Service->>Service: Build sync_detail object
     Service->>Service: Determine trend per tile:<br/>increase_count > 0 → "increase"<br/>decrease_count > 0 → "decrease"<br/>both 0 → "flat"
-    Service-->>Route: {metrics, statusDistribution, attentionBanner}
+    Service-->>Route: {sync_detail, metrics, statusDistribution}
     Route-->>User: 200 OK
 
     %% Filters Endpoint

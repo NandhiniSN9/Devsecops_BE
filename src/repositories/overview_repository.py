@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.repositories.schema.cron_job import CronJob
 from src.repositories.schema.kpi_history import KpiHistory
 from src.repositories.schema.setting import Setting
 from src.repositories.schema.specialization import Specialization
@@ -149,3 +150,22 @@ class OverviewRepository:
 
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def is_sync_in_progress(self) -> bool:
+        """Check if any ADO sync operation is currently in progress.
+
+        Queries the cron_jobs table for any active record with type='azure'
+        and sync_status='pending'.
+
+        Returns:
+            True if a sync is in progress, False otherwise.
+        """
+        stmt = select(func.count()).select_from(CronJob).where(
+            CronJob.type == "azure",
+            CronJob.sync_status == "pending",
+            CronJob.is_active == 1,
+        )
+
+        result = await self._session.execute(stmt)
+        count = result.scalar_one()
+        return count > 0

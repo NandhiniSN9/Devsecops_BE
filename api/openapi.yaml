@@ -654,10 +654,25 @@ components:
             data:
               type: object
               properties:
+                sync_detail:
+                  $ref: '#/components/schemas/SyncDetail'
                 metrics:
                   $ref: '#/components/schemas/OverviewMetrics'
                 status_distribution:
                   $ref: '#/components/schemas/StatusDistribution'
+
+    SyncDetail:
+      type: object
+      properties:
+        last_sync_datetime:
+          type: string
+          nullable: true
+          description: Most recent sync timestamp in "DD Mon YYYY, HH:MM" format, or null if never synced
+          example: "10 May 2024, 00:00"
+        is_sync_in_progress:
+          type: boolean
+          description: Whether an ADO sync operation is currently in progress
+          example: false
 
     OverviewMetrics:
       type: object

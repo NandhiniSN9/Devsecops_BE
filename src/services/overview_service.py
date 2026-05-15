@@ -8,6 +8,7 @@ from src.models.overview_models import (
     OverviewMetrics,
     StatusBreakdownItem,
     StatusDistribution,
+    SyncDetail,
 )
 from src.models.query_params import PeriodEnum
 from src.repositories.overview_repository import OverviewRepository
@@ -57,16 +58,25 @@ class OverviewService:
         last_synced_dt = await self._overview_repo.get_last_synced(specialization_ids)
         last_synced = last_synced_dt.strftime("%d %b %Y, %H:%M") if last_synced_dt else None
 
-        # Step 4: Get current and comparison KPI records, compute metrics
+        # Step 4: Check if sync is in progress
+        is_sync_in_progress = await self._overview_repo.is_sync_in_progress()
+
+        # Step 5: Build sync_detail object
+        sync_detail = SyncDetail(
+            last_sync_datetime=last_synced,
+            is_sync_in_progress=is_sync_in_progress,
+        )
+
+        # Step 6: Get current and comparison KPI records, compute metrics
         current_records = await self._overview_repo.get_current_records(specialization_ids)
         metrics = await self._compute_metrics(current_records, specialization_ids, period_days)
 
-        # Step 5: Compute status distribution from KPI counts
+        # Step 7: Compute status distribution from KPI counts
         total_projects = metrics.total_projects.count
         status_distribution = await self._compute_status_distribution(current_records, total_projects)
 
         return OverviewData(
-            last_synced=last_synced,
+            sync_detail=sync_detail,
             metrics=metrics,
             status_distribution=status_distribution,
         )

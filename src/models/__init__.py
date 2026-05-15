@@ -9,6 +9,7 @@ from src.models.overview_models import (
     OverviewMetrics,
     StatusBreakdownItem,
     StatusDistribution,
+    SyncDetail,
 )
 from src.models.query_params import PeriodEnum
 from src.models.servicenow_models import (
@@ -31,6 +32,7 @@ __all__ = [
     "RepositoryItem",
     "StatusBreakdownItem",
     "StatusDistribution",
+    "SyncDetail",
     "SyncDevSecOpsTicketItem",
     "SyncDevSecOpsTicketsRequest",
     "SyncProjectItem",

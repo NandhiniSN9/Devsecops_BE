@@ -68,6 +68,13 @@ The system shall expose a `GET /api/v1/overview` endpoint that returns KPI tiles
 ##### Response Structure - KPI Tiles:
 The response `data.metrics` object contains KPI tiles read directly from the `kpi_history` table (populated by the ADO Azure Sync cron — out of scope for this story). Each tile contains `count`, `trend`, and `change`:
 
+##### Response Structure - Sync Detail:
+The response `data.sync_detail` object contains synchronization status information:
+- `last_sync_datetime` — Most recent sync timestamp from settings in "DD Mon YYYY, HH:MM" format, or null if never synced.
+- `is_sync_in_progress` — Boolean indicating whether an ADO sync operation is currently in progress (determined by checking for any `cron_jobs` record with `type = "azure"` and `sync_status = "pending"`).
+
+##### Response Structure - KPI Tiles (continued):
+
 - `totalProjects` — Total number of onboarded projects. Read from `projects_count`. Trend is determined by checking `projects_increase_count` and `projects_decrease_count`: if increase > 0 → `"increase"`, if decrease > 0 → `"decrease"`, if both are 0 → `"flat"`. Change value is whichever is non-zero.
 - `completed` — Projects that have a `completed_at` date set in the `projects` table. Read from `completed_count`. Trend from `completed_increase_count` / `completed_decrease_count`.
 - `active` — Projects with pipeline activity within the last 10 days. Read from the corresponding count in `kpi_history`. Trend from increase/decrease columns.
@@ -191,7 +198,8 @@ The full database schema is defined in `design/er_diagram.mmd`. The following ta
 - **statuses** — Status definitions (Active, Inactive, At Risk, Completed, Not Applicable).
 - **projects** — Project records with `sn_project_id`, `onboarded_date`, `status_id`, `client`. Used for status distribution, total projects count, and at-risk calculation.
 - **devsecops_tickets** — Tickets linked to projects and specializations. Used for total projects count when tickets are mapped to the default project (each unique `project_name` counts as a separate project).
-- **settings** — Contains `at_risk_threshold` per specialization used to determine at-risk status.
+- **settings** — Contains `at_risk_threshold` per specialization and `last_synced` timestamp used for sync detail.
+- **cron_jobs** — Tracks sync operations (`type = "azure"`, `sync_status`). Used to determine if a sync is currently in progress.
 - **error_log** — Persists unhandled exceptions for debugging.
 
 ##### Key Relationships:
