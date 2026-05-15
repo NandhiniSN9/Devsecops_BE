@@ -82,4 +82,3 @@ class OverviewData(BaseModel):
 
     metrics: OverviewMetrics
     status_distribution: StatusDistribution
-    attention_banner: AttentionBanner

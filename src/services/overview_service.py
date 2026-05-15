@@ -1,9 +1,8 @@
-"""Overview service for KPI aggregation, trend derivation, and attention banner logic."""
+"""Overview service for KPI aggregation and trend calculation."""
 
 import uuid
 
 from src.models.overview_models import (
-    AttentionBanner,
     KpiTile,
     OverviewData,
     OverviewMetrics,
@@ -11,30 +10,28 @@ from src.models.overview_models import (
     StatusDistribution,
 )
 from src.models.query_params import PeriodEnum
-from src.repositories.kpi_history_repository import KpiHistoryRepository
-from src.repositories.project_repository import ProjectRepository
-from src.repositories.specialization_repository import SpecializationRepository
+from src.repositories.overview_repository import OverviewRepository
+from src.repositories.schema.kpi_history import KpiHistory
 from src.settings import (
     MAX_SPECIALIZATION_FILTER_COUNT,
     PERIOD_DAYS_MAP,
-    SEVERITY_CRITICAL_THRESHOLD,
 )
 from src.utils.exceptions import InvalidParameterError
 
 
 class OverviewService:
-    """Service for computing overview dashboard data."""
+    """Service for computing overview dashboard data.
+
+    Calculates KPI metrics by comparing the current record (today/yesterday)
+    with the record from N days ago to derive trends and change values.
+    """
 
     def __init__(
         self,
-        kpi_repo: KpiHistoryRepository,
-        project_repo: ProjectRepository,
-        specialization_repo: SpecializationRepository,
+        overview_repo: OverviewRepository,
     ) -> None:
-        """Initialize with repository dependencies."""
-        self._kpi_repo = kpi_repo
-        self._project_repo = project_repo
-        self._specialization_repo = specialization_repo
+        """Initialize with repository dependency."""
+        self._overview_repo = overview_repo
 
     async def get_overview(self, period: str | None, specialization: str | None) -> OverviewData:
         """Compute and return the full overview dashboard data.
@@ -44,7 +41,7 @@ class OverviewService:
             specialization: Comma-separated specialization UUIDs or None.
 
         Returns:
-            OverviewData containing metrics, status distribution, and attention banner.
+            OverviewData containing metrics and status distribution.
 
         Raises:
             InvalidParameterError: If period is invalid or empty string.
@@ -56,19 +53,15 @@ class OverviewService:
         # Step 2: Parse specialization filter
         specialization_ids = self._parse_specialization(specialization)
 
-        # Step 3: Get KPI data and compute metrics
+        # Step 3: Get current and comparison KPI records, compute metrics
         metrics = await self._compute_metrics(specialization_ids, period_days)
 
         # Step 4: Compute status distribution
         status_distribution = await self._compute_status_distribution(specialization_ids)
 
-        # Step 5: Compute attention banner from at_risk count in metrics
-        attention_banner = self._compute_attention_banner(metrics.at_risk.count)
-
         return OverviewData(
             metrics=metrics,
             status_distribution=status_distribution,
-            attention_banner=attention_banner,
         )
 
     def _validate_period(self, period: str | None) -> str:
@@ -130,19 +123,29 @@ class OverviewService:
         return valid_uuids
 
     async def _compute_metrics(self, specialization_ids: list[uuid.UUID] | None, period_days: int) -> OverviewMetrics:
-        """Compute KPI metrics by aggregating latest records per specialization.
+        """Compute KPI metrics by comparing current vs comparison records.
+
+        Current record: today's record, or yesterday's if today doesn't exist.
+        Comparison record: record from exactly N days ago, or closest previous.
+
+        Change = current.count - comparison.count
+        Trend = increase/decrease/flat based on change sign.
 
         Args:
             specialization_ids: Optional list of specialization UUIDs to filter by.
-            period_days: Number of days to look back.
+            period_days: Number of days to look back for comparison.
 
         Returns:
             OverviewMetrics with all six KPI tiles.
         """
-        records = await self._kpi_repo.get_latest_by_specializations(specialization_ids, period_days)
+        # Fetch current records (today or yesterday) per specialization
+        current_records = await self._overview_repo.get_current_records(specialization_ids)
 
-        # If no records found → all counts = 0, all trends = null, all changes = 0
-        if not records:
+        # Fetch comparison records (N days ago or closest previous) per specialization
+        comparison_records = await self._overview_repo.get_comparison_records(specialization_ids, period_days)
+
+        # If no current records → all zeros
+        if not current_records:
             null_tile = KpiTile(count=0, trend=None, change=0)
             return OverviewMetrics(
                 total_projects=null_tile,
@@ -153,47 +156,69 @@ class OverviewService:
                 not_applicable=null_tile,
             )
 
-        # Sum counts across all records
-        total_projects_count = sum((r.projects_count or 0) for r in records)
-        total_projects_increase = sum((r.projects_increase_count or 0) for r in records)
-        total_projects_decrease = sum((r.projects_decrease_count or 0) for r in records)
+        # Build comparison lookup by specialization_id
+        comparison_map: dict[uuid.UUID, KpiHistory] = {}
+        for record in comparison_records:
+            if record.specialization_id:
+                comparison_map[record.specialization_id] = record
 
-        completed_count = sum((r.completed_count or 0) for r in records)
-        completed_increase = sum((r.completed_increase_count or 0) for r in records)
-        completed_decrease = sum((r.completed_decrease_count or 0) for r in records)
+        # Sum current counts across all specializations
+        total_projects_current = sum((r.projects_count or 0) for r in current_records)
+        completed_current = sum((r.completed_count or 0) for r in current_records)
+        active_current = sum((r.active_count or 0) for r in current_records)
+        inactive_current = sum((r.inactive_count or 0) for r in current_records)
+        at_risk_current = sum((r.at_risk_count or 0) for r in current_records)
+        not_applicable_current = sum((r.not_applicable_count or 0) for r in current_records)
 
-        active_count = sum((r.active_count or 0) for r in records)
-        active_increase = sum((r.active_increase_count or 0) for r in records)
-        active_decrease = sum((r.active_decrease_count or 0) for r in records)
+        # Sum comparison counts (matching specializations)
+        total_projects_comparison = 0
+        completed_comparison = 0
+        active_comparison = 0
+        inactive_comparison = 0
+        at_risk_comparison = 0
+        not_applicable_comparison = 0
 
-        inactive_count = sum((r.inactive_count or 0) for r in records)
-        inactive_increase = sum((r.inactive_increase_count or 0) for r in records)
-        inactive_decrease = sum((r.inactive_decrease_count or 0) for r in records)
+        for record in current_records:
+            comp = comparison_map.get(record.specialization_id) if record.specialization_id else None
+            if comp:
+                total_projects_comparison += comp.projects_count or 0
+                completed_comparison += comp.completed_count or 0
+                active_comparison += comp.active_count or 0
+                inactive_comparison += comp.inactive_count or 0
+                at_risk_comparison += comp.at_risk_count or 0
+                not_applicable_comparison += comp.not_applicable_count or 0
 
-        at_risk_count = sum((r.at_risk_count or 0) for r in records)
-        at_risk_increase = sum((r.at_risk_increase_count or 0) for r in records)
-        at_risk_decrease = sum((r.at_risk_decrease_count or 0) for r in records)
-
-        not_applicable_count = sum((r.not_applicable_count or 0) for r in records)
-        not_applicable_increase = sum((r.not_applicable_increase_count or 0) for r in records)
-        not_applicable_decrease = sum((r.not_applicable_decrease_count or 0) for r in records)
-
-        # Derive trends
-        tp_trend, tp_change = self._derive_trend(total_projects_increase, total_projects_decrease)
-        c_trend, c_change = self._derive_trend(completed_increase, completed_decrease)
-        a_trend, a_change = self._derive_trend(active_increase, active_decrease)
-        i_trend, i_change = self._derive_trend(inactive_increase, inactive_decrease)
-        ar_trend, ar_change = self._derive_trend(at_risk_increase, at_risk_decrease)
-        na_trend, na_change = self._derive_trend(not_applicable_increase, not_applicable_decrease)
-
+        # Calculate change and derive trends
         return OverviewMetrics(
-            total_projects=KpiTile(count=total_projects_count, trend=tp_trend, change=tp_change),
-            completed=KpiTile(count=completed_count, trend=c_trend, change=c_change),
-            active=KpiTile(count=active_count, trend=a_trend, change=a_change),
-            inactive=KpiTile(count=inactive_count, trend=i_trend, change=i_change),
-            at_risk=KpiTile(count=at_risk_count, trend=ar_trend, change=ar_change),
-            not_applicable=KpiTile(count=not_applicable_count, trend=na_trend, change=na_change),
+            total_projects=self._build_tile(total_projects_current, total_projects_comparison),
+            completed=self._build_tile(completed_current, completed_comparison),
+            active=self._build_tile(active_current, active_comparison),
+            inactive=self._build_tile(inactive_current, inactive_comparison),
+            at_risk=self._build_tile(at_risk_current, at_risk_comparison),
+            not_applicable=self._build_tile(not_applicable_current, not_applicable_comparison),
         )
+
+    @staticmethod
+    def _build_tile(current_count: int, comparison_count: int) -> KpiTile:
+        """Build a KPI tile from current and comparison counts.
+
+        Args:
+            current_count: The current (latest) count value.
+            comparison_count: The count from N days ago.
+
+        Returns:
+            KpiTile with count, trend direction, and absolute change.
+        """
+        change = current_count - comparison_count
+
+        if change > 0:
+            trend = "increase"
+        elif change < 0:
+            trend = "decrease"
+        else:
+            trend = "flat"
+
+        return KpiTile(count=current_count, trend=trend, change=abs(change))
 
     async def _compute_status_distribution(self, specialization_ids: list[uuid.UUID] | None) -> StatusDistribution:
         """Compute project status distribution with percentages.
@@ -204,7 +229,7 @@ class OverviewService:
         Returns:
             StatusDistribution with total count and breakdown items.
         """
-        distribution_data = await self._project_repo.get_status_distribution(specialization_ids)
+        distribution_data = await self._overview_repo.get_status_distribution(specialization_ids)
 
         # Calculate total
         total = sum(item["count"] for item in distribution_data)
@@ -226,51 +251,3 @@ class OverviewService:
             )
 
         return StatusDistribution(total=total, breakdown=breakdown)
-
-    def _compute_attention_banner(self, at_risk_count: int) -> AttentionBanner:
-        """Compute the attention banner based on at-risk project count.
-
-        Args:
-            at_risk_count: Number of at-risk projects.
-
-        Returns:
-            AttentionBanner with severity and message.
-        """
-        if at_risk_count >= SEVERITY_CRITICAL_THRESHOLD:
-            severity = "critical"
-            message = f"{at_risk_count} projects are at risk and require immediate attention."
-        elif at_risk_count >= 1:
-            severity = "warning"
-            plural_s = "s" if at_risk_count > 1 else ""
-            verb_s = "s" if at_risk_count == 1 else ""
-            message = f"{at_risk_count} project{plural_s} at risk and require{verb_s} attention."
-        else:
-            severity = "info"
-            message = "No projects are currently at risk."
-
-        return AttentionBanner(
-            message=message,
-            at_risk_count=at_risk_count,
-            severity=severity,
-        )
-
-    @staticmethod
-    def _derive_trend(increase_count: int, decrease_count: int) -> tuple[str | None, int]:
-        """Derive trend direction and change value from increase/decrease counts.
-
-        Priority: increase > decrease > flat.
-        When both increase and decrease are > 0, "increase" wins.
-
-        Args:
-            increase_count: Summed increase count for the metric.
-            decrease_count: Summed decrease count for the metric.
-
-        Returns:
-            Tuple of (trend_direction, change_value).
-        """
-        if increase_count > 0:
-            return ("increase", increase_count)
-        elif decrease_count > 0:
-            return ("decrease", decrease_count)
-        else:
-            return ("flat", 0)

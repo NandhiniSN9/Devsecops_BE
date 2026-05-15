@@ -1,12 +1,7 @@
 """Service for retrieving filter dropdown options."""
 
-import uuid
-
 from src.models.filter_models import FilterItem, FiltersData
-from src.repositories.project_repository import ProjectRepository
-from src.repositories.specialization_repository import SpecializationRepository
-from src.repositories.status_repository import StatusRepository
-from src.settings import CLIENT_UUID_NAMESPACE
+from src.repositories.filters_repository import ClientRepository
 
 
 class FilterService:
@@ -18,13 +13,9 @@ class FilterService:
 
     def __init__(
         self,
-        specialization_repo: SpecializationRepository,
-        project_repo: ProjectRepository,
-        status_repo: StatusRepository,
+        client_repo: ClientRepository,
     ) -> None:
-        self._specialization_repo = specialization_repo
-        self._project_repo = project_repo
-        self._status_repo = status_repo
+        self._client_repo = client_repo
 
     async def get_filters(self) -> FiltersData:
         """Retrieve all filter dropdown options.
@@ -34,7 +25,7 @@ class FilterService:
             Empty arrays are returned for categories with no active records.
         """
         # Query all active specializations
-        specializations_raw = await self._specialization_repo.get_active_specializations()
+        specializations_raw = await self._client_repo.get_active_specializations()
         specializations = [
             FilterItem(
                 id=str(spec.specialization_id),
@@ -44,17 +35,17 @@ class FilterService:
         ]
 
         # Query distinct non-null, non-empty clients from active projects
-        clients_raw = await self._project_repo.get_distinct_clients()
+        clients_raw = await self._client_repo.get_active_clients()
         clients = [
             FilterItem(
-                id=str(uuid.uuid5(CLIENT_UUID_NAMESPACE, client_name)),
-                name=client_name,
+                id=item["client_id"],
+                name=item["client_name"],
             )
-            for client_name in clients_raw
+            for item in clients_raw
         ]
 
         # Query all active statuses
-        statuses_raw = await self._status_repo.get_active_statuses()
+        statuses_raw = await self._client_repo.get_active_statuses()
         statuses = [
             FilterItem(
                 id=str(status.status_id),

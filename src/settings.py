@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     JIRA_BASE_URL: str
     JIRA_API_TOKEN: str
 
-    model_config = ConfigDict(env_file=".env")
+    model_config = ConfigDict(env_file=".env", extra="ignore")
 
 
 @lru_cache

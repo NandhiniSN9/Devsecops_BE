@@ -12,43 +12,26 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.models.overview_models import (
-    AttentionBanner,
     OverviewData,
     OverviewMetrics,
     StatusDistribution,
 )
-from src.repositories.kpi_history_repository import KpiHistoryRepository
-from src.repositories.project_repository import ProjectRepository
-from src.repositories.specialization_repository import SpecializationRepository
+from src.repositories.overview_repository import OverviewRepository
 from src.services.overview_service import OverviewService
 from src.utils.exceptions import InvalidParameterError
 
 
 @pytest.fixture
-def mock_kpi_repo():
-    """Create a mock KpiHistoryRepository."""
-    return AsyncMock(spec=KpiHistoryRepository)
+def mock_overview_repo():
+    """Create a mock OverviewRepository."""
+    return AsyncMock(spec=OverviewRepository)
 
 
 @pytest.fixture
-def mock_project_repo():
-    """Create a mock ProjectRepository."""
-    return AsyncMock(spec=ProjectRepository)
-
-
-@pytest.fixture
-def mock_specialization_repo():
-    """Create a mock SpecializationRepository."""
-    return AsyncMock(spec=SpecializationRepository)
-
-
-@pytest.fixture
-def service(mock_kpi_repo, mock_project_repo, mock_specialization_repo):
-    """Create an OverviewService with mocked repositories."""
+def service(mock_overview_repo):
+    """Create an OverviewService with mocked repository."""
     return OverviewService(
-        kpi_repo=mock_kpi_repo,
-        project_repo=mock_project_repo,
-        specialization_repo=mock_specialization_repo,
+        overview_repo=mock_overview_repo,
     )
 
 
@@ -248,118 +231,56 @@ class TestDeriveTrend:
         assert change == 999
 
 
-class TestComputeAttentionBanner:
-    """Tests for OverviewService._compute_attention_banner."""
-
-    def test_zero_at_risk_returns_info(self, service):
-        """Zero at-risk projects returns severity 'info'.
-
-        Validates: Requirements 4.4
-        """
-        banner = service._compute_attention_banner(0)
-        assert banner.severity == "info"
-        assert banner.at_risk_count == 0
-        assert "No projects are currently at risk" in banner.message
-
-    def test_one_at_risk_returns_warning(self, service):
-        """One at-risk project returns severity 'warning'.
-
-        Validates: Requirements 4.3
-        """
-        banner = service._compute_attention_banner(1)
-        assert banner.severity == "warning"
-        assert banner.at_risk_count == 1
-
-    def test_four_at_risk_returns_warning(self, service):
-        """Four at-risk projects returns severity 'warning'.
-
-        Validates: Requirements 4.3
-        """
-        banner = service._compute_attention_banner(4)
-        assert banner.severity == "warning"
-        assert banner.at_risk_count == 4
-
-    def test_five_at_risk_returns_critical(self, service):
-        """Five at-risk projects returns severity 'critical'.
-
-        Validates: Requirements 4.2
-        """
-        banner = service._compute_attention_banner(5)
-        assert banner.severity == "critical"
-        assert banner.at_risk_count == 5
-        assert "5" in banner.message
-
-    def test_large_at_risk_returns_critical(self, service):
-        """Large at-risk count returns severity 'critical'.
-
-        Validates: Requirements 4.2
-        """
-        banner = service._compute_attention_banner(100)
-        assert banner.severity == "critical"
-        assert banner.at_risk_count == 100
-        assert "100" in banner.message
-
-    def test_message_includes_count_when_positive(self, service):
-        """Message includes the numeric at-risk count when > 0."""
-        banner = service._compute_attention_banner(3)
-        assert "3" in banner.message
-
-    def test_banner_is_attention_banner_type(self, service):
-        """Return type is AttentionBanner."""
-        banner = service._compute_attention_banner(0)
-        assert isinstance(banner, AttentionBanner)
-
-
 class TestGetOverview:
     """Tests for OverviewService.get_overview (integration with mocked repos)."""
 
     async def test_default_period_returns_last_week_data(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """Valid request with default period (None) uses last_week (7 days).
 
         Validates: Requirements 1.2
         """
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = []
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = []
 
         await service.get_overview(period=None, specialization=None)
 
-        mock_kpi_repo.get_latest_by_specializations.assert_called_once_with(None, 7)
+        mock_overview_repo.get_latest_by_specializations.assert_called_once_with(None, 7)
 
     async def test_explicit_last_month_uses_30_days(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """Explicit 'last_month' period filters by 30 days."""
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = []
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = []
 
         await service.get_overview(period="last_month", specialization=None)
 
-        mock_kpi_repo.get_latest_by_specializations.assert_called_once_with(None, 30)
+        mock_overview_repo.get_latest_by_specializations.assert_called_once_with(None, 30)
 
     async def test_explicit_last_3_months_uses_90_days(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """Explicit 'last_3_months' period filters by 90 days."""
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = []
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = []
 
         await service.get_overview(period="last_3_months", specialization=None)
 
-        mock_kpi_repo.get_latest_by_specializations.assert_called_once_with(None, 90)
+        mock_overview_repo.get_latest_by_specializations.assert_called_once_with(None, 90)
 
     async def test_valid_specialization_filter_passes_uuids(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """Valid specialization filter passes parsed UUIDs to repositories."""
         spec_id = uuid.uuid4()
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = []
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = []
 
         await service.get_overview(period=None, specialization=str(spec_id))
 
-        call_args = mock_kpi_repo.get_latest_by_specializations.call_args
+        call_args = mock_overview_repo.get_latest_by_specializations.call_args
         assert call_args[0][0] == [spec_id]
         assert call_args[0][1] == 7
 
@@ -380,29 +301,29 @@ class TestGetOverview:
             await service.get_overview(period="", specialization=None)
 
     async def test_all_invalid_specialization_ids_returns_all_data(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """All invalid specialization IDs treated as no filter (returns all data).
 
         Validates: Requirements 1.7
         """
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = []
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = []
 
         await service.get_overview(period=None, specialization="not-a-uuid,also-invalid")
 
         # Should be called with None (no filter)
-        mock_kpi_repo.get_latest_by_specializations.assert_called_once_with(None, 7)
+        mock_overview_repo.get_latest_by_specializations.assert_called_once_with(None, 7)
 
     async def test_no_kpi_records_returns_zeros_with_null_trends(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """No KPI history records returns all zeros with null trends.
 
         Validates: Requirements 1.10
         """
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = []
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = []
 
         result = await service.get_overview(period=None, specialization=None)
 
@@ -421,7 +342,7 @@ class TestGetOverview:
             assert tile.change == 0
 
     async def test_kpi_records_aggregated_correctly(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """KPI records are summed across specializations correctly."""
         record1 = _make_kpi_record(
@@ -436,8 +357,8 @@ class TestGetOverview:
             projects_decrease_count=0,
             at_risk_count=2,
         )
-        mock_kpi_repo.get_latest_by_specializations.return_value = [record1, record2]
-        mock_project_repo.get_status_distribution.return_value = []
+        mock_overview_repo.get_latest_by_specializations.return_value = [record1, record2]
+        mock_overview_repo.get_status_distribution.return_value = []
 
         result = await service.get_overview(period=None, specialization=None)
 
@@ -447,7 +368,7 @@ class TestGetOverview:
         assert result.metrics.at_risk.count == 5
 
     async def test_period_validated_before_specialization(
-        self, service, mock_kpi_repo
+        self, service, mock_overview_repo
     ):
         """Period is validated before specialization (fail fast).
 
@@ -457,35 +378,34 @@ class TestGetOverview:
             await service.get_overview(period="invalid", specialization="also-invalid")
         assert "period" in exc_info.value.message
         # Repos should never be called
-        mock_kpi_repo.get_latest_by_specializations.assert_not_called()
+        mock_overview_repo.get_latest_by_specializations.assert_not_called()
 
     async def test_returns_overview_data_type(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """get_overview returns an OverviewData instance."""
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = []
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = []
 
         result = await service.get_overview(period=None, specialization=None)
 
         assert isinstance(result, OverviewData)
         assert isinstance(result.metrics, OverviewMetrics)
         assert isinstance(result.status_distribution, StatusDistribution)
-        assert isinstance(result.attention_banner, AttentionBanner)
 
 
 class TestStatusDistributionComputation:
     """Tests for status distribution percentage calculation via get_overview."""
 
     async def test_percentage_calculation(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """Percentages are calculated correctly as (count/total)*100 rounded to 1 decimal.
 
         Validates: Requirements 3.3
         """
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = [
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = [
             {"status_name": "Active", "count": 7},
             {"status_name": "Completed", "count": 3},
         ]
@@ -501,14 +421,14 @@ class TestStatusDistributionComputation:
         assert breakdown[1].percentage == 30.0
 
     async def test_zero_total_returns_zero_percentages(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """When total is zero, all percentages are 0.0 (no division by zero).
 
         Validates: Requirements 3.4
         """
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = [
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = [
             {"status_name": "Active", "count": 0},
             {"status_name": "Completed", "count": 0},
         ]
@@ -520,11 +440,11 @@ class TestStatusDistributionComputation:
             assert item.percentage == 0.0
 
     async def test_single_status_gets_100_percent(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """Single status with all projects gets 100.0%."""
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = [
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = [
             {"status_name": "Active", "count": 15},
         ]
 
@@ -534,14 +454,14 @@ class TestStatusDistributionComputation:
         assert result.status_distribution.breakdown[0].percentage == 100.0
 
     async def test_percentage_rounding_to_one_decimal(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """Percentages are rounded to one decimal place.
 
         Validates: Requirements 3.3
         """
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = [
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = [
             {"status_name": "Active", "count": 1},
             {"status_name": "Completed", "count": 2},
             {"status_name": "Inactive", "count": 3},
@@ -556,11 +476,11 @@ class TestStatusDistributionComputation:
         assert breakdown[2].percentage == pytest.approx(50.0, abs=0.01)
 
     async def test_empty_distribution_returns_empty_breakdown(
-        self, service, mock_kpi_repo, mock_project_repo
+        self, service, mock_overview_repo
     ):
         """Empty distribution data returns total 0 and empty breakdown."""
-        mock_kpi_repo.get_latest_by_specializations.return_value = []
-        mock_project_repo.get_status_distribution.return_value = []
+        mock_overview_repo.get_latest_by_specializations.return_value = []
+        mock_overview_repo.get_status_distribution.return_value = []
 
         result = await service.get_overview(period=None, specialization=None)
 

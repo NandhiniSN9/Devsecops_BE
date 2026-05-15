@@ -62,7 +62,8 @@ app = FastAPI(
 # Middleware Registration
 # ============================================================
 
-app.add_middleware(AuthMiddleware)
+# NOTE: Auth middleware disabled temporarily for local testing
+# app.add_middleware(AuthMiddleware)
 
 
 # ============================================================

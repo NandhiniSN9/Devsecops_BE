@@ -12,10 +12,8 @@ from collections.abc import AsyncGenerator
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from src.repositories.kpi_history_repository import KpiHistoryRepository
-from src.repositories.project_repository import ProjectRepository
-from src.repositories.specialization_repository import SpecializationRepository
-from src.repositories.status_repository import StatusRepository
+from src.repositories.filters_repository import ClientRepository
+from src.repositories.overview_repository import OverviewRepository
 from src.services.filter_service import FilterService
 from src.services.overview_service import OverviewService
 from src.settings import get_settings
@@ -48,55 +46,29 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 
-def get_kpi_history_repository(
+def get_overview_repository(
     session: AsyncSession = Depends(get_db_session),
-) -> KpiHistoryRepository:
-    """Factory for KpiHistoryRepository with injected database session."""
-    return KpiHistoryRepository(session)
+) -> OverviewRepository:
+    """Factory for OverviewRepository with injected database session."""
+    return OverviewRepository(session)
 
 
-def get_project_repository(
+def get_client_repository(
     session: AsyncSession = Depends(get_db_session),
-) -> ProjectRepository:
-    """Factory for ProjectRepository with injected database session."""
-    return ProjectRepository(session)
-
-
-def get_specialization_repository(
-    session: AsyncSession = Depends(get_db_session),
-) -> SpecializationRepository:
-    """Factory for SpecializationRepository with injected database session."""
-    return SpecializationRepository(session)
-
-
-def get_status_repository(
-    session: AsyncSession = Depends(get_db_session),
-) -> StatusRepository:
-    """Factory for StatusRepository with injected database session."""
-    return StatusRepository(session)
+) -> ClientRepository:
+    """Factory for ClientRepository with injected database session."""
+    return ClientRepository(session)
 
 
 def get_overview_service(
-    kpi_repo: KpiHistoryRepository = Depends(get_kpi_history_repository),
-    project_repo: ProjectRepository = Depends(get_project_repository),
-    specialization_repo: SpecializationRepository = Depends(get_specialization_repository),
+    overview_repo: OverviewRepository = Depends(get_overview_repository),
 ) -> OverviewService:
-    """Factory for OverviewService with injected repository dependencies."""
-    return OverviewService(
-        kpi_repo=kpi_repo,
-        project_repo=project_repo,
-        specialization_repo=specialization_repo,
-    )
+    """Factory for OverviewService with injected repository dependency."""
+    return OverviewService(overview_repo=overview_repo)
 
 
 def get_filter_service(
-    specialization_repo: SpecializationRepository = Depends(get_specialization_repository),
-    project_repo: ProjectRepository = Depends(get_project_repository),
-    status_repo: StatusRepository = Depends(get_status_repository),
+    client_repo: ClientRepository = Depends(get_client_repository),
 ) -> FilterService:
-    """Factory for FilterService with injected repository dependencies."""
-    return FilterService(
-        specialization_repo=specialization_repo,
-        project_repo=project_repo,
-        status_repo=status_repo,
-    )
+    """Factory for FilterService with injected repository dependency."""
+    return FilterService(client_repo=client_repo)
