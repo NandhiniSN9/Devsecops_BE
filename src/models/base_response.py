@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class BaseResponse(BaseModel):
     """Standard envelope for all API responses.
 
-    All endpoints return this structure regardless of success or failure.
+    All endpoints return this structure regardless of success or failures.
     """
 
     model_config = ConfigDict(strict=False)
