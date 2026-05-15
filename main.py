@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 
 from src.middleware.auth_middleware import AuthMiddleware
 from src.repositories.error_log_repository import ErrorLogRepository
-from src.routes import default_route, filter_route, overview_route
+from src.routes import default_route, filter_route, overview_route, servicenow_route
 from src.services.dependencies import _async_session_factory
 from src.settings import OVERVIEW_SERVICE_IDENTIFIER, validate_settings_at_startup
 from src.utils.exceptions.exceptions import AuthenticationError, InvalidParameterError
@@ -209,3 +209,6 @@ app.include_router(default_route.router)
 # Overview and filter endpoints under /api/v1 prefix
 app.include_router(overview_route.router, prefix="/api/v1")
 app.include_router(filter_route.router, prefix="/api/v1")
+
+# ServiceNow sync endpoints under /api/v1 prefix
+app.include_router(servicenow_route.router, prefix="/api/v1")

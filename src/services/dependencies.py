@@ -14,8 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from src.repositories.filters_repository import ClientRepository
 from src.repositories.overview_repository import OverviewRepository
+from src.repositories.servicenow_repository import ServiceNowRepository
 from src.services.filter_service import FilterService
 from src.services.overview_service import OverviewService
+from src.services.servicenow_service import ServiceNowService
 from src.settings import get_settings
 
 # Create async engine and session factory at module level
@@ -72,3 +74,17 @@ def get_filter_service(
 ) -> FilterService:
     """Factory for FilterService with injected repository dependency."""
     return FilterService(client_repo=client_repo)
+
+
+def get_servicenow_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> ServiceNowRepository:
+    """Factory for ServiceNowRepository with injected database session."""
+    return ServiceNowRepository(session)
+
+
+def get_servicenow_service(
+    servicenow_repo: ServiceNowRepository = Depends(get_servicenow_repository),
+) -> ServiceNowService:
+    """Factory for ServiceNowService with injected repository dependency."""
+    return ServiceNowService(servicenow_repo=servicenow_repo)

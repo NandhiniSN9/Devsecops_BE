@@ -11,6 +11,13 @@ from src.models.overview_models import (
     StatusDistribution,
 )
 from src.models.query_params import PeriodEnum
+from src.models.servicenow_models import (
+    RepositoryItem,
+    SyncDevSecOpsTicketItem,
+    SyncDevSecOpsTicketsRequest,
+    SyncProjectItem,
+    SyncProjectRequest,
+)
 
 __all__ = [
     "AttentionBanner",
@@ -21,6 +28,11 @@ __all__ = [
     "OverviewData",
     "OverviewMetrics",
     "PeriodEnum",
+    "RepositoryItem",
     "StatusBreakdownItem",
     "StatusDistribution",
+    "SyncDevSecOpsTicketItem",
+    "SyncDevSecOpsTicketsRequest",
+    "SyncProjectItem",
+    "SyncProjectRequest",
 ]

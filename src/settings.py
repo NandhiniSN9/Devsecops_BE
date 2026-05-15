@@ -31,6 +31,12 @@ JIRA_VALIDATION_TIMEOUT: int = 10
 # Service identifier for error logging
 OVERVIEW_SERVICE_IDENTIFIER: str = "overview_service"
 
+# Service identifier for ServiceNow sync error logging
+SERVICENOW_SERVICE_IDENTIFIER: str = "servicenow_sync_service"
+
+# Sync method identifier for tickets created via ServiceNow
+SERVICENOW_SYNC_METHOD: str = "servicenow"
+
 # Maximum number of specialization IDs allowed in filter
 MAX_SPECIALIZATION_FILTER_COUNT: int = 50
 
@@ -50,6 +56,7 @@ class Settings(BaseSettings):
     TOKEN_PRIVATE_KEY: str
     JIRA_BASE_URL: str
     JIRA_API_TOKEN: str
+    SERVICENOW_ALLOWED_EMAIL: str = ""
 
     model_config = ConfigDict(env_file=".env", extra="ignore")
 
