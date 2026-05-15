@@ -970,6 +970,51 @@ components:
           description: List of repositories under this project
           items:
             $ref: '#/components/schemas/RepositoryItem'
+        not_applicable_details:
+          nullable: true
+          description: Details from the Jira ticket when the project status is "Not Applicable". Null when the project has any other status.
+          allOf:
+            - $ref: '#/components/schemas/NotApplicableDetails'
+
+    NotApplicableDetails:
+      type: object
+      description: Jira ticket details associated with a project marked as Not Applicable. Retrieved from the jira_tickets table by project ID.
+      properties:
+        reason_category:
+          type: string
+          nullable: true
+          description: Category of the reason for marking the project as not applicable
+          example: "Client Restriction"
+        comments:
+          type: string
+          nullable: true
+          description: Comments explaining why the project was marked as not applicable
+          example: "Project Wavefront has been marked as not applicable due to client restrictions."
+        evidence_url:
+          type: string
+          nullable: true
+          description: URL to the evidence file uploaded when marking the project as not applicable
+          example: "https://s3.amazonaws.com/bucket/evidence/file.pdf"
+        type:
+          type: string
+          nullable: true
+          description: Type of the Jira ticket
+          example: "Not Applicable"
+        priority:
+          type: string
+          nullable: true
+          description: Priority level of the Jira ticket
+          example: "Medium"
+        assignee:
+          type: string
+          nullable: true
+          description: Person assigned to the Jira ticket
+          example: "john.doe@example.com"
+        jira_status:
+          type: string
+          nullable: true
+          description: Current status of the Jira ticket
+          example: "Done"
 
     RepositoryItem:
       type: object
