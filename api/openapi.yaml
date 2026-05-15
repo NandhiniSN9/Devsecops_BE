@@ -1629,9 +1629,18 @@ components:
           type: array
           description: List of recipient email addresses
           items:
-            type: string
-            format: email
-          example: ["manager@org.com", "lead@org.com"]
+            $ref: '#/components/schemas/EmailRecipientItem'
+
+    EmailRecipientItem:
+      type: object
+      properties:
+        email_recipient_id:
+          type: string
+          format: uuid
+        alert_recipient:
+          type: string
+          format: email
+          example: "manager@org.com"
 
     SettingsUpdateRequest:
       type: object
@@ -1663,9 +1672,26 @@ components:
           nullable: true
           description: List of recipient email addresses to set
           items:
-            type: string
-            format: email
-          example: ["manager@org.com", "newuser@org.com"]
+            $ref: '#/components/schemas/EmailRecipientAction'
+    
+    EmailRecipientAction:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [add, remove]
+          description: Whether to add or remove a recipient
+        alert_recipient:
+          type: string
+          format: email
+          description: Email address to add (required when action is "add")
+          example: "newuser@org.com"
+        email_recipient_id:
+          type: string
+          format: uuid
+          description: ID of the recipient to remove (required when action is "remove")
 
     # ===========================
     # Reports Schemas
