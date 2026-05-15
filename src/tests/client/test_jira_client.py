@@ -1,4 +1,4 @@
-"""Unit tests for JiraClient.validate_email method."""
+"""Unit tests for JiraClient.validate_email method"""
 
 from unittest.mock import AsyncMock, patch
 
