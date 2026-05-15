@@ -53,13 +53,20 @@ class OverviewService:
         # Step 2: Parse specialization filter
         specialization_ids = self._parse_specialization(specialization)
 
-        # Step 3: Get current and comparison KPI records, compute metrics
-        metrics = await self._compute_metrics(specialization_ids, period_days)
+        # Step 3: Get last_synced from settings
+        last_synced_dt = await self._overview_repo.get_last_synced(specialization_ids)
+        last_synced = last_synced_dt.strftime("%d %b %Y, %H:%M") if last_synced_dt else None
 
-        # Step 4: Compute status distribution
-        status_distribution = await self._compute_status_distribution(specialization_ids)
+        # Step 4: Get current and comparison KPI records, compute metrics
+        current_records = await self._overview_repo.get_current_records(specialization_ids)
+        metrics = await self._compute_metrics(current_records, specialization_ids, period_days)
+
+        # Step 5: Compute status distribution from KPI counts
+        total_projects = metrics.total_projects.count
+        status_distribution = await self._compute_status_distribution(current_records, total_projects)
 
         return OverviewData(
+            last_synced=last_synced,
             metrics=metrics,
             status_distribution=status_distribution,
         )
@@ -122,7 +129,9 @@ class OverviewService:
 
         return valid_uuids
 
-    async def _compute_metrics(self, specialization_ids: list[uuid.UUID] | None, period_days: int) -> OverviewMetrics:
+    async def _compute_metrics(
+        self, current_records: list, specialization_ids: list[uuid.UUID] | None, period_days: int
+    ) -> OverviewMetrics:
         """Compute KPI metrics by comparing current vs comparison records.
 
         Current record: today's record, or yesterday's if today doesn't exist.
@@ -132,18 +141,13 @@ class OverviewService:
         Trend = increase/decrease/flat based on change sign.
 
         Args:
+            current_records: Already-fetched current KPI records.
             specialization_ids: Optional list of specialization UUIDs to filter by.
             period_days: Number of days to look back for comparison.
 
         Returns:
             OverviewMetrics with all six KPI tiles.
         """
-        # Fetch current records (today or yesterday) per specialization
-        current_records = await self._overview_repo.get_current_records(specialization_ids)
-
-        # Fetch comparison records (N days ago or closest previous) per specialization
-        comparison_records = await self._overview_repo.get_comparison_records(specialization_ids, period_days)
-
         # If no current records → all zeros
         if not current_records:
             null_tile = KpiTile(count=0, trend=None, change=0)
@@ -155,6 +159,9 @@ class OverviewService:
                 at_risk=null_tile,
                 not_applicable=null_tile,
             )
+
+        # Fetch comparison records (N days ago or closest previous) per specialization
+        comparison_records = await self._overview_repo.get_comparison_records(specialization_ids, period_days)
 
         # Build comparison lookup by specialization_id
         comparison_map: dict[uuid.UUID, KpiHistory] = {}
@@ -220,27 +227,42 @@ class OverviewService:
 
         return KpiTile(count=current_count, trend=trend, change=abs(change))
 
-    async def _compute_status_distribution(self, specialization_ids: list[uuid.UUID] | None) -> StatusDistribution:
-        """Compute project status distribution with percentages.
+    async def _compute_status_distribution(
+        self, current_records: list, total_projects: int
+    ) -> StatusDistribution:
+        """Compute status distribution from KPI history counts.
+
+        total = projects_count (sum across specializations)
+        breakdown = completed + active + inactive + at_risk + not_applicable
+        percentage = (count / total) * 100
 
         Args:
-            specialization_ids: Optional list of specialization UUIDs to filter by.
+            current_records: Current KPI records per specialization.
+            total_projects: Total projects count (sum of projects_count).
 
         Returns:
-            StatusDistribution with total count and breakdown items.
+            StatusDistribution with total and breakdown items.
         """
-        distribution_data = await self._overview_repo.get_status_distribution(specialization_ids)
+        completed = sum((r.completed_count or 0) for r in current_records)
+        active = sum((r.active_count or 0) for r in current_records)
+        inactive = sum((r.inactive_count or 0) for r in current_records)
+        at_risk = sum((r.at_risk_count or 0) for r in current_records)
+        not_applicable = sum((r.not_applicable_count or 0) for r in current_records)
 
-        # Calculate total
-        total = sum(item["count"] for item in distribution_data)
+        breakdown_data = [
+            {"status_name": "Active", "count": active},
+            {"status_name": "At Risk", "count": at_risk},
+            {"status_name": "Completed", "count": completed},
+            {"status_name": "Inactive", "count": inactive},
+            {"status_name": "Not Applicable", "count": not_applicable},
+        ]
 
-        # Build breakdown items with percentage calculation
         breakdown: list[StatusBreakdownItem] = []
-        for item in distribution_data:
-            if total == 0:
+        for item in breakdown_data:
+            if total_projects == 0:
                 percentage = 0.0
             else:
-                percentage = round((item["count"] / total) * 100, 1)
+                percentage = round((item["count"] / total_projects) * 100, 1)
 
             breakdown.append(
                 StatusBreakdownItem(
@@ -250,4 +272,4 @@ class OverviewService:
                 )
             )
 
-        return StatusDistribution(total=total, breakdown=breakdown)
+        return StatusDistribution(total=total_projects, breakdown=breakdown)

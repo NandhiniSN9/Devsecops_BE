@@ -7,14 +7,12 @@ Fetches current and comparison records to calculate trends.
 import uuid
 from datetime import datetime, timedelta
 
-from sqlalchemy import String, case, distinct, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.repositories.schema.devsecops_ticket import DevsecopsTicket
 from src.repositories.schema.kpi_history import KpiHistory
-from src.repositories.schema.project import Project
+from src.repositories.schema.setting import Setting
 from src.repositories.schema.specialization import Specialization
-from src.repositories.schema.status import Status
 
 
 class OverviewRepository:
@@ -132,63 +130,22 @@ class OverviewRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_status_distribution(self, specialization_ids: list[uuid.UUID] | None) -> list[dict]:
-        """Get project count distribution grouped by status.
+    async def get_last_synced(self, specialization_ids: list[uuid.UUID] | None) -> datetime | None:
+        """Get the most recent last_synced timestamp from the settings table.
 
-        Uses LEFT JOIN from statuses to projects to include statuses with 0 projects.
-        When specialization_ids is provided, additionally joins devsecops_tickets
-        to filter projects by specialization.
+        When specialization_ids is provided, filters settings by those specializations.
+        Returns the maximum (most recent) last_synced value.
 
         Args:
             specialization_ids: Optional list of specialization UUIDs to filter by.
 
         Returns:
-            List of dicts with 'status_name' and 'count' keys, ordered by status_name ASC.
+            The most recent last_synced datetime, or None if no records found.
         """
+        stmt = select(func.max(Setting.last_synced)).where(Setting.is_active == 1)
+
         if specialization_ids:
-            stmt = (
-                select(
-                    Status.status_name,
-                    func.count(
-                        distinct(
-                            case(
-                                (DevsecopsTicket.ticket_id.isnot(None), Project.project_id),
-                                else_=None,
-                            )
-                        )
-                    ).label("count"),
-                )
-                .select_from(Status)
-                .outerjoin(
-                    Project,
-                    (Project.status_id == Status.status_id) & (Project.is_active == 1),
-                )
-                .outerjoin(
-                    DevsecopsTicket,
-                    (DevsecopsTicket.project_id == Project.project_id)
-                    & (DevsecopsTicket.specialization_id.in_(specialization_ids)),
-                )
-                .where(Status.is_active == 1)
-                .group_by(Status.status_name)
-                .order_by(Status.status_name.asc())
-            )
-        else:
-            stmt = (
-                select(
-                    Status.status_name,
-                    func.count(distinct(Project.project_id)).label("count"),
-                )
-                .select_from(Status)
-                .outerjoin(
-                    Project,
-                    (Project.status_id == Status.status_id) & (Project.is_active == 1),
-                )
-                .where(Status.is_active == 1)
-                .group_by(Status.status_name)
-                .order_by(Status.status_name.asc())
-            )
+            stmt = stmt.where(Setting.specialization_id.in_(specialization_ids))
 
         result = await self._session.execute(stmt)
-        rows = result.all()
-
-        return [{"status_name": row.status_name, "count": row.count} for row in rows]
+        return result.scalar_one_or_none()

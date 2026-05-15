@@ -80,5 +80,8 @@ class OverviewData(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
+    last_synced: str | None
+    """Most recent sync timestamp from settings, ISO format or null."""
+
     metrics: OverviewMetrics
     status_distribution: StatusDistribution

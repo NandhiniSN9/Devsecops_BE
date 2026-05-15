@@ -175,111 +175,83 @@ components:
             status:
               example: "success"
             message:
-              example: "Overview metrics retrieved successfully"
+              example: "Overview data retrieved successfully"
             data:
               type: object
               properties:
+                last_synced:
+                  type: string
+                  nullable: true
+                  description: Most recent sync timestamp from settings in "DD Mon YYYY, HH:MM" format
+                  example: "10 May 2024, 00:00"
                 metrics:
                   $ref: '#/components/schemas/OverviewMetrics'
                 status_distribution:
                   $ref: '#/components/schemas/StatusDistribution'
-                attention_banner:
-                  $ref: '#/components/schemas/AttentionBanner'
 
     OverviewMetrics:
       type: object
       properties:
         total_projects:
-          type: object
-          properties:
-            count:
-              type: integer
-              example: 44
-            trend:
-              type: string
-              nullable: true
-              enum: [increase, decrease, flat]
-              example: "increase"
-            change:
-              type: integer
-              example: 3
+          $ref: '#/components/schemas/KpiTile'
         completed:
-          type: object
-          properties:
-            count:
-              type: integer
-              example: 11
-            trend:
-              type: string
-              nullable: true
-              enum: [increase, decrease, flat]
-              example: "increase"
-            change:
-              type: integer
-              example: 2
+          $ref: '#/components/schemas/KpiTile'
         active:
-          type: object
-          properties:
-            count:
-              type: integer
-              example: 19
-            trend:
-              type: string
-              nullable: true
-              enum: [increase, decrease, flat]
-              example: "increase"
-            change:
-              type: integer
-              example: 2
+          $ref: '#/components/schemas/KpiTile'
         inactive:
-          type: object
-          properties:
-            count:
-              type: integer
-              example: 7
-            trend:
-              type: string
-              nullable: true
-              enum: [increase, decrease, flat]
-              example: "flat"
-            change:
-              type: integer
-              example: 0
+          $ref: '#/components/schemas/KpiTile'
         at_risk:
-          type: object
-          properties:
-            count:
-              type: integer
-              example: 6
-            trend:
-              type: string
-              nullable: true
-              enum: [increase, decrease, flat]
-              example: "decrease"
-            change:
-              type: integer
-              example: 1
+          $ref: '#/components/schemas/KpiTile'
         not_applicable:
-          type: object
-          properties:
-            count:
-              type: integer
-              example: 1
-            trend:
-              type: string
-              nullable: true
-              enum: [increase, decrease, flat]
-              example: "flat"
-            change:
-              type: integer
-              example: 0
+          $ref: '#/components/schemas/KpiTile'
+      example:
+        total_projects:
+          count: 12
+          trend: "increase"
+          change: 4
+        completed:
+          count: 5
+          trend: "increase"
+          change: 2
+        active:
+          count: 4
+          trend: "increase"
+          change: 1
+        inactive:
+          count: 1
+          trend: "flat"
+          change: 0
+        at_risk:
+          count: 2
+          trend: "increase"
+          change: 1
+        not_applicable:
+          count: 0
+          trend: "flat"
+          change: 0
+
+    KpiTile:
+      type: object
+      properties:
+        count:
+          type: integer
+          description: Current metric value
+        trend:
+          type: string
+          nullable: true
+          enum: [increase, decrease, flat]
+          description: Direction based on comparison with N days ago
+        change:
+          type: integer
+          description: Absolute difference between current and comparison count
 
     StatusDistribution:
       type: object
       properties:
         total:
           type: integer
-          example: 44
+          description: Total projects count (same as metrics.total_projects.count)
+          example: 12
         breakdown:
           type: array
           items:
@@ -287,28 +259,27 @@ components:
             properties:
               status:
                 type: string
-                example: "Active"
               count:
                 type: integer
-                example: 19
               percentage:
                 type: number
                 format: float
-                example: 43.2
-
-    AttentionBanner:
-      type: object
-      properties:
-        message:
-          type: string
-          example: "6 projects are at risk and require immediate attention"
-        at_risk_count:
-          type: integer
-          example: 6
-        severity:
-          type: string
-          enum: [critical, warning, info]
-          example: "critical"
+          example:
+            - status: "Active"
+              count: 4
+              percentage: 33.3
+            - status: "At Risk"
+              count: 2
+              percentage: 16.7
+            - status: "Completed"
+              count: 5
+              percentage: 41.7
+            - status: "Inactive"
+              count: 1
+              percentage: 8.3
+            - status: "Not Applicable"
+              count: 0
+              percentage: 0.0
 
     FiltersSuccessResponse:
       allOf:
