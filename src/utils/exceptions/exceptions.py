@@ -15,3 +15,11 @@ class AuthenticationError(Exception):
     def __init__(self, message: str = "Authentication failed or user not found in Jira") -> None:
         self.message = message
         super().__init__(self.message)
+
+
+class NotFoundError(Exception):
+    """Raised when a requested resource is not found. Returns 404."""
+
+    def __init__(self, message: str = "Resource not found") -> None:
+        self.message = message
+        super().__init__(self.message)

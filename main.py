@@ -14,10 +14,10 @@ from fastapi.responses import JSONResponse
 
 from src.middleware.auth_middleware import AuthMiddleware
 from src.repositories.error_log_repository import ErrorLogRepository
-from src.routes import default_route, filter_route, overview_route, servicenow_route
+from src.routes import default_route, filter_route, overview_route, servicenow_route, settings_route
 from src.services.dependencies import _async_session_factory
 from src.settings import OVERVIEW_SERVICE_IDENTIFIER, validate_settings_at_startup
-from src.utils.exceptions.exceptions import AuthenticationError, InvalidParameterError
+from src.utils.exceptions.exceptions import AuthenticationError, InvalidParameterError, NotFoundError
 from src.utils.logger import logger
 
 # ============================================================
@@ -158,6 +158,20 @@ async def authentication_exception_handler(request: Request, exc: Authentication
     )
 
 
+@app.exception_handler(NotFoundError)
+async def not_found_exception_handler(request: Request, exc: NotFoundError) -> JSONResponse:
+    """Handle NotFoundError exceptions with HTTP 404 response."""
+    return JSONResponse(
+        status_code=404,
+        content={
+            "status_code": 404,
+            "status": "failed",
+            "message": exc.message,
+            "data": [],
+        },
+    )
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle all unhandled exceptions with HTTP 500 response and async error logging.
@@ -212,3 +226,6 @@ app.include_router(filter_route.router, prefix="/api/v1")
 
 # ServiceNow sync endpoints under /api/v1 prefix
 app.include_router(servicenow_route.router, prefix="/api/v1")
+
+# Settings endpoints under /api/v1 prefix
+app.include_router(settings_route.router, prefix="/api/v1")
