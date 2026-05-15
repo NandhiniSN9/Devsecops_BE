@@ -395,7 +395,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CommonServerError'
 
-  /api/v1/specializations/{specializationId}/settings:
+  /api/v1/settings/{specializationId}:
     get:
       tags:
         - Settings
@@ -430,7 +430,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CommonServerError'
 
-  /api/v1/specializations/settings/manage:
+  /api/v1/settings/manage:
     put:
       tags:
         - Settings

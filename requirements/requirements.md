@@ -543,10 +543,10 @@ The Settings module provides CRUD operations for managing specialization-level s
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/v1/specializations/{specializationId}/settings` | GET | Get settings for a specialization |
-| `/api/v1/specializations/settings/manage` | PUT | Update settings for a specialization |
+| `/api/v1/settings/{specializationId}` | GET | Get settings for a specialization |
+| `/api/v1/settings/manage` | PUT | Update settings for a specialization |
 
-### 4.3 Get Settings — `GET /api/v1/specializations/{specializationId}/settings`
+### 4.3 Get Settings — `GET /api/v1/settings/{specializationId}`
 
 Returns the settings record for the given specialization, including specialization name and email recipients.
 
@@ -565,7 +565,7 @@ Returns the settings record for the given specialization, including specializati
 | 404 | Specialization not found |
 | 500 | Server error |
 
-### 4.4 Update Settings — `PUT /api/v1/specializations/settings/manage`
+### 4.4 Update Settings — `PUT /api/v1/settings/manage`
 
 Partially updates the settings record. Only send the fields that changed. Email recipients are managed via action-based approach (add/remove).
 

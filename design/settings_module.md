@@ -10,10 +10,10 @@
 - **Story Description:**  
   The DevSecOps Dashboard Settings module allows users to configure notification alert settings per specialization. This includes configuring the "at risk" threshold (number of days since onboarding without a repository before a project is considered at risk), enabling/disabling email digest reports and at-risk alerts, setting the report frequency (daily, weekly, monthly), and managing email recipients (add/remove) who receive the scheduled reports.
 - **Scope:**  
-  Implement the Settings API for the DevSecOps Dashboard. The `GET /api/v1/specializations/{specializationId}/settings` endpoint retrieves settings for a given specialization including email recipients. The `PUT /api/v1/specializations/settings/manage` endpoint partially updates settings and manages email recipients via an action-based approach (add/remove). All service errors are logged to the `error_log` table.
+  Implement the Settings API for the DevSecOps Dashboard. The `GET /api/v1/settings/{specializationId}` endpoint retrieves settings for a given specialization including email recipients. The `PUT /api/v1/settings/manage` endpoint partially updates settings and manages email recipients via an action-based approach (add/remove). All service errors are logged to the `error_log` table.
 - **Acceptance Criteria:**
-  - The `GET /api/v1/specializations/{specializationId}/settings` endpoint returns the settings record including at_risk_threshold, email_digest, at_risk_alert, report_frequency, specialization name, and email recipients list.
-  - The `PUT /api/v1/specializations/settings/manage` endpoint partially updates settings fields and manages email recipients via add/remove actions.
+  - The `GET /api/v1/settings/{specializationId}` endpoint returns the settings record including at_risk_threshold, email_digest, at_risk_alert, report_frequency, specialization name, and email recipients list.
+  - The `PUT /api/v1/settings/manage` endpoint partially updates settings fields and manages email recipients via add/remove actions.
   - Invalid inputs return HTTP 400 with descriptive validation error messages.
   - Non-existent specializations return HTTP 404.
   - All unhandled exceptions are logged to the `error_log` table with full context.
@@ -50,7 +50,7 @@
 
 #### <u> 1.1 Overview </u>
 
-The Settings API is a core component of the DevSecOps Jira Dashboard backend that enables delivery leads and administrators to configure notification alert settings on a per-specialization basis. The API exposes two endpoints: `GET /api/v1/specializations/{specializationId}/settings` which retrieves the complete settings record including the at-risk threshold, email digest schedule, at-risk alert schedule, report frequency, last sync timestamp, and the list of configured email recipients; and `PUT /api/v1/specializations/settings/manage` which allows partial updates to settings fields and manages email recipients through an action-based approach (add new recipients or soft-delete existing ones). The settings data drives the Email Notification Service (ZDAD-60) by defining when and to whom reports are delivered. The at-risk threshold determines how many days after onboarding without a repository a project is flagged as "at risk" on the Overview Dashboard. Both endpoints require JWT Bearer token authentication and return standardized JSON responses following the `BaseResponse` schema. All unhandled exceptions are logged to the `error_log` database table for traceability and debugging. The implementation follows the layered architecture pattern: Routes → Services → Repositories → Schema, with Pydantic models for request/response validation.
+The Settings API is a core component of the DevSecOps Jira Dashboard backend that enables delivery leads and administrators to configure notification alert settings on a per-specialization basis. The API exposes two endpoints: `GET /api/v1/settings/{specializationId}` which retrieves the complete settings record including the at-risk threshold, email digest schedule, at-risk alert schedule, report frequency, last sync timestamp, and the list of configured email recipients; and `PUT /api/v1/settings/manage` which allows partial updates to settings fields and manages email recipients through an action-based approach (add new recipients or soft-delete existing ones). The settings data drives the Email Notification Service (ZDAD-60) by defining when and to whom reports are delivered. The at-risk threshold determines how many days after onboarding without a repository a project is flagged as "at risk" on the Overview Dashboard. Both endpoints require JWT Bearer token authentication and return standardized JSON responses following the `BaseResponse` schema. All unhandled exceptions are logged to the `error_log` database table for traceability and debugging. The implementation follows the layered architecture pattern: Routes → Services → Repositories → Schema, with Pydantic models for request/response validation.
 
 #### <u> 1.2 Requirement Details </u>
 
@@ -64,7 +64,7 @@ The Settings API is a core component of the DevSecOps Jira Dashboard backend tha
 ##### <u> 1.2.1 ZDAD-59-FR01: Retrieve Settings for a Specialization </u>
 
 ##### Description:
-The system shall expose a `GET /api/v1/specializations/{specializationId}/settings` endpoint that returns the complete settings record for a given specialization. The response includes the settings configuration (at-risk threshold, email digest, at-risk alert, report frequency), the specialization name, the last sync timestamp, and the full list of active email recipients configured for that specialization.
+The system shall expose a `GET /api/v1/settings/{specializationId}` endpoint that returns the complete settings record for a given specialization. The response includes the settings configuration (at-risk threshold, email digest, at-risk alert, report frequency), the specialization name, the last sync timestamp, and the full list of active email recipients configured for that specialization.
 
 ##### Request Parameters:
 | Parameter | Location | Type | Required | Description |
@@ -124,7 +124,7 @@ The system shall expose a `GET /api/v1/specializations/{specializationId}/settin
 ##### <u> 1.2.2 ZDAD-59-FR02: Update Settings (Partial Update) </u>
 
 ##### Description:
-The system shall expose a `PUT /api/v1/specializations/settings/manage` endpoint that partially updates the settings record for a given specialization. Only the fields included in the request body are updated; omitted fields remain unchanged. The endpoint also supports email recipient management via an action-based array (covered in FR03).
+The system shall expose a `PUT /api/v1/settings/manage` endpoint that partially updates the settings record for a given specialization. Only the fields included in the request body are updated; omitted fields remain unchanged. The endpoint also supports email recipient management via an action-based array (covered in FR03).
 
 ##### Request Body:
 ```json
@@ -370,7 +370,7 @@ The following tables are directly involved in the Settings API (as defined in `d
 
 #### <u> 1.4 Project Artifacts </u>
 
-- `api/openapi.yaml` — Full OpenAPI 3.0.3 specification defining the `GET /api/v1/specializations/{specializationId}/settings` and `PUT /api/v1/specializations/settings/manage` endpoints, request/response schemas (`SettingsSuccessResponse`, `SettingsUpdateRequest`, `EmailRecipientAction`), and error response formats.
+- `api/openapi.yaml` — Full OpenAPI 3.0.3 specification defining the `GET /api/v1/settings/{specializationId}` and `PUT /api/v1/settings/manage` endpoints, request/response schemas (`SettingsSuccessResponse`, `SettingsUpdateRequest`, `EmailRecipientAction`), and error response formats.
 - `design/er_diagram.mmd` — Mermaid ER diagram showing all database tables and relationships including `specializations`, `settings`, `email_recipient`, `error_log`, and `cron_jobs`.
 - `design/requirements.md` — High-level requirements document for the Settings module (ZDAD-59) with acceptance criteria and affected components.
 - `design/Settings - UI screenshots.docx` — Visual reference for the Settings configuration panel UI layout.
@@ -536,8 +536,8 @@ All Settings API endpoints require a valid JWT Bearer token in the `Authorizatio
 
 #### <u> 3.1 Inscope Details </u>
 
-- Implementation of `GET /api/v1/specializations/{specializationId}/settings` endpoint returning settings configuration and email recipients list
-- Implementation of `PUT /api/v1/specializations/settings/manage` endpoint for partial settings updates
+- Implementation of `GET /api/v1/settings/{specializationId}` endpoint returning settings configuration and email recipients list
+- Implementation of `PUT /api/v1/settings/manage` endpoint for partial settings updates
 - Email recipient management via action-based approach (add new recipients, soft-delete existing ones)
 - Input validation using Pydantic v2 models for all request parameters and body fields
 - UUID format validation for path parameters and request body identifiers
