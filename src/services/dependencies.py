@@ -12,18 +12,23 @@ from collections.abc import AsyncGenerator
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from src.client.ado_client import AdoClient
 from src.client.graph_client import GraphClient
 from src.client.s3_client import S3Client
+from src.repositories.ado_sync_repository import AdoSyncRepository
 from src.repositories.filters_repository import ClientRepository
 from src.repositories.overview_repository import OverviewRepository
 from src.repositories.projects_repository import ProjectsRepository
 from src.repositories.report_repository import ReportRepository
+from src.repositories.repository_detail_repository import RepositoryDetailRepository
 from src.repositories.servicenow_repository import ServiceNowRepository
 from src.repositories.settings_repository import SettingsRepository
+from src.services.ado_sync_service import AdoSyncService
 from src.services.filter_service import FilterService
 from src.services.overview_service import OverviewService
 from src.services.projects_service import ProjectsService
 from src.services.report_service import ReportService
+from src.services.repository_detail_service import RepositoryDetailService
 from src.services.servicenow_service import ServiceNowService
 from src.services.settings_service import SettingsService
 from src.settings import get_settings
@@ -169,3 +174,42 @@ def get_projects_service(
         projects_repo=projects_repo,
         s3_client=s3_client,
     )
+
+
+def get_repository_detail_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> RepositoryDetailRepository:
+    """Factory for RepositoryDetailRepository with injected database session."""
+    return RepositoryDetailRepository(session)
+
+
+def get_repository_detail_service(
+    repo: RepositoryDetailRepository = Depends(get_repository_detail_repository),
+) -> RepositoryDetailService:
+    """Factory for RepositoryDetailService with injected repository dependency."""
+    return RepositoryDetailService(repo=repo)
+
+
+def get_ado_client() -> AdoClient:
+    """Factory for AdoClient with credentials from settings."""
+    settings = get_settings()
+    return AdoClient(
+        org_url=settings.ADO_ORG_URL,
+        pat=settings.ADO_PAT,
+        project=settings.ADO_PROJECT,
+    )
+
+
+def get_ado_sync_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> AdoSyncRepository:
+    """Factory for AdoSyncRepository with injected database session."""
+    return AdoSyncRepository(session)
+
+
+def get_ado_sync_service(
+    repo: AdoSyncRepository = Depends(get_ado_sync_repository),
+    ado_client: AdoClient = Depends(get_ado_client),
+) -> AdoSyncService:
+    """Factory for AdoSyncService with injected dependencies."""
+    return AdoSyncService(repo=repo, ado_client=ado_client)

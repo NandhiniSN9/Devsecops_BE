@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 
 from src.middleware.auth_middleware import AuthMiddleware
 from src.repositories.error_log_repository import ErrorLogRepository
-from src.routes import default_route, filter_route, overview_route, projects_route, report_route, servicenow_route, settings_route
+from src.routes import default_route, filter_route, overview_route, projects_route, report_route, servicenow_route, settings_route, repository_detail_route, ado_sync_route
 from src.services.dependencies import _async_session_factory
 from src.settings import OVERVIEW_SERVICE_IDENTIFIER, validate_settings_at_startup
 from src.utils.exceptions.exceptions import AuthenticationError, InvalidParameterError, NotFoundError
@@ -235,3 +235,9 @@ app.include_router(report_route.router, prefix="/api/v1")
 
 # Projects endpoints under /api/v1 prefix
 app.include_router(projects_route.router, prefix="/api/v1")
+
+# Repository detail endpoints under /api/v1 prefix
+app.include_router(repository_detail_route.router, prefix="/api/v1")
+
+# ADO sync endpoints under /api/v1 prefix
+app.include_router(ado_sync_route.router, prefix="/api/v1")
