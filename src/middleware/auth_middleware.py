@@ -86,7 +86,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             The email string if decryption and extraction succeed, None otherwise.
         """
         try:
-            settings = get_settings()
+            settings = get_settings()            
             fernet = Fernet(settings.TOKEN_PRIVATE_KEY.encode())
             decrypted_bytes = fernet.decrypt(token.encode())
             payload = json.loads(decrypted_bytes.decode())
