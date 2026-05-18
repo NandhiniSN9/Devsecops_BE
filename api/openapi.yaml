@@ -965,7 +965,7 @@ components:
           type: string
           description: Current status of the project
           example: "COMPLETED"
-        at_risk_overdue:
+        overdue_days:
           type: integer
           description: Number of days the project is overdue (0 if not at risk)
           example: 5

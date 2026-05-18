@@ -119,7 +119,7 @@ class ProjectsService:
                     onboarded_date=project.onboarded_date,
                     repository_count=len(repo_items),
                     status=status_name or "Unknown",
-                    at_risk_overdue=at_risk_overdue,
+                    overdue_days=at_risk_overdue,
                     repositories=repo_items,
                 )
             )
