@@ -16,11 +16,13 @@ from src.client.graph_client import GraphClient
 from src.client.s3_client import S3Client
 from src.repositories.filters_repository import ClientRepository
 from src.repositories.overview_repository import OverviewRepository
+from src.repositories.projects_repository import ProjectsRepository
 from src.repositories.report_repository import ReportRepository
 from src.repositories.servicenow_repository import ServiceNowRepository
 from src.repositories.settings_repository import SettingsRepository
 from src.services.filter_service import FilterService
 from src.services.overview_service import OverviewService
+from src.services.projects_service import ProjectsService
 from src.services.report_service import ReportService
 from src.services.servicenow_service import ServiceNowService
 from src.services.settings_service import SettingsService
@@ -147,5 +149,23 @@ def get_report_service(
     return ReportService(
         report_repo=report_repo,
         graph_client=graph_client,
+        s3_client=s3_client,
+    )
+
+
+def get_projects_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> ProjectsRepository:
+    """Factory for ProjectsRepository with injected database session."""
+    return ProjectsRepository(session)
+
+
+def get_projects_service(
+    projects_repo: ProjectsRepository = Depends(get_projects_repository),
+    s3_client: S3Client = Depends(get_s3_client),
+) -> ProjectsService:
+    """Factory for ProjectsService with injected dependencies."""
+    return ProjectsService(
+        projects_repo=projects_repo,
         s3_client=s3_client,
     )
