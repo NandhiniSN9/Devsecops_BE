@@ -1,9 +1,9 @@
-"""Pydantic models for the Filters endpoint response payload."""
+"""Response DTOs for the Filters endpoint."""
 
 from pydantic import BaseModel, ConfigDict
 
 
-class FilterItem(BaseModel):
+class FilterItemResponse(BaseModel):
     """Generic id/name pair for filter dropdown options."""
 
     model_config = ConfigDict(strict=False)
@@ -15,16 +15,16 @@ class FilterItem(BaseModel):
     """Display name for the filter option."""
 
 
-class FiltersData(BaseModel):
+class FiltersDataResponse(BaseModel):
     """Filter dropdown options for specializations, clients, and statuses."""
 
     model_config = ConfigDict(strict=False)
 
-    specializations: list[FilterItem]
+    specializations: list[FilterItemResponse]
     """Active specializations sorted alphabetically by name."""
 
-    clients: list[FilterItem]
+    clients: list[FilterItemResponse]
     """Distinct active clients sorted alphabetically by name."""
 
-    statuses: list[FilterItem]
+    statuses: list[FilterItemResponse]
     """Active statuses sorted alphabetically by name."""

@@ -9,8 +9,8 @@ Implements the business logic for:
 import uuid
 from datetime import datetime
 
-from src.models.servicenow_models import (
-    SyncDevSecOpsTicketItem,
+from src.dtos.request.servicenow_request import (
+    SyncDevSecOpsTicketItemRequest,
     SyncDevSecOpsTicketsRequest,
     SyncProjectRequest,
 )
@@ -171,7 +171,7 @@ class ServiceNowService:
             "total": len(request.tickets),
         }
 
-    async def _process_single_ticket(self, ticket_item: SyncDevSecOpsTicketItem, created_by: str) -> bool:
+    async def _process_single_ticket(self, ticket_item: SyncDevSecOpsTicketItemRequest, created_by: str) -> bool:
         """Process a single DevSecOps ticket (upsert).
 
         If a ticket with the same sn_project_id or devSec_project_id exists,
@@ -261,19 +261,26 @@ class ServiceNowService:
                 specialization=ticket_item.specialization_name,
             )
 
-        # Step 4: Process repositories (upsert)
+        # Step 4: Mark project as DevSecOps onboarded
+        if not project.is_devsecops_onboarded:
+            project.is_devsecops_onboarded = True
+            project.modified_at = datetime.utcnow()
+            project.modified_by = created_by
+
+        # Step 5: Process repositories (upsert)
         if ticket_item.repositories:
             await self._process_repositories(ticket_item.repositories, ticket_id, created_by)
 
         return True
 
-    async def _resolve_project(self, ticket_item: SyncDevSecOpsTicketItem) -> Project | None:
-        """Resolve project using 4-step fallback logic.
+    async def _resolve_project(self, ticket_item: SyncDevSecOpsTicketItemRequest) -> Project | None:
+        """Resolve project using 5-step fallback logic.
 
         1. Match by sn_project_id
-        2. Match by project_name
-        3. Match by client
-        4. Use default project
+        2. Match by project_name (exact, case-insensitive)
+        3. Match by normalized project_name (remove 'zeb-', replace '-' with space)
+        4. Match by client
+        5. Use default project
 
         Args:
             ticket_item: The ticket data containing resolution fields.
@@ -286,18 +293,23 @@ class ServiceNowService:
         if project:
             return project
 
-        # Step 2: Match by project_name
+        # Step 2: Match by project_name (exact, case-insensitive)
         project = await self._repo.get_project_by_name(ticket_item.project_name)
         if project:
             return project
 
-        # Step 3: Match by client
+        # Step 3: Match by normalized project_name
+        project = await self._repo.get_project_by_normalized_name(ticket_item.project_name)
+        if project:
+            return project
+
+        # Step 4: Match by client
         if ticket_item.client:
             project = await self._repo.get_project_by_client(ticket_item.client)
             if project:
                 return project
 
-        # Step 4: Use default project
+        # Step 5: Use default project
         project = await self._repo.get_default_project()
         return project
 

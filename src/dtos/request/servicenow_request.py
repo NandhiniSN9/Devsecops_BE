@@ -1,11 +1,11 @@
-"""Pydantic request/response models for ServiceNow sync endpoints."""
+"""Request DTOs for ServiceNow sync endpoints."""
 
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-class SyncProjectItem(BaseModel):
+class SyncProjectItemRequest(BaseModel):
     """Single project item in the sync request payload."""
 
     model_config = ConfigDict(strict=False)
@@ -48,11 +48,11 @@ class SyncProjectRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    projects: list[SyncProjectItem] = Field(min_length=1)
+    projects: list[SyncProjectItemRequest] = Field(min_length=1)
     """List of project objects to sync from ServiceNow."""
 
 
-class RepositoryItem(BaseModel):
+class RepositoryItemRequest(BaseModel):
     """Single repository item within a DevSecOps ticket."""
 
     model_config = ConfigDict(strict=False)
@@ -75,7 +75,7 @@ class RepositoryItem(BaseModel):
         return v
 
 
-class SyncDevSecOpsTicketItem(BaseModel):
+class SyncDevSecOpsTicketItemRequest(BaseModel):
     """Single DevSecOps ticket item in the sync request payload."""
 
     model_config = ConfigDict(strict=False, populate_by_name=True)
@@ -95,7 +95,7 @@ class SyncDevSecOpsTicketItem(BaseModel):
     specialization_name: str = Field(min_length=1)
     """Specialization name (must match an existing active specialization)."""
 
-    repositories: list[RepositoryItem] | None = None
+    repositories: list[RepositoryItemRequest] | None = None
     """Repositories associated with the ticket."""
 
     requested_by: str | None = None
@@ -121,5 +121,5 @@ class SyncDevSecOpsTicketsRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    tickets: list[SyncDevSecOpsTicketItem] = Field(min_length=1)
+    tickets: list[SyncDevSecOpsTicketItemRequest] = Field(min_length=1)
     """List of DevSecOps tickets to ingest."""

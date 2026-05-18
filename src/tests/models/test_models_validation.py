@@ -3,44 +3,44 @@
 import pytest
 from pydantic import ValidationError
 
-from src.models import (
-    AttentionBanner,
-    BaseResponse,
-    FilterItem,
-    FiltersData,
-    KpiTile,
-    OverviewData,
-    OverviewMetrics,
-    PeriodEnum,
-    StatusBreakdownItem,
-    StatusDistribution,
+from src.dtos.request.overview_request import PeriodEnum
+from src.dtos.response.base_response import BaseResponse
+from src.dtos.response.filter_response import FilterItemResponse, FiltersDataResponse
+from src.dtos.response.overview_response import (
+    AttentionBannerResponse,
+    KpiTileResponse,
+    OverviewDataResponse,
+    OverviewMetricsResponse,
+    StatusBreakdownItemResponse,
+    StatusDistributionResponse,
+    SyncDetailResponse,
 )
 
 
 class TestKpiTile:
-    """Tests for KpiTile model validation."""
+    """Tests for KpiTileResponse model validation."""
 
     def test_valid_kpi_tile(self):
-        tile = KpiTile(count=5, trend="increase", change=2)
+        tile = KpiTileResponse(count=5, trend="increase", change=2)
         assert tile.count == 5
         assert tile.trend == "increase"
         assert tile.change == 2
 
     def test_kpi_tile_null_trend(self):
-        tile = KpiTile(count=0, trend=None, change=0)
+        tile = KpiTileResponse(count=0, trend=None, change=0)
         assert tile.trend is None
 
     def test_kpi_tile_rejects_negative_count(self):
         with pytest.raises(ValidationError):
-            KpiTile(count=-1, trend="flat", change=0)
+            KpiTileResponse(count=-1, trend="flat", change=0)
 
     def test_kpi_tile_rejects_negative_change(self):
         with pytest.raises(ValidationError):
-            KpiTile(count=0, trend="flat", change=-1)
+            KpiTileResponse(count=0, trend="flat", change=-1)
 
     def test_kpi_tile_rejects_invalid_trend(self):
         with pytest.raises(ValidationError):
-            KpiTile(count=0, trend="invalid", change=0)
+            KpiTileResponse(count=0, trend="invalid", change=0)
 
 
 class TestBaseResponse:
@@ -75,36 +75,36 @@ class TestBaseResponse:
 
 
 class TestStatusBreakdownItem:
-    """Tests for StatusBreakdownItem model validation."""
+    """Tests for StatusBreakdownItemResponse model validation."""
 
     def test_valid_item(self):
-        item = StatusBreakdownItem(status="Active", count=10, percentage=50.0)
+        item = StatusBreakdownItemResponse(status="Active", count=10, percentage=50.0)
         assert item.status == "Active"
         assert item.count == 10
         assert item.percentage == 50.0
 
     def test_rejects_negative_count(self):
         with pytest.raises(ValidationError):
-            StatusBreakdownItem(status="Active", count=-1, percentage=50.0)
+            StatusBreakdownItemResponse(status="Active", count=-1, percentage=50.0)
 
     def test_rejects_percentage_over_100(self):
         with pytest.raises(ValidationError):
-            StatusBreakdownItem(status="Active", count=10, percentage=100.1)
+            StatusBreakdownItemResponse(status="Active", count=10, percentage=100.1)
 
     def test_rejects_negative_percentage(self):
         with pytest.raises(ValidationError):
-            StatusBreakdownItem(status="Active", count=10, percentage=-0.1)
+            StatusBreakdownItemResponse(status="Active", count=10, percentage=-0.1)
 
 
 class TestStatusDistribution:
-    """Tests for StatusDistribution model validation."""
+    """Tests for StatusDistributionResponse model validation."""
 
     def test_valid_distribution(self):
-        dist = StatusDistribution(
+        dist = StatusDistributionResponse(
             total=20,
             breakdown=[
-                StatusBreakdownItem(status="Active", count=10, percentage=50.0),
-                StatusBreakdownItem(status="Completed", count=10, percentage=50.0),
+                StatusBreakdownItemResponse(status="Active", count=10, percentage=50.0),
+                StatusBreakdownItemResponse(status="Completed", count=10, percentage=50.0),
             ],
         )
         assert dist.total == 20
@@ -112,43 +112,43 @@ class TestStatusDistribution:
 
     def test_rejects_negative_total(self):
         with pytest.raises(ValidationError):
-            StatusDistribution(total=-1, breakdown=[])
+            StatusDistributionResponse(total=-1, breakdown=[])
 
 
 class TestAttentionBanner:
-    """Tests for AttentionBanner model validation."""
+    """Tests for AttentionBannerResponse model validation."""
 
     def test_valid_critical_banner(self):
-        banner = AttentionBanner(message="5 projects at risk", at_risk_count=5, severity="critical")
+        banner = AttentionBannerResponse(message="5 projects at risk", at_risk_count=5, severity="critical")
         assert banner.severity == "critical"
 
     def test_valid_warning_banner(self):
-        banner = AttentionBanner(message="3 projects at risk", at_risk_count=3, severity="warning")
+        banner = AttentionBannerResponse(message="3 projects at risk", at_risk_count=3, severity="warning")
         assert banner.severity == "warning"
 
     def test_valid_info_banner(self):
-        banner = AttentionBanner(message="No projects at risk", at_risk_count=0, severity="info")
+        banner = AttentionBannerResponse(message="No projects at risk", at_risk_count=0, severity="info")
         assert banner.severity == "info"
 
     def test_rejects_message_over_200_chars(self):
         with pytest.raises(ValidationError):
-            AttentionBanner(message="x" * 201, at_risk_count=0, severity="info")
+            AttentionBannerResponse(message="x" * 201, at_risk_count=0, severity="info")
 
     def test_rejects_negative_at_risk_count(self):
         with pytest.raises(ValidationError):
-            AttentionBanner(message="msg", at_risk_count=-1, severity="info")
+            AttentionBannerResponse(message="msg", at_risk_count=-1, severity="info")
 
     def test_rejects_invalid_severity(self):
         with pytest.raises(ValidationError):
-            AttentionBanner(message="msg", at_risk_count=0, severity="high")
+            AttentionBannerResponse(message="msg", at_risk_count=0, severity="high")
 
 
 class TestOverviewData:
-    """Tests for OverviewData composite model."""
+    """Tests for OverviewDataResponse composite model."""
 
     def test_valid_overview_data(self):
-        tile = KpiTile(count=0, trend="flat", change=0)
-        metrics = OverviewMetrics(
+        tile = KpiTileResponse(count=0, trend="flat", change=0)
+        metrics = OverviewMetricsResponse(
             total_projects=tile,
             completed=tile,
             active=tile,
@@ -156,32 +156,32 @@ class TestOverviewData:
             at_risk=tile,
             not_applicable=tile,
         )
-        dist = StatusDistribution(total=0, breakdown=[])
-        banner = AttentionBanner(message="No projects at risk", at_risk_count=0, severity="info")
-        data = OverviewData(metrics=metrics, status_distribution=dist, attention_banner=banner)
+        dist = StatusDistributionResponse(total=0, breakdown=[])
+        sync_detail = SyncDetailResponse(last_sync_datetime=None, is_sync_in_progress=False)
+        data = OverviewDataResponse(sync_detail=sync_detail, metrics=metrics, status_distribution=dist)
         assert data.metrics.total_projects.count == 0
 
 
 class TestFilterModels:
-    """Tests for FilterItem and FiltersData models."""
+    """Tests for FilterItemResponse and FiltersDataResponse models."""
 
     def test_valid_filter_item(self):
-        item = FilterItem(id="abc-123", name="Test")
+        item = FilterItemResponse(id="abc-123", name="Test")
         assert item.id == "abc-123"
         assert item.name == "Test"
 
     def test_valid_filters_data(self):
-        data = FiltersData(
-            specializations=[FilterItem(id="1", name="Spec A")],
-            clients=[FilterItem(id="2", name="Client B")],
-            statuses=[FilterItem(id="3", name="Active")],
+        data = FiltersDataResponse(
+            specializations=[FilterItemResponse(id="1", name="Spec A")],
+            clients=[FilterItemResponse(id="2", name="Client B")],
+            statuses=[FilterItemResponse(id="3", name="Active")],
         )
         assert len(data.specializations) == 1
         assert len(data.clients) == 1
         assert len(data.statuses) == 1
 
     def test_empty_filters_data(self):
-        data = FiltersData(specializations=[], clients=[], statuses=[])
+        data = FiltersDataResponse(specializations=[], clients=[], statuses=[])
         assert data.specializations == []
         assert data.clients == []
         assert data.statuses == []

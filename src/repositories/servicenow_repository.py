@@ -70,6 +70,35 @@ class ServiceNowRepository:
         result = await self._session.execute(stmt)
         return result.scalars().first()
 
+    async def get_project_by_normalized_name(self, ticket_project_name: str) -> Project | None:
+        """Look up an active project by normalized name comparison.
+
+        Normalization: remove 'zeb-' prefix, replace '-' with space, lowercase, trim.
+        This handles cases like "zeb-touchpoint-pj" matching "Touchpoint PJ".
+
+        Args:
+            ticket_project_name: The ticket's project name to normalize and match.
+
+        Returns:
+            The first matching Project record, or None if not found.
+        """
+        from src.utils.helpers import normalize_project_name
+
+        normalized_ticket_name = normalize_project_name(ticket_project_name)
+        if not normalized_ticket_name:
+            return None
+
+        # Fetch all active projects and compare normalized names
+        stmt = select(Project).where(Project.is_active == 1)
+        result = await self._session.execute(stmt)
+        projects = result.scalars().all()
+
+        for project in projects:
+            if normalize_project_name(project.project_name) == normalized_ticket_name:
+                return project
+
+        return None
+
     async def get_default_project(self) -> Project | None:
         """Get the default project record from the database.
 

@@ -12,8 +12,8 @@ import json
 from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, Request
 
-from src.models.base_response import BaseResponse
-from src.models.servicenow_models import SyncDevSecOpsTicketsRequest, SyncProjectRequest
+from src.dtos.request.servicenow_request import SyncDevSecOpsTicketsRequest, SyncProjectRequest
+from src.dtos.response.base_response import BaseResponse
 from src.services.dependencies import get_servicenow_service
 from src.services.servicenow_service import ServiceNowService
 from src.settings import get_settings

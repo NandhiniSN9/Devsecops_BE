@@ -9,7 +9,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from src.models.query_params import PeriodEnum
+from src.dtos.request.overview_request import PeriodEnum
 from src.repositories.overview_repository import OverviewRepository
 from src.services.overview_service import OverviewService
 
@@ -40,13 +40,15 @@ async def test_get_overview_with_none_period_uses_7_days(period: None) -> None:
     """**Validates: Requirements 1.2**
 
     Property 2: Period Default Behavior
-    When period is None, get_overview calls repo.get_latest_by_specializations with period_days=7.
+    When period is None, get_overview calls repo.get_current_records.
     """
     overview_repo = AsyncMock(spec=OverviewRepository)
 
-    # Mock return values
-    overview_repo.get_latest_by_specializations.return_value = []
-    overview_repo.get_status_distribution.return_value = []
+    # Mock return values for the current service implementation
+    overview_repo.get_last_synced.return_value = None
+    overview_repo.is_sync_in_progress.return_value = False
+    overview_repo.get_current_records.return_value = []
+    overview_repo.get_comparison_records.return_value = []
 
     service = OverviewService(
         overview_repo=overview_repo,
@@ -54,5 +56,5 @@ async def test_get_overview_with_none_period_uses_7_days(period: None) -> None:
 
     await service.get_overview(period=period, specialization=None)
 
-    # Verify that repo was called with period_days=7 (last_week default)
-    overview_repo.get_latest_by_specializations.assert_called_once_with(None, 7)
+    # Verify that repo was called with None (no specialization filter)
+    overview_repo.get_current_records.assert_called_once_with(None)

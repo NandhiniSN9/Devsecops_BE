@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS projects (
     project_type VARCHAR(255) NOT NULL,
     specialization_name VARCHAR(255),
     is_applicable BOOLEAN DEFAULT TRUE,
+    is_devsecops_onboarded BOOLEAN DEFAULT FALSE,
     client VARCHAR(255),
     completed_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -332,6 +333,7 @@ CREATE INDEX IF NOT EXISTS idx_projects_sn_project_id ON projects(sn_project_id)
 CREATE INDEX IF NOT EXISTS idx_projects_status_id ON projects(status_id);
 CREATE INDEX IF NOT EXISTS idx_projects_is_active ON projects(is_active);
 CREATE INDEX IF NOT EXISTS idx_projects_project_name ON projects(project_name);
+CREATE INDEX IF NOT EXISTS idx_projects_is_devsecops_onboarded ON projects(is_devsecops_onboarded);
 
 CREATE INDEX IF NOT EXISTS idx_devsecops_tickets_specialization_id ON devsecops_tickets(specialization_id);
 CREATE INDEX IF NOT EXISTS idx_devsecops_tickets_sn_project_id ON devsecops_tickets(sn_project_id);

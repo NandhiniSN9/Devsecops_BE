@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, Response
 
-from src.models.base_response import BaseResponse
+from src.dtos.response.base_response import BaseResponse
 from src.services.dependencies import get_filter_service
 from src.services.filter_service import FilterService
 from src.settings import FILTER_CACHE_MAX_AGE

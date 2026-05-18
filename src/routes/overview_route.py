@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, Query
 
-from src.models.base_response import BaseResponse
+from src.dtos.response.base_response import BaseResponse
 from src.services.dependencies import get_overview_service
 from src.services.overview_service import OverviewService
 

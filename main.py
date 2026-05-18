@@ -229,3 +229,6 @@ app.include_router(servicenow_route.router, prefix="/api/v1")
 
 # Settings endpoints under /api/v1 prefix
 app.include_router(settings_route.router, prefix="/api/v1")
+
+# Report generation endpoints under /api/v1 prefix
+app.include_router(report_route.router, prefix="/api/v1")

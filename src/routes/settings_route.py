@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter, Depends
 
-from src.models.base_response import BaseResponse
-from src.models.settings_models import SettingsUpdateRequest
+from src.dtos.request.settings_request import SettingsUpdateRequest
+from src.dtos.response.base_response import BaseResponse
 from src.services.dependencies import get_settings_service
 from src.services.settings_service import SettingsService
 

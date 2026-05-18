@@ -1,6 +1,6 @@
 """Service for retrieving filter dropdown options."""
 
-from src.models.filter_models import FilterItem, FiltersData
+from src.dtos.response.filter_response import FilterItemResponse, FiltersDataResponse
 from src.repositories.filters_repository import ClientRepository
 
 
@@ -17,17 +17,17 @@ class FilterService:
     ) -> None:
         self._client_repo = client_repo
 
-    async def get_filters(self) -> FiltersData:
+    async def get_filters(self) -> FiltersDataResponse:
         """Retrieve all filter dropdown options.
 
         Returns:
-            FiltersData containing sorted specializations, clients, and statuses.
+            FiltersDataResponse containing sorted specializations, clients, and statuses.
             Empty arrays are returned for categories with no active records.
         """
         # Query all active specializations
         specializations_raw = await self._client_repo.get_active_specializations()
         specializations = [
-            FilterItem(
+            FilterItemResponse(
                 id=str(spec.specialization_id),
                 name=spec.specialization_name,
             )
@@ -37,7 +37,7 @@ class FilterService:
         # Query distinct non-null, non-empty clients from active projects
         clients_raw = await self._client_repo.get_active_clients()
         clients = [
-            FilterItem(
+            FilterItemResponse(
                 id=item["client_id"],
                 name=item["client_name"],
             )
@@ -47,7 +47,7 @@ class FilterService:
         # Query all active statuses
         statuses_raw = await self._client_repo.get_active_statuses()
         statuses = [
-            FilterItem(
+            FilterItemResponse(
                 id=str(status.status_id),
                 name=status.status_name,
             )
@@ -59,7 +59,7 @@ class FilterService:
         clients.sort(key=lambda item: item.name.lower())
         statuses.sort(key=lambda item: item.name.lower())
 
-        return FiltersData(
+        return FiltersDataResponse(
             specializations=specializations,
             clients=clients,
             statuses=statuses,

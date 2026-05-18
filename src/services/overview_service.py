@@ -2,15 +2,15 @@
 
 import uuid
 
-from src.models.overview_models import (
-    KpiTile,
-    OverviewData,
-    OverviewMetrics,
-    StatusBreakdownItem,
-    StatusDistribution,
-    SyncDetail,
+from src.dtos.request.overview_request import PeriodEnum
+from src.dtos.response.overview_response import (
+    KpiTileResponse,
+    OverviewDataResponse,
+    OverviewMetricsResponse,
+    StatusBreakdownItemResponse,
+    StatusDistributionResponse,
+    SyncDetailResponse,
 )
-from src.models.query_params import PeriodEnum
 from src.repositories.overview_repository import OverviewRepository
 from src.repositories.schema.kpi_history import KpiHistory
 from src.settings import (
@@ -34,7 +34,7 @@ class OverviewService:
         """Initialize with repository dependency."""
         self._overview_repo = overview_repo
 
-    async def get_overview(self, period: str | None, specialization: str | None) -> OverviewData:
+    async def get_overview(self, period: str | None, specialization: str | None) -> OverviewDataResponse:
         """Compute and return the full overview dashboard data.
 
         Args:
@@ -62,7 +62,7 @@ class OverviewService:
         is_sync_in_progress = await self._overview_repo.is_sync_in_progress()
 
         # Step 5: Build sync_detail object
-        sync_detail = SyncDetail(
+        sync_detail = SyncDetailResponse(
             last_sync_datetime=last_synced,
             is_sync_in_progress=is_sync_in_progress,
         )
@@ -75,7 +75,7 @@ class OverviewService:
         total_projects = metrics.total_projects.count
         status_distribution = await self._compute_status_distribution(current_records, total_projects)
 
-        return OverviewData(
+        return OverviewDataResponse(
             sync_detail=sync_detail,
             metrics=metrics,
             status_distribution=status_distribution,
@@ -141,7 +141,7 @@ class OverviewService:
 
     async def _compute_metrics(
         self, current_records: list, specialization_ids: list[uuid.UUID] | None, period_days: int
-    ) -> OverviewMetrics:
+    ) -> OverviewMetricsResponse:
         """Compute KPI metrics by comparing current vs comparison records.
 
         Current record: today's record, or yesterday's if today doesn't exist.
@@ -156,12 +156,12 @@ class OverviewService:
             period_days: Number of days to look back for comparison.
 
         Returns:
-            OverviewMetrics with all six KPI tiles.
+            OverviewMetricsResponse with all six KPI tiles.
         """
         # If no current records → all zeros
         if not current_records:
-            null_tile = KpiTile(count=0, trend=None, change=0)
-            return OverviewMetrics(
+            null_tile = KpiTileResponse(count=0, trend=None, change=0)
+            return OverviewMetricsResponse(
                 total_projects=null_tile,
                 completed=null_tile,
                 active=null_tile,
@@ -206,7 +206,7 @@ class OverviewService:
                 not_applicable_comparison += comp.not_applicable_count or 0
 
         # Calculate change and derive trends
-        return OverviewMetrics(
+        return OverviewMetricsResponse(
             total_projects=self._build_tile(total_projects_current, total_projects_comparison),
             completed=self._build_tile(completed_current, completed_comparison),
             active=self._build_tile(active_current, active_comparison),
@@ -216,7 +216,7 @@ class OverviewService:
         )
 
     @staticmethod
-    def _build_tile(current_count: int, comparison_count: int) -> KpiTile:
+    def _build_tile(current_count: int, comparison_count: int) -> KpiTileResponse:
         """Build a KPI tile from current and comparison counts.
 
         Args:
@@ -224,7 +224,7 @@ class OverviewService:
             comparison_count: The count from N days ago.
 
         Returns:
-            KpiTile with count, trend direction, and absolute change.
+            KpiTileResponse with count, trend direction, and absolute change.
         """
         change = current_count - comparison_count
 
@@ -235,11 +235,11 @@ class OverviewService:
         else:
             trend = "flat"
 
-        return KpiTile(count=current_count, trend=trend, change=abs(change))
+        return KpiTileResponse(count=current_count, trend=trend, change=abs(change))
 
     async def _compute_status_distribution(
         self, current_records: list, total_projects: int
-    ) -> StatusDistribution:
+    ) -> StatusDistributionResponse:
         """Compute status distribution from KPI history counts.
 
         total = projects_count (sum across specializations)
@@ -251,7 +251,7 @@ class OverviewService:
             total_projects: Total projects count (sum of projects_count).
 
         Returns:
-            StatusDistribution with total and breakdown items.
+            StatusDistributionResponse with total and breakdown items.
         """
         completed = sum((r.completed_count or 0) for r in current_records)
         active = sum((r.active_count or 0) for r in current_records)
@@ -267,7 +267,7 @@ class OverviewService:
             {"status_name": "Not Applicable", "count": not_applicable},
         ]
 
-        breakdown: list[StatusBreakdownItem] = []
+        breakdown: list[StatusBreakdownItemResponse] = []
         for item in breakdown_data:
             if total_projects == 0:
                 percentage = 0.0
@@ -275,11 +275,11 @@ class OverviewService:
                 percentage = round((item["count"] / total_projects) * 100, 1)
 
             breakdown.append(
-                StatusBreakdownItem(
+                StatusBreakdownItemResponse(
                     status=item["status_name"],
                     count=item["count"],
                     percentage=percentage,
                 )
             )
 
-        return StatusDistribution(total=total_projects, breakdown=breakdown)
+        return StatusDistributionResponse(total=total_projects, breakdown=breakdown)

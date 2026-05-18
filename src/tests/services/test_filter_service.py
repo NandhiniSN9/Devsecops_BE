@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.models.filter_models import FiltersData
+from src.dtos.response.filter_response import FiltersDataResponse
 from src.repositories.filters_repository import ClientRepository
 from src.services.filter_service import FilterService
 from src.settings import CLIENT_UUID_NAMESPACE
@@ -116,7 +116,7 @@ class TestGetFiltersAllCategoriesPopulated:
 
         result = await filter_service.get_filters()
 
-        assert isinstance(result, FiltersData)
+        assert isinstance(result, FiltersDataResponse)
         assert len(result.specializations) == 1
         assert len(result.clients) == 1
         assert len(result.statuses) == 1

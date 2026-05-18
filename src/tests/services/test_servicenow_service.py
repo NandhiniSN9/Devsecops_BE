@@ -6,11 +6,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.models.servicenow_models import (
-    RepositoryItem,
-    SyncDevSecOpsTicketItem,
+from src.dtos.request.servicenow_request import (
+    RepositoryItemRequest,
+    SyncDevSecOpsTicketItemRequest,
     SyncDevSecOpsTicketsRequest,
-    SyncProjectItem,
+    SyncProjectItemRequest,
     SyncProjectRequest,
 )
 from src.repositories.schema.project import Project
@@ -39,7 +39,7 @@ def sample_project_request():
     """Create a sample project sync request."""
     return SyncProjectRequest(
         projects=[
-            SyncProjectItem(
+            SyncProjectItemRequest(
                 sn_project_id="SN-PRJ-001",
                 project_name="Test Project",
                 onboarded_date=date(2026, 3, 15),
@@ -58,13 +58,13 @@ def sample_ticket_request():
     """Create a sample ticket sync request."""
     return SyncDevSecOpsTicketsRequest(
         tickets=[
-            SyncDevSecOpsTicketItem(
+            SyncDevSecOpsTicketItemRequest(
                 sn_project_id="SN-PRJ-001",
                 project_name="Test Project",
                 client="ABN AMRO",
                 specialization_name="DevSecOps",
                 repositories=[
-                    RepositoryItem(
+                    RepositoryItemRequest(
                         repo_name="payments-api",
                         ado_repo_id="ado-001",
                         lead_approvers=["lead1@zeb.co", "lead2@zeb.co"],
@@ -242,6 +242,7 @@ class TestSyncDevsecopsTickets:
         mock_repo.get_specialization_by_name.return_value = spec
         mock_repo.get_project_by_sn_project_id.return_value = None
         mock_repo.get_project_by_name.return_value = None
+        mock_repo.get_project_by_normalized_name.return_value = None
         mock_repo.get_project_by_client.return_value = project
         mock_repo.get_ticket_by_sn_or_devsec_id.return_value = None
         mock_repo.get_repository_by_ado_repo_id_and_ticket.return_value = None
@@ -267,6 +268,7 @@ class TestSyncDevsecopsTickets:
         mock_repo.get_specialization_by_name.return_value = spec
         mock_repo.get_project_by_sn_project_id.return_value = None
         mock_repo.get_project_by_name.return_value = None
+        mock_repo.get_project_by_normalized_name.return_value = None
         mock_repo.get_project_by_client.return_value = None
         mock_repo.get_default_project.return_value = default_project
         mock_repo.get_ticket_by_sn_or_devsec_id.return_value = None
@@ -307,12 +309,12 @@ class TestSyncDevsecopsTickets:
         """Should process valid tickets even when some fail."""
         request = SyncDevSecOpsTicketsRequest(
             tickets=[
-                SyncDevSecOpsTicketItem(
+                SyncDevSecOpsTicketItemRequest(
                     sn_project_id="SN-001",
                     project_name="Project 1",
                     specialization_name="Unknown",  # Will fail
                 ),
-                SyncDevSecOpsTicketItem(
+                SyncDevSecOpsTicketItemRequest(
                     sn_project_id="SN-002",
                     project_name="Project 2",
                     specialization_name="DevSecOps",  # Will succeed
@@ -339,3 +341,262 @@ class TestSyncDevsecopsTickets:
         assert result["created"] == 1
         assert result["failed"] == 1
         assert result["total"] == 2
+
+
+class TestSyncDevsecopsTicketsAdvanced:
+    """Advanced tests for edge cases in ticket sync."""
+
+    @pytest.mark.asyncio
+    async def test_sync_tickets_normalized_name_fallback(self, service, mock_repo):
+        """Should resolve project by normalized name when exact match fails."""
+        spec = Specialization(specialization_id=uuid.uuid4(), specialization_name="DevSecOps", is_active=1)
+        project = Project(
+            project_id=uuid.uuid4(),
+            sn_project_id="SN-OTHER",
+            project_name="Touchpoint PJ",
+            onboarded_date=date(2026, 1, 1),
+            project_type="Application",
+        )
+        request = SyncDevSecOpsTicketsRequest(
+            tickets=[
+                SyncDevSecOpsTicketItemRequest(
+                    sn_project_id="SN-NEW",
+                    project_name="zeb-touchpoint-pj",
+                    specialization_name="DevSecOps",
+                )
+            ]
+        )
+        mock_repo.get_specialization_by_name.return_value = spec
+        mock_repo.get_project_by_sn_project_id.return_value = None
+        mock_repo.get_project_by_name.return_value = None
+        mock_repo.get_project_by_normalized_name.return_value = project
+        mock_repo.get_ticket_by_sn_or_devsec_id.return_value = None
+        mock_repo.create_ticket.return_value = MagicMock()
+
+        result = await service.sync_devsecops_tickets(request, "servicenow@zeb.co")
+
+        assert result["created"] == 1
+        mock_repo.get_project_by_normalized_name.assert_called_once_with("zeb-touchpoint-pj")
+
+    @pytest.mark.asyncio
+    async def test_sync_tickets_sets_is_devsecops_onboarded(self, service, mock_repo):
+        """Should set is_devsecops_onboarded=True on the resolved project."""
+        spec = Specialization(specialization_id=uuid.uuid4(), specialization_name="DevSecOps", is_active=1)
+        project = Project(
+            project_id=uuid.uuid4(),
+            sn_project_id="SN-PRJ-001",
+            project_name="Test Project",
+            onboarded_date=date(2026, 1, 1),
+            project_type="Application",
+            is_devsecops_onboarded=False,
+        )
+        request = SyncDevSecOpsTicketsRequest(
+            tickets=[
+                SyncDevSecOpsTicketItemRequest(
+                    sn_project_id="SN-PRJ-001",
+                    project_name="Test Project",
+                    specialization_name="DevSecOps",
+                )
+            ]
+        )
+        mock_repo.get_specialization_by_name.return_value = spec
+        mock_repo.get_project_by_sn_project_id.return_value = project
+        mock_repo.get_ticket_by_sn_or_devsec_id.return_value = None
+        mock_repo.create_ticket.return_value = MagicMock()
+
+        await service.sync_devsecops_tickets(request, "servicenow@zeb.co")
+
+        assert project.is_devsecops_onboarded is True
+
+    @pytest.mark.asyncio
+    async def test_sync_tickets_already_onboarded_not_modified(self, service, mock_repo):
+        """Should not re-set modified_at if project is already onboarded."""
+        spec = Specialization(specialization_id=uuid.uuid4(), specialization_name="DevSecOps", is_active=1)
+        original_modified_at = datetime(2026, 1, 1, 12, 0, 0)
+        project = Project(
+            project_id=uuid.uuid4(),
+            sn_project_id="SN-PRJ-001",
+            project_name="Test Project",
+            onboarded_date=date(2026, 1, 1),
+            project_type="Application",
+            is_devsecops_onboarded=True,
+            modified_at=original_modified_at,
+        )
+        request = SyncDevSecOpsTicketsRequest(
+            tickets=[
+                SyncDevSecOpsTicketItemRequest(
+                    sn_project_id="SN-PRJ-001",
+                    project_name="Test Project",
+                    specialization_name="DevSecOps",
+                )
+            ]
+        )
+        mock_repo.get_specialization_by_name.return_value = spec
+        mock_repo.get_project_by_sn_project_id.return_value = project
+        mock_repo.get_ticket_by_sn_or_devsec_id.return_value = None
+        mock_repo.create_ticket.return_value = MagicMock()
+
+        await service.sync_devsecops_tickets(request, "servicenow@zeb.co")
+
+        # modified_at should not have changed since it was already onboarded
+        assert project.modified_at == original_modified_at
+
+    @pytest.mark.asyncio
+    async def test_sync_tickets_updates_existing_ticket(self, service, mock_repo):
+        """Should update an existing ticket instead of creating a new one."""
+        spec = Specialization(specialization_id=uuid.uuid4(), specialization_name="DevSecOps", is_active=1)
+        project = Project(
+            project_id=uuid.uuid4(),
+            sn_project_id="SN-PRJ-001",
+            project_name="Test Project",
+            onboarded_date=date(2026, 1, 1),
+            project_type="Application",
+            is_devsecops_onboarded=True,
+        )
+        existing_ticket = MagicMock()
+        existing_ticket.ticket_id = uuid.uuid4()
+
+        request = SyncDevSecOpsTicketsRequest(
+            tickets=[
+                SyncDevSecOpsTicketItemRequest(
+                    sn_project_id="SN-PRJ-001",
+                    project_name="Test Project",
+                    specialization_name="DevSecOps",
+                    requested_by="new-requester@zeb.co",
+                )
+            ]
+        )
+        mock_repo.get_specialization_by_name.return_value = spec
+        mock_repo.get_project_by_sn_project_id.return_value = project
+        mock_repo.get_ticket_by_sn_or_devsec_id.return_value = existing_ticket
+
+        result = await service.sync_devsecops_tickets(request, "servicenow@zeb.co")
+
+        assert result["created"] == 1
+        mock_repo.update_ticket.assert_called_once()
+        mock_repo.create_ticket.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_sync_tickets_no_project_found_skips(self, service, mock_repo):
+        """Should skip ticket when no project can be resolved (including default)."""
+        spec = Specialization(specialization_id=uuid.uuid4(), specialization_name="DevSecOps", is_active=1)
+        request = SyncDevSecOpsTicketsRequest(
+            tickets=[
+                SyncDevSecOpsTicketItemRequest(
+                    sn_project_id="SN-UNKNOWN",
+                    project_name="Unknown Project",
+                    specialization_name="DevSecOps",
+                )
+            ]
+        )
+        mock_repo.get_specialization_by_name.return_value = spec
+        mock_repo.get_project_by_sn_project_id.return_value = None
+        mock_repo.get_project_by_name.return_value = None
+        mock_repo.get_project_by_normalized_name.return_value = None
+        mock_repo.get_project_by_client.return_value = None
+        mock_repo.get_default_project.return_value = None
+
+        result = await service.sync_devsecops_tickets(request, "servicenow@zeb.co")
+
+        assert result["created"] == 0
+        assert result["failed"] == 1
+        mock_repo.create_ticket.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_sync_tickets_exception_in_processing_counts_as_failed(self, service, mock_repo):
+        """Should count tickets that throw exceptions as failed."""
+        spec = Specialization(specialization_id=uuid.uuid4(), specialization_name="DevSecOps", is_active=1)
+        project = Project(
+            project_id=uuid.uuid4(),
+            sn_project_id="SN-PRJ-001",
+            project_name="Test",
+            onboarded_date=date(2026, 1, 1),
+            project_type="App",
+            is_devsecops_onboarded=True,
+        )
+        request = SyncDevSecOpsTicketsRequest(
+            tickets=[
+                SyncDevSecOpsTicketItemRequest(
+                    sn_project_id="SN-PRJ-001",
+                    project_name="Test",
+                    specialization_name="DevSecOps",
+                )
+            ]
+        )
+        mock_repo.get_specialization_by_name.return_value = spec
+        mock_repo.get_project_by_sn_project_id.return_value = project
+        mock_repo.get_ticket_by_sn_or_devsec_id.side_effect = RuntimeError("DB error")
+
+        result = await service.sync_devsecops_tickets(request, "servicenow@zeb.co")
+
+        assert result["created"] == 0
+        assert result["failed"] == 1
+
+
+class TestSyncProjectsAdvanced:
+    """Advanced tests for project sync edge cases."""
+
+    @pytest.mark.asyncio
+    async def test_sync_multiple_projects_mixed(self, service, mock_repo):
+        """Should handle mix of new and existing projects."""
+        existing_project = Project(
+            project_id=uuid.uuid4(),
+            sn_project_id="SN-001",
+            project_name="Existing",
+            onboarded_date=date(2026, 1, 1),
+            project_type="App",
+        )
+        mock_repo.get_inactive_status.return_value = Status(
+            status_id=uuid.uuid4(), status_name="Inactive", is_active=1
+        )
+        # First project exists, second is new
+        mock_repo.get_project_by_sn_project_id.side_effect = [existing_project, None]
+        mock_repo.update_project.return_value = existing_project
+        mock_repo.create_project.return_value = MagicMock()
+
+        request = SyncProjectRequest(
+            projects=[
+                SyncProjectItemRequest(
+                    sn_project_id="SN-001",
+                    project_name="Existing Updated",
+                    onboarded_date=date(2026, 1, 1),
+                    project_type="App",
+                ),
+                SyncProjectItemRequest(
+                    sn_project_id="SN-002",
+                    project_name="Brand New",
+                    onboarded_date=date(2026, 5, 1),
+                    project_type="Platform",
+                ),
+            ]
+        )
+
+        result = await service.sync_projects(request, "servicenow@zeb.co")
+
+        assert result["created"] == 1
+        assert result["updated"] == 1
+        assert result["total"] == 2
+
+    @pytest.mark.asyncio
+    async def test_sync_projects_no_inactive_status(self, service, mock_repo):
+        """Should handle case where Inactive status doesn't exist (status_id=None)."""
+        mock_repo.get_inactive_status.return_value = None
+        mock_repo.get_project_by_sn_project_id.return_value = None
+        mock_repo.create_project.return_value = MagicMock()
+
+        request = SyncProjectRequest(
+            projects=[
+                SyncProjectItemRequest(
+                    sn_project_id="SN-001",
+                    project_name="Test",
+                    onboarded_date=date(2026, 1, 1),
+                    project_type="App",
+                )
+            ]
+        )
+
+        result = await service.sync_projects(request, "servicenow@zeb.co")
+
+        assert result["created"] == 1
+        created_project = mock_repo.create_project.call_args[0][0]
+        assert created_project.status_id is None

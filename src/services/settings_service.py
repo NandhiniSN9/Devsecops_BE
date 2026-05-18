@@ -2,12 +2,8 @@
 
 import uuid
 
-from src.models.settings_models import (
-    EmailRecipientAction,
-    EmailRecipientResponse,
-    SettingsData,
-    SettingsUpdateRequest,
-)
+from src.dtos.request.settings_request import EmailRecipientAction, SettingsUpdateRequest
+from src.dtos.response.settings_response import EmailRecipientResponse, SettingsDataResponse
 from src.repositories.settings_repository import SettingsRepository
 from src.utils.exceptions import InvalidParameterError, NotFoundError
 
@@ -25,14 +21,14 @@ class SettingsService:
         """Initialize with repository dependency."""
         self._settings_repo = settings_repo
 
-    async def get_settings(self, specialization_id_str: str) -> SettingsData:
+    async def get_settings(self, specialization_id_str: str) -> SettingsDataResponse:
         """Retrieve settings for a specialization.
 
         Args:
             specialization_id_str: UUID string from path parameter.
 
         Returns:
-            SettingsData with full settings and email recipients.
+            SettingsDataResponse with full settings and email recipients.
 
         Raises:
             InvalidParameterError: If UUID format is invalid.
@@ -50,7 +46,7 @@ class SettingsService:
 
         recipients = await self._settings_repo.get_email_recipients(specialization_id)
 
-        return SettingsData(
+        return SettingsDataResponse(
             setting_id=setting.setting_id,
             specialization_id=specialization.specialization_id,
             specialization_name=specialization.specialization_name,
@@ -67,7 +63,7 @@ class SettingsService:
             ],
         )
 
-    async def update_settings(self, request: SettingsUpdateRequest) -> SettingsData:
+    async def update_settings(self, request: SettingsUpdateRequest) -> SettingsDataResponse:
         """Update settings for a specialization (partial update).
 
         Args:

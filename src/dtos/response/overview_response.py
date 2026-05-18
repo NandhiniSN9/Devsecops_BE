@@ -1,11 +1,11 @@
-"""Pydantic models for the Overview endpoint response payload."""
+"""Response DTOs for the Overview endpoint."""
 
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class KpiTile(BaseModel):
+class KpiTileResponse(BaseModel):
     """Single KPI metric card with count, trend direction, and change value."""
 
     model_config = ConfigDict(strict=False)
@@ -20,20 +20,20 @@ class KpiTile(BaseModel):
     """Absolute change value from the prior period."""
 
 
-class OverviewMetrics(BaseModel):
+class OverviewMetricsResponse(BaseModel):
     """All six KPI tiles for the overview dashboard."""
 
     model_config = ConfigDict(strict=False)
 
-    total_projects: KpiTile
-    completed: KpiTile
-    active: KpiTile
-    inactive: KpiTile
-    at_risk: KpiTile
-    not_applicable: KpiTile
+    total_projects: KpiTileResponse
+    completed: KpiTileResponse
+    active: KpiTileResponse
+    inactive: KpiTileResponse
+    at_risk: KpiTileResponse
+    not_applicable: KpiTileResponse
 
 
-class StatusBreakdownItem(BaseModel):
+class StatusBreakdownItemResponse(BaseModel):
     """Individual status entry in the distribution breakdown."""
 
     model_config = ConfigDict(strict=False)
@@ -48,7 +48,7 @@ class StatusBreakdownItem(BaseModel):
     """Percentage of total projects, rounded to one decimal place."""
 
 
-class StatusDistribution(BaseModel):
+class StatusDistributionResponse(BaseModel):
     """Project status breakdown with total count and per-status details."""
 
     model_config = ConfigDict(strict=False)
@@ -56,11 +56,11 @@ class StatusDistribution(BaseModel):
     total: int = Field(ge=0)
     """Sum of all status counts in the breakdown."""
 
-    breakdown: list[StatusBreakdownItem]
+    breakdown: list[StatusBreakdownItemResponse]
     """Per-status details sorted alphabetically by status name."""
 
 
-class AttentionBanner(BaseModel):
+class AttentionBannerResponse(BaseModel):
     """Risk notification banner with severity level."""
 
     model_config = ConfigDict(strict=False)
@@ -75,7 +75,7 @@ class AttentionBanner(BaseModel):
     """Severity level based on at_risk_count thresholds."""
 
 
-class SyncDetail(BaseModel):
+class SyncDetailResponse(BaseModel):
     """Sync status detail containing last sync time and in-progress indicator."""
 
     model_config = ConfigDict(strict=False)
@@ -84,16 +84,16 @@ class SyncDetail(BaseModel):
     """Most recent sync timestamp in 'DD Mon YYYY, HH:MM' format, or null if never synced."""
 
     is_sync_in_progress: bool
-    """Whether an ADO sync operation is currently in progress (pending status in cron_jobs)."""
+    """Whether an ADO sync operation is currently in progress."""
 
 
-class OverviewData(BaseModel):
+class OverviewDataResponse(BaseModel):
     """Combined overview response payload."""
 
     model_config = ConfigDict(strict=False)
 
-    sync_detail: SyncDetail
+    sync_detail: SyncDetailResponse
     """Sync status information including last sync time and in-progress state."""
 
-    metrics: OverviewMetrics
-    status_distribution: StatusDistribution
+    metrics: OverviewMetricsResponse
+    status_distribution: StatusDistributionResponse

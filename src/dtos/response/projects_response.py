@@ -1,4 +1,4 @@
-"""Pydantic models for the Projects endpoint response payload."""
+"""Response DTOs for the Projects endpoint."""
 
 import uuid
 from datetime import date
@@ -6,12 +6,8 @@ from datetime import date
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class NotApplicableDetails(BaseModel):
-    """Jira ticket details for a project marked as Not Applicable.
-
-    Retrieved from the jira_tickets table by project_id.
-    This object is null when the project has any status other than 'Not Applicable'.
-    """
+class NotApplicableDetailsResponse(BaseModel):
+    """Jira ticket details for a project marked as Not Applicable."""
 
     model_config = ConfigDict(strict=False)
 
@@ -78,7 +74,7 @@ class ProjectItemResponse(BaseModel):
     repositories: list[RepositoryItemResponse] = []
     """List of repositories under this project."""
 
-    not_applicable_details: NotApplicableDetails | None = None
+    not_applicable_details: NotApplicableDetailsResponse | None = None
     """Jira ticket details when project status is 'Not Applicable', null otherwise."""
 
 
@@ -97,7 +93,7 @@ class PaginationResponse(BaseModel):
     """Total number of items matching the filters."""
 
 
-class ProjectsListData(BaseModel):
+class ProjectsListDataResponse(BaseModel):
     """Combined projects list response payload."""
 
     model_config = ConfigDict(strict=False)

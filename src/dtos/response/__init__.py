@@ -1,17 +1,5 @@
-"""Pydantic models package.
+"""Response DTOs — Pydantic models for outgoing API response serialization."""
 
-NOTE: Request/response DTOs have been moved to src/dtos/request/ and src/dtos/response/.
-This module re-exports for backward compatibility with existing imports.
-"""
-
-from src.dtos.request.overview_request import PeriodEnum
-from src.dtos.request.servicenow_request import (
-    RepositoryItemRequest,
-    SyncDevSecOpsTicketItemRequest,
-    SyncDevSecOpsTicketsRequest,
-    SyncProjectItemRequest,
-    SyncProjectRequest,
-)
 from src.dtos.response.base_response import BaseResponse
 from src.dtos.response.filter_response import FilterItemResponse, FiltersDataResponse
 from src.dtos.response.overview_response import (
@@ -23,22 +11,31 @@ from src.dtos.response.overview_response import (
     StatusDistributionResponse,
     SyncDetailResponse,
 )
+from src.dtos.response.projects_response import (
+    NotApplicableDetailsResponse,
+    PaginationResponse,
+    ProjectItemResponse,
+    ProjectsListDataResponse,
+    RepositoryItemResponse,
+)
+from src.dtos.response.settings_response import EmailRecipientResponse, SettingsDataResponse
 
 __all__ = [
     "AttentionBannerResponse",
     "BaseResponse",
+    "EmailRecipientResponse",
     "FilterItemResponse",
     "FiltersDataResponse",
     "KpiTileResponse",
+    "NotApplicableDetailsResponse",
     "OverviewDataResponse",
     "OverviewMetricsResponse",
-    "PeriodEnum",
-    "RepositoryItemRequest",
+    "PaginationResponse",
+    "ProjectItemResponse",
+    "ProjectsListDataResponse",
+    "RepositoryItemResponse",
+    "SettingsDataResponse",
     "StatusBreakdownItemResponse",
     "StatusDistributionResponse",
     "SyncDetailResponse",
-    "SyncDevSecOpsTicketItemRequest",
-    "SyncDevSecOpsTicketsRequest",
-    "SyncProjectItemRequest",
-    "SyncProjectRequest",
 ]

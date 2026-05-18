@@ -9,7 +9,7 @@ No request body required.
 
 from fastapi import APIRouter, Depends
 
-from src.models.base_response import BaseResponse
+from src.dtos.response.base_response import BaseResponse
 from src.services.dependencies import get_report_service
 from src.services.report_service import ReportService
 from src.utils.logger import logger

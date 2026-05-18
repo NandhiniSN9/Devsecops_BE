@@ -12,13 +12,13 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.models.overview_models import (
-    AttentionBanner,
-    KpiTile,
-    OverviewData,
-    OverviewMetrics,
-    StatusBreakdownItem,
-    StatusDistribution,
+from src.dtos.response.overview_response import (
+    KpiTileResponse,
+    OverviewDataResponse,
+    OverviewMetricsResponse,
+    StatusBreakdownItemResponse,
+    StatusDistributionResponse,
+    SyncDetailResponse,
 )
 from src.routes.overview_route import router
 from src.services.dependencies import get_overview_service
@@ -33,27 +33,26 @@ def mock_overview_service():
 
 @pytest.fixture
 def sample_overview_data():
-    """Create sample OverviewData for testing."""
-    return OverviewData(
-        metrics=OverviewMetrics(
-            total_projects=KpiTile(count=10, trend="increase", change=2),
-            completed=KpiTile(count=5, trend="increase", change=1),
-            active=KpiTile(count=3, trend="decrease", change=1),
-            inactive=KpiTile(count=1, trend="flat", change=0),
-            at_risk=KpiTile(count=1, trend="increase", change=1),
-            not_applicable=KpiTile(count=0, trend="flat", change=0),
+    """Create sample OverviewDataResponse for testing."""
+    return OverviewDataResponse(
+        sync_detail=SyncDetailResponse(
+            last_sync_datetime="18 May 2026, 09:30",
+            is_sync_in_progress=False,
         ),
-        status_distribution=StatusDistribution(
+        metrics=OverviewMetricsResponse(
+            total_projects=KpiTileResponse(count=10, trend="increase", change=2),
+            completed=KpiTileResponse(count=5, trend="increase", change=1),
+            active=KpiTileResponse(count=3, trend="decrease", change=1),
+            inactive=KpiTileResponse(count=1, trend="flat", change=0),
+            at_risk=KpiTileResponse(count=1, trend="increase", change=1),
+            not_applicable=KpiTileResponse(count=0, trend="flat", change=0),
+        ),
+        status_distribution=StatusDistributionResponse(
             total=10,
             breakdown=[
-                StatusBreakdownItem(status="Active", count=7, percentage=70.0),
-                StatusBreakdownItem(status="Completed", count=3, percentage=30.0),
+                StatusBreakdownItemResponse(status="Active", count=7, percentage=70.0),
+                StatusBreakdownItemResponse(status="Completed", count=3, percentage=30.0),
             ],
-        ),
-        attention_banner=AttentionBanner(
-            message="1 project at risk and requires attention.",
-            at_risk_count=1,
-            severity="warning",
         ),
     )
 
@@ -100,7 +99,7 @@ class TestGetOverviewRoute:
     def test_response_data_contains_metrics(
         self, client, mock_overview_service, sample_overview_data
     ):
-        """Response data contains metrics, status_distribution, and attention_banner.
+        """Response data contains metrics, status_distribution, and sync_detail.
 
         Validates: Requirements 1.1, 10.2
         """
@@ -111,7 +110,7 @@ class TestGetOverviewRoute:
         data = response.json()["data"]
         assert "metrics" in data
         assert "status_distribution" in data
-        assert "attention_banner" in data
+        assert "sync_detail" in data
 
     def test_period_query_param_passed_to_service(
         self, client, mock_overview_service, sample_overview_data
@@ -169,7 +168,7 @@ class TestGetOverviewRoute:
     def test_data_field_contains_model_dump(
         self, client, mock_overview_service, sample_overview_data
     ):
-        """Data field contains the model_dump() output of OverviewData."""
+        """Data field contains the model_dump() output of OverviewDataResponse."""
         mock_overview_service.get_overview.return_value = sample_overview_data
 
         response = client.get("/api/v1/overview")
@@ -179,4 +178,4 @@ class TestGetOverviewRoute:
         assert data["metrics"]["total_projects"]["trend"] == "increase"
         assert data["metrics"]["total_projects"]["change"] == 2
         assert data["status_distribution"]["total"] == 10
-        assert data["attention_banner"]["severity"] == "warning"
+        assert data["sync_detail"]["is_sync_in_progress"] is False
