@@ -18,6 +18,7 @@ class DevsecopsTicket(Base):
     specialization_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("specializations.specialization_id"))
     project_id: Mapped[uuid.UUID | None] = mapped_column()
     sn_project_id: Mapped[str | None] = mapped_column(String(255))
+    devsec_project_id: Mapped[str | None] = mapped_column(String(255))
     project_name: Mapped[str] = mapped_column(String(255), nullable=False)
     client: Mapped[str | None] = mapped_column(String(255))
     requested_by: Mapped[str | None] = mapped_column(String(255))

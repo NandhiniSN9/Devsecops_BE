@@ -18,6 +18,7 @@ class Repository(Base):
     ticket_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("devsecops_tickets.ticket_id"))
     repository_name: Mapped[str] = mapped_column(String(255), nullable=False)
     ado_repo_id: Mapped[str | None] = mapped_column(String(255))
+    lead_approvers: Mapped[str | None] = mapped_column(String(1000))
     pipeline_runs_count: Mapped[int | None] = mapped_column(Integer, default=0)
     success_rate: Mapped[float | None] = mapped_column(Float, default=0)
     last_run_at: Mapped[datetime | None] = mapped_column()

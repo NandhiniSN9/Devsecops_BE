@@ -22,6 +22,9 @@ class SyncProjectItem(BaseModel):
     project_type: str = Field(min_length=1)
     """Type/category of the project."""
 
+    specialization_name: str | None = None
+    """Specialization name associated with the project (optional, for future use)."""
+
     is_applicable: bool = True
     """Whether the project is applicable for DevSecOps onboarding."""
 
@@ -60,6 +63,9 @@ class RepositoryItem(BaseModel):
     ado_repo_id: str | None = None
     """Azure DevOps repository identifier."""
 
+    lead_approvers: list[str] | None = None
+    """List of lead approver email addresses for the repository."""
+
     @field_validator("repo_name", mode="before")
     @classmethod
     def strip_repo_name(cls, v: str) -> str:
@@ -72,10 +78,13 @@ class RepositoryItem(BaseModel):
 class SyncDevSecOpsTicketItem(BaseModel):
     """Single DevSecOps ticket item in the sync request payload."""
 
-    model_config = ConfigDict(strict=False)
+    model_config = ConfigDict(strict=False, populate_by_name=True)
 
     sn_project_id: str = Field(min_length=1)
     """ServiceNow project identifier (used for project resolution)."""
+
+    devsec_project_id: str | None = Field(default=None, alias="devSec_project_id")
+    """Azure DevOps project identifier."""
 
     project_name: str = Field(min_length=1)
     """Name of the project the ticket belongs to."""

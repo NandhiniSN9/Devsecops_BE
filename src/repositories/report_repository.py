@@ -1,0 +1,205 @@
+"""Repository for report generation data access operations.
+
+Provides queries for specializations, settings, email templates,
+email recipients, email history, KPI data, at-risk projects,
+and cron job tracking for the email notification service.
+"""
+
+import uuid
+from datetime import datetime
+
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.repositories.schema.cron_job import CronJob
+from src.repositories.schema.email_history import EmailHistory
+from src.repositories.schema.email_recipient import EmailRecipient
+from src.repositories.schema.email_template import EmailTemplate
+from src.repositories.schema.kpi_history import KpiHistory
+from src.repositories.schema.project import Project
+from src.repositories.schema.setting import Setting
+from src.repositories.schema.specialization import Specialization
+
+
+class ReportRepository:
+    """Data access layer for report generation operations."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_active_specializations(self) -> list[Specialization]:
+        """Fetch all active specializations.
+
+        Returns:
+            List of active Specialization records.
+        """
+        stmt = select(Specialization).where(Specialization.is_active == 1)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_settings_by_specialization_id(self, specialization_id: uuid.UUID) -> Setting | None:
+        """Fetch the settings record for a given specialization.
+
+        Args:
+            specialization_id: The specialization UUID.
+
+        Returns:
+            The Setting record, or None if not found.
+        """
+        stmt = select(Setting).where(
+            Setting.specialization_id == specialization_id,
+            Setting.is_active == 1,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
+
+    async def get_last_sent_email_history(self, setting_id: uuid.UUID, email_type: str) -> EmailHistory | None:
+        """Fetch the most recent successfully sent email history record.
+
+        Args:
+            setting_id: The settings record UUID.
+            email_type: The report type ("At-risk" or "Summary report").
+
+        Returns:
+            The most recent EmailHistory with status "sent", or None.
+        """
+        stmt = (
+            select(EmailHistory)
+            .where(
+                EmailHistory.setting_id == setting_id,
+                EmailHistory.email_type == email_type,
+                EmailHistory.email_status == "sent",
+                EmailHistory.is_active == 1,
+            )
+            .order_by(EmailHistory.last_synced.desc())
+            .limit(1)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
+
+    async def get_email_template_by_name(self, template_name: str) -> EmailTemplate | None:
+        """Fetch an email template by its name.
+
+        Args:
+            template_name: The template name to look up.
+
+        Returns:
+            The EmailTemplate record, or None if not found.
+        """
+        stmt = select(EmailTemplate).where(
+            EmailTemplate.template_name == template_name,
+            EmailTemplate.is_active == 1,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
+
+    async def get_active_recipients_by_specialization(self, specialization_id: uuid.UUID) -> list[EmailRecipient]:
+        """Fetch all active email recipients for a specialization.
+
+        Args:
+            specialization_id: The specialization UUID.
+
+        Returns:
+            List of active EmailRecipient records.
+        """
+        stmt = select(EmailRecipient).where(
+            EmailRecipient.specialization_id == specialization_id,
+            EmailRecipient.is_active == 1,
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_kpi_history_by_specialization(self, specialization_id: uuid.UUID) -> KpiHistory | None:
+        """Fetch the most recent KPI history record for a specialization.
+
+        Args:
+            specialization_id: The specialization UUID.
+
+        Returns:
+            The most recent KpiHistory record, or None.
+        """
+        stmt = (
+            select(KpiHistory)
+            .where(
+                KpiHistory.specialization_id == specialization_id,
+                KpiHistory.is_active == 1,
+            )
+            .order_by(KpiHistory.created_at.desc())
+            .limit(1)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
+
+    async def get_at_risk_projects(self, at_risk_threshold: int) -> list[Project]:
+        """Fetch projects that are at risk (days since onboarding exceeds threshold).
+
+        Projects are considered at-risk if:
+        - They are active (is_active = 1)
+        - They have not been completed (completed_at is NULL)
+        - Days since onboarded_date exceeds the threshold
+
+        Args:
+            at_risk_threshold: Number of days threshold.
+
+        Returns:
+            List of at-risk Project records.
+        """
+        from sqlalchemy import func
+
+        # Calculate the cutoff date: projects onboarded before this date are at risk
+        stmt = select(Project).where(
+            Project.is_active == 1,
+            Project.completed_at.is_(None),
+            func.current_date() - Project.onboarded_date > at_risk_threshold,
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def create_email_history(self, email_history: EmailHistory) -> EmailHistory:
+        """Insert a new email history record.
+
+        Args:
+            email_history: The EmailHistory ORM instance to persist.
+
+        Returns:
+            The persisted EmailHistory instance.
+        """
+        self._session.add(email_history)
+        await self._session.flush()
+        return email_history
+
+    async def create_cron_job(self, cron_job: CronJob) -> CronJob:
+        """Insert a new cron job record.
+
+        Args:
+            cron_job: The CronJob ORM instance to persist.
+
+        Returns:
+            The persisted CronJob instance.
+        """
+        self._session.add(cron_job)
+        await self._session.flush()
+        return cron_job
+
+    async def update_cron_job_status(self, cron_id: uuid.UUID, sync_status: str) -> None:
+        """Update the sync_status of a cron job record.
+
+        Args:
+            cron_id: The cron job UUID.
+            sync_status: The new status ("success" or "fail").
+        """
+        stmt = (
+            update(CronJob)
+            .where(CronJob.cron_id == cron_id)
+            .values(
+                sync_status=sync_status,
+                modified_at=datetime.utcnow(),
+                modified_by="report_service",
+            )
+        )
+        await self._session.execute(stmt)
+        await self._session.flush()
+
+    async def commit(self) -> None:
+        """Commit the current transaction."""
+        await self._session.commit()

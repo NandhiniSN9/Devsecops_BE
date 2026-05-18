@@ -1,0 +1,149 @@
+"""Microsoft Graph API client for sending emails.
+
+Uses client credentials flow (app-only) to acquire an access token
+and sends emails via the /users/{sender}/sendMail endpoint.
+"""
+
+import httpx
+
+from src.utils.logger import logger
+
+# Microsoft Graph API constants
+MS_LOGIN_URL = "https://login.microsoftonline.com"
+MS_GRAPH_URL = "https://graph.microsoft.com/v1.0"
+MS_GRAPH_SCOPE = "https://graph.microsoft.com/.default"
+
+# HTTP timeout for Graph API calls (seconds)
+GRAPH_API_TIMEOUT = 30
+
+
+class GraphClient:
+    """Client for Microsoft Graph API email operations.
+
+    Acquires an OAuth2 token via client credentials flow and sends
+    emails using the sendMail endpoint.
+    """
+
+    def __init__(
+        self,
+        tenant_id: str,
+        client_id: str,
+        client_secret: str,
+        sender_email: str,
+    ) -> None:
+        """Initialize the Graph client with credentials.
+
+        Args:
+            tenant_id: Azure AD tenant ID.
+            client_id: Application (client) ID.
+            client_secret: Client secret value.
+            sender_email: Email address of the sender (must have sendMail permission).
+        """
+        self._tenant_id = tenant_id
+        self._client_id = client_id
+        self._client_secret = client_secret
+        self._sender_email = sender_email
+        self._access_token: str | None = None
+
+    async def _acquire_token(self) -> str:
+        """Acquire an access token via client credentials flow.
+
+        Returns:
+            The access token string.
+
+        Raises:
+            RuntimeError: If token acquisition fails.
+        """
+        url = f"{MS_LOGIN_URL}/{self._tenant_id}/oauth2/v2.0/token"
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": self._client_id,
+            "client_secret": self._client_secret,
+            "scope": MS_GRAPH_SCOPE,
+        }
+
+        async with httpx.AsyncClient(timeout=GRAPH_API_TIMEOUT) as client:
+            response = await client.post(url, data=data)
+            if response.status_code != 200:
+                error_detail = response.text[:500]
+                logger.error(
+                    "Failed to acquire Graph API token",
+                    status_code=response.status_code,
+                    error=error_detail,
+                )
+                raise RuntimeError(f"Graph API token acquisition failed: HTTP {response.status_code}")
+
+            token_data = response.json()
+            self._access_token = token_data["access_token"]
+            logger.info("Graph API access token acquired successfully")
+            return self._access_token
+
+    async def get_token(self) -> str:
+        """Get a valid access token, acquiring one if needed.
+
+        Returns:
+            The access token string.
+        """
+        if not self._access_token:
+            return await self._acquire_token()
+        return self._access_token
+
+    async def send_email(
+        self,
+        to_email: str,
+        subject: str,
+        html_body: str,
+    ) -> bool:
+        """Send an email to a single recipient via Microsoft Graph API.
+
+        Args:
+            to_email: Recipient email address.
+            subject: Email subject line.
+            html_body: HTML content for the email body.
+
+        Returns:
+            True if the email was sent successfully, False otherwise.
+        """
+        token = await self.get_token()
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "message": {
+                "subject": subject,
+                "body": {
+                    "contentType": "HTML",
+                    "content": html_body,
+                },
+                "toRecipients": [
+                    {"emailAddress": {"address": to_email}},
+                ],
+            },
+            "saveToSentItems": "false",
+        }
+
+        url = f"{MS_GRAPH_URL}/users/{self._sender_email}/sendMail"
+
+        try:
+            async with httpx.AsyncClient(timeout=GRAPH_API_TIMEOUT) as client:
+                response = await client.post(url, headers=headers, json=payload)
+                if response.status_code in (200, 202):
+                    logger.info("Email sent successfully", to=to_email, subject=subject)
+                    return True
+                else:
+                    error_detail = response.text[:500]
+                    logger.warning(
+                        "Email send failed",
+                        to=to_email,
+                        status_code=response.status_code,
+                        error=error_detail,
+                    )
+                    return False
+        except httpx.TimeoutException:
+            logger.warning("Email send timed out", to=to_email)
+            return False
+        except httpx.HTTPError as exc:
+            logger.warning("Email send HTTP error", to=to_email, error=str(exc))
+            return False

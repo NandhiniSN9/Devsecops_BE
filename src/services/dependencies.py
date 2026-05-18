@@ -12,12 +12,16 @@ from collections.abc import AsyncGenerator
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from src.client.graph_client import GraphClient
+from src.client.s3_client import S3Client
 from src.repositories.filters_repository import ClientRepository
 from src.repositories.overview_repository import OverviewRepository
+from src.repositories.report_repository import ReportRepository
 from src.repositories.servicenow_repository import ServiceNowRepository
 from src.repositories.settings_repository import SettingsRepository
 from src.services.filter_service import FilterService
 from src.services.overview_service import OverviewService
+from src.services.report_service import ReportService
 from src.services.servicenow_service import ServiceNowService
 from src.services.settings_service import SettingsService
 from src.settings import get_settings
@@ -104,3 +108,44 @@ def get_settings_service(
 ) -> SettingsService:
     """Factory for SettingsService with injected repository dependency."""
     return SettingsService(settings_repo=settings_repo)
+
+
+def get_report_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> ReportRepository:
+    """Factory for ReportRepository with injected database session."""
+    return ReportRepository(session)
+
+
+def get_graph_client() -> GraphClient:
+    """Factory for GraphClient with credentials from settings."""
+    settings = get_settings()
+    return GraphClient(
+        tenant_id=settings.GRAPH_TENANT_ID,
+        client_id=settings.GRAPH_CLIENT_ID,
+        client_secret=settings.GRAPH_CLIENT_SECRET,
+        sender_email=settings.GRAPH_SENDER_EMAIL,
+    )
+
+
+def get_s3_client() -> S3Client:
+    """Factory for S3Client with configuration from settings."""
+    settings = get_settings()
+    return S3Client(
+        bucket_name=settings.S3_BUCKET_NAME,
+        region=settings.AWS_REGION,
+        url_expiry_days=settings.S3_URL_EXPIRY_DAYS,
+    )
+
+
+def get_report_service(
+    report_repo: ReportRepository = Depends(get_report_repository),
+    graph_client: GraphClient = Depends(get_graph_client),
+    s3_client: S3Client = Depends(get_s3_client),
+) -> ReportService:
+    """Factory for ReportService with injected dependencies."""
+    return ReportService(
+        report_repo=report_repo,
+        graph_client=graph_client,
+        s3_client=s3_client,
+    )

@@ -34,6 +34,12 @@ OVERVIEW_SERVICE_IDENTIFIER: str = "overview_service"
 # Service identifier for ServiceNow sync error logging
 SERVICENOW_SERVICE_IDENTIFIER: str = "servicenow_sync_service"
 
+# Service identifier for report generation error logging
+REPORT_SERVICE_IDENTIFIER: str = "report_service"
+
+# Default S3 pre-signed URL expiration in days
+S3_URL_EXPIRY_DAYS_DEFAULT: int = 7
+
 # Sync method identifier for tickets created via ServiceNow
 SERVICENOW_SYNC_METHOD: str = "servicenow"
 
@@ -57,6 +63,17 @@ class Settings(BaseSettings):
     JIRA_BASE_URL: str
     JIRA_API_TOKEN: str
     SERVICENOW_ALLOWED_EMAIL: str = ""
+
+    # Email Notification Service - Microsoft Graph API
+    GRAPH_CLIENT_ID: str = ""
+    GRAPH_CLIENT_SECRET: str = ""
+    GRAPH_TENANT_ID: str = ""
+    GRAPH_SENDER_EMAIL: str = ""
+
+    # Email Notification Service - AWS S3
+    S3_BUCKET_NAME: str = ""
+    S3_URL_EXPIRY_DAYS: int = 7
+    AWS_REGION: str = "us-east-1"
 
     model_config = ConfigDict(env_file=".env", extra="ignore")
 

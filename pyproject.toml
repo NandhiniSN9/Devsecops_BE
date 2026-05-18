@@ -13,6 +13,9 @@ dependencies = [
     "httpx==0.28.1",
     "structlog==25.1.0",
     "cryptography==44.0.3",
+    "beautifulsoup4==4.13.4",
+    "weasyprint==63.1",
+    "aioboto3==13.4.0",
 ]
 
 [project.optional-dependencies]

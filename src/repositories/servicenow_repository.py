@@ -127,6 +127,45 @@ class ServiceNowRepository:
         await self._session.flush()
         return project
 
+    async def update_project(
+        self,
+        project: Project,
+        project_name: str,
+        onboarded_date,
+        project_type: str,
+        specialization_name: str | None,
+        is_applicable: bool,
+        client: str | None,
+        modified_by: str,
+    ) -> Project:
+        """Update an existing project record with new details.
+
+        Args:
+            project: The existing Project ORM instance to update.
+            project_name: Updated project name.
+            onboarded_date: Updated onboarded date.
+            project_type: Updated project type.
+            specialization_name: Updated specialization name.
+            is_applicable: Updated applicability flag.
+            client: Updated client name.
+            modified_by: The service account performing the update.
+
+        Returns:
+            The updated Project instance.
+        """
+        from datetime import datetime
+
+        project.project_name = project_name
+        project.onboarded_date = onboarded_date
+        project.project_type = project_type
+        project.specialization_name = specialization_name
+        project.is_applicable = is_applicable
+        project.client = client
+        project.modified_at = datetime.utcnow()
+        project.modified_by = modified_by
+        await self._session.flush()
+        return project
+
     async def create_ticket(self, ticket: DevsecopsTicket) -> DevsecopsTicket:
         """Insert a new DevSecOps ticket record into the database.
 
@@ -140,9 +179,82 @@ class ServiceNowRepository:
         await self._session.flush()
         return ticket
 
-    async def get_repository_by_name_and_ticket(
-        self, repo_name: str, ticket_id: uuid.UUID
-    ) -> Repository | None:
+    async def get_ticket_by_sn_or_devsec_id(
+        self, sn_project_id: str, devsec_project_id: str | None
+    ) -> DevsecopsTicket | None:
+        """Look up an existing ticket by sn_project_id or devSec_project_id.
+
+        Checks sn_project_id first, then devSec_project_id as fallback.
+
+        Args:
+            sn_project_id: The ServiceNow project ID.
+            devsec_project_id: The Azure DevOps project ID (optional).
+
+        Returns:
+            The matching DevsecopsTicket record, or None if not found.
+        """
+        from sqlalchemy import or_
+
+        conditions = [DevsecopsTicket.sn_project_id == sn_project_id]
+        if devsec_project_id:
+            conditions.append(DevsecopsTicket.devsec_project_id == devsec_project_id)
+
+        stmt = select(DevsecopsTicket).where(
+            or_(*conditions),
+            DevsecopsTicket.is_active == 1,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
+
+    async def update_ticket(
+        self,
+        ticket: DevsecopsTicket,
+        specialization_id: uuid.UUID,
+        project_id: uuid.UUID,
+        sn_project_id: str | None,
+        devsec_project_id: str | None,
+        project_name: str,
+        client: str | None,
+        requested_by: str | None,
+        approver: str | None,
+        requested_at=None,
+        modified_by: str = "",
+    ) -> DevsecopsTicket:
+        """Update an existing ticket record with new details.
+
+        Args:
+            ticket: The existing DevsecopsTicket ORM instance.
+            specialization_id: Updated specialization ID.
+            project_id: Updated project ID.
+            sn_project_id: Updated ServiceNow project ID.
+            devsec_project_id: Updated DevSec project ID.
+            project_name: Updated project name.
+            client: Updated client.
+            requested_by: Updated requester.
+            approver: Updated approver.
+            requested_at: Updated request timestamp.
+            modified_by: The service account performing the update.
+
+        Returns:
+            The updated DevsecopsTicket instance.
+        """
+        from datetime import datetime
+
+        ticket.specialization_id = specialization_id
+        ticket.project_id = project_id
+        ticket.sn_project_id = sn_project_id
+        ticket.devsec_project_id = devsec_project_id
+        ticket.project_name = project_name
+        ticket.client = client
+        ticket.requested_by = requested_by
+        ticket.approver = approver
+        ticket.requested_at = requested_at.replace(tzinfo=None) if requested_at else None
+        ticket.modified_at = datetime.utcnow()
+        ticket.modified_by = modified_by
+        await self._session.flush()
+        return ticket
+
+    async def get_repository_by_name_and_ticket(self, repo_name: str, ticket_id: uuid.UUID) -> Repository | None:
         """Look up a repository by name and ticket ID.
 
         Args:
@@ -159,6 +271,53 @@ class ServiceNowRepository:
         )
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_repository_by_ado_repo_id_and_ticket(
+        self, ado_repo_id: str, ticket_id: uuid.UUID
+    ) -> Repository | None:
+        """Look up a repository by ado_repo_id and ticket ID.
+
+        Args:
+            ado_repo_id: The Azure DevOps repository identifier.
+            ticket_id: The ticket UUID the repository belongs to.
+
+        Returns:
+            The matching Repository record, or None if not found.
+        """
+        stmt = select(Repository).where(
+            Repository.ado_repo_id == ado_repo_id,
+            Repository.ticket_id == ticket_id,
+            Repository.is_active == 1,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().first()
+
+    async def update_repository(
+        self,
+        repository: Repository,
+        repository_name: str,
+        lead_approvers: str | None,
+        modified_by: str,
+    ) -> Repository:
+        """Update an existing repository record.
+
+        Args:
+            repository: The existing Repository ORM instance.
+            repository_name: Updated repository name.
+            lead_approvers: Updated lead approvers (comma-separated).
+            modified_by: The service account performing the update.
+
+        Returns:
+            The updated Repository instance.
+        """
+        from datetime import datetime
+
+        repository.repository_name = repository_name
+        repository.lead_approvers = lead_approvers
+        repository.modified_at = datetime.utcnow()
+        repository.modified_by = modified_by
+        await self._session.flush()
+        return repository
 
     async def create_repository(self, repository: Repository) -> Repository:
         """Insert a new repository record into the database.

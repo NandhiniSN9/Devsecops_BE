@@ -20,6 +20,7 @@ class Project(Base):
     project_name: Mapped[str] = mapped_column(String(255), nullable=False)
     onboarded_date: Mapped[date] = mapped_column(Date, nullable=False)
     project_type: Mapped[str] = mapped_column(String(255), nullable=False)
+    specialization_name: Mapped[str | None] = mapped_column(String(255))
     is_applicable: Mapped[bool | None] = mapped_column(Boolean, default=True)
     client: Mapped[str | None] = mapped_column(String(255))
     completed_at: Mapped[datetime | None] = mapped_column()

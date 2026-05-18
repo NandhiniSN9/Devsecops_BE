@@ -199,6 +199,10 @@ components:
           type: string
           description: Type/category of the project
           example: "Infrastructure"
+        specialization_name:
+          type: string
+          description: Specialization name associated with the project (optional, for future ServiceNow integration)
+          example: "DevSecOps"
         is_applicable:
           type: boolean
           description: Whether the project is applicable for DevSecOps onboarding
@@ -235,6 +239,10 @@ components:
           type: string
           description: ServiceNow project identifier (used for 3-step project resolution)
           example: "SN-PRJ-00456"
+        devSec_project_id:
+          type: string
+          description: Azure DevOps project identifier
+          example: "ado-proj-00123"
         project_name:
           type: string
           description: Name of the project (fallback for project resolution)
@@ -261,6 +269,12 @@ components:
               ado_repo_id:
                 type: string
                 example: "ado-repo-001"
+              lead_approvers:
+                type: array
+                description: List of lead approver email addresses for the repository
+                items:
+                  type: string
+                example: ["barath.uthamasathish@zeb.co", "balaji.thiruppathi@zeb.co"]
         requested_by:
           type: string
           example: "tom.walsh@zeb.co"
