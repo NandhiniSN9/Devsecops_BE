@@ -965,6 +965,10 @@ components:
           type: string
           description: Current status of the project
           example: "COMPLETED"
+        at_risk_overdue:
+          type: integer
+          description: Number of days the project is overdue (0 if not at risk)
+          example: 5
         repositories:
           type: array
           description: List of repositories under this project
@@ -1681,10 +1685,6 @@ components:
           type: string
           description: Frequency for at-risk alert reports (daily, weekly, bi-weekly, monthly, not_required)
           example: "weekly"
-        last_synced:
-          type: string
-          description: Timestamp of the last sync operation
-          example: "2026-05-10T14:30:00Z"
         email_recipients:
           type: array
           description: List of recipient email addresses
@@ -1742,16 +1742,20 @@ components:
         action:
           type: string
           enum: [add, remove]
-          description: Whether to add or remove a recipient
+          description: Whether to add or remove recipients
         alert_recipient:
-          type: string
-          format: email
-          description: Email address to add (required when action is "add")
-          example: "newuser@org.com"
+          type: array
+          items:
+            type: string
+            format: email
+          description: List of email addresses to add (required when action is "add")
+          example: ["newuser@org.com", "another@org.com"]
         email_recipient_id:
-          type: string
-          format: uuid
-          description: ID of the recipient to remove (required when action is "remove")
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of recipient IDs to remove (required when action is "remove")
 
     # ===========================
     # Reports Schemas
