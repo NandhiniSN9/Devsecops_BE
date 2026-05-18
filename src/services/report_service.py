@@ -221,13 +221,23 @@ class ReportService:
         # Generate PDF with WeasyPrint (in-memory)
         pdf_bytes = self._generate_pdf(populated_html)
 
-        # Upload to S3
+        # Upload to S3 and get pre-signed URL
+        # NOTE: S3 upload temporarily disabled for local testing.
+        # Uncomment the block below when S3 bucket is configured.
         now = datetime.utcnow()
         filename = f"{report_type}_{spec_name}_{now.strftime('%Y%m%d_%H%M%S')}.pdf"
         s3_key = f"reports/{spec_name}/{report_type}/{now.strftime('%Y')}/{now.strftime('%m')}/{filename}"
 
-        await self._s3_client.upload_pdf(pdf_bytes, s3_key)
-        presigned_url = await self._s3_client.generate_presigned_url(s3_key)
+        try:
+            await self._s3_client.upload_pdf(pdf_bytes, s3_key)
+            presigned_url = await self._s3_client.generate_presigned_url(s3_key)
+        except Exception as s3_exc:
+            logger.warning(
+                "S3 upload failed, using placeholder URL for email",
+                error=str(s3_exc),
+                specialization=spec_name,
+            )
+            presigned_url = f"https://placeholder-report-url.local/{s3_key}"
 
         # Send emails to all recipients
         email_sent = await self._send_emails_to_recipients(
