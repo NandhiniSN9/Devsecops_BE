@@ -21,11 +21,12 @@ class KpiTileResponse(BaseModel):
 
 
 class OverviewMetricsResponse(BaseModel):
-    """All six KPI tiles for the overview dashboard."""
+    """All seven KPI tiles for the overview dashboard."""
 
     model_config = ConfigDict(strict=False)
 
     total_projects: KpiTileResponse
+    adopted: KpiTileResponse
     completed: KpiTileResponse
     active: KpiTileResponse
     inactive: KpiTileResponse
@@ -58,21 +59,6 @@ class StatusDistributionResponse(BaseModel):
 
     breakdown: list[StatusBreakdownItemResponse]
     """Per-status details sorted alphabetically by status name."""
-
-
-class AttentionBannerResponse(BaseModel):
-    """Risk notification banner with severity level."""
-
-    model_config = ConfigDict(strict=False)
-
-    message: str = Field(max_length=200)
-    """Alert text including the at-risk count when applicable."""
-
-    at_risk_count: int = Field(ge=0)
-    """Number of at-risk projects."""
-
-    severity: Literal["critical", "warning", "info"]
-    """Severity level based on at_risk_count thresholds."""
 
 
 class SyncDetailResponse(BaseModel):

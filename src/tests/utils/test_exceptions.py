@@ -1,6 +1,5 @@
 """Unit tests for custom exceptions and error response builders."""
 
-import pytest
 
 from src.utils.exceptions.error_codes import AUTHENTICATION_FAILED, INVALID_PARAMETER, UNEXPECTED_ERROR
 from src.utils.exceptions.error_responses import (

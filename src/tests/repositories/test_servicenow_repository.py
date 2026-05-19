@@ -228,14 +228,3 @@ class TestGetRepositoryByNameAndTicket:
         result = await repo.get_repository_by_name_and_ticket("nonexistent", uuid.uuid4())
 
         assert result is None
-
-
-class TestCommit:
-    """Tests for commit method."""
-
-    @pytest.mark.asyncio
-    async def test_commits_session(self, repo, mock_session):
-        """Should call commit on the session."""
-        await repo.commit()
-
-        mock_session.commit.assert_called_once()

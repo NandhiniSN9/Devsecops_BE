@@ -8,9 +8,7 @@ Uses Microsoft Graph API for email delivery and WeasyPrint for PDF generation.
 import uuid
 from datetime import datetime, timedelta
 from io import BytesIO
-
 from bs4 import BeautifulSoup
-
 from src.client.graph_client import GraphClient
 from src.client.s3_client import S3Client
 from src.repositories.report_repository import ReportRepository
@@ -76,7 +74,6 @@ class ReportService:
         for specialization in specializations:
             await self._process_specialization(specialization)
 
-        await self._repo.commit()
         logger.info("Report generation completed for all specializations")
         return {"status": "completed", "specializations_processed": len(specializations)}
 

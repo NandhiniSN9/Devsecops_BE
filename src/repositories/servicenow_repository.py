@@ -5,15 +5,17 @@ and reference data resolution for the ServiceNow integration endpoints.
 """
 
 import uuid
-
-from sqlalchemy import func, select
+from datetime import datetime
+from sqlalchemy import func, or_, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.repositories.schema.devsecops_ticket import DevsecopsTicket
 from src.repositories.schema.project import Project
 from src.repositories.schema.repository import Repository
 from src.repositories.schema.specialization import Specialization
 from src.repositories.schema.status import Status
+from src.utils.logger import logger
+from src.utils.text import normalize_project_name
 
 
 class ServiceNowRepository:
@@ -31,12 +33,19 @@ class ServiceNowRepository:
         Returns:
             The matching Project record, or None if not found.
         """
-        stmt = select(Project).where(
-            Project.sn_project_id == sn_project_id,
-            Project.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        try:
+            stmt = select(Project).where(
+                Project.sn_project_id == sn_project_id,
+                Project.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_project_by_sn_project_id", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_project_by_sn_project_id", error=str(exc))
+            raise
 
     async def get_project_by_name(self, project_name: str) -> Project | None:
         """Look up an active project by project name.
@@ -47,12 +56,19 @@ class ServiceNowRepository:
         Returns:
             The first matching Project record, or None if not found.
         """
-        stmt = select(Project).where(
-            func.lower(Project.project_name) == func.lower(project_name),
-            Project.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalars().first()
+        try:
+            stmt = select(Project).where(
+                func.lower(Project.project_name) == func.lower(project_name),
+                Project.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalars().first()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_project_by_name", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_project_by_name", error=str(exc))
+            raise
 
     async def get_project_by_client(self, client: str) -> Project | None:
         """Look up an active project by client name.
@@ -63,18 +79,24 @@ class ServiceNowRepository:
         Returns:
             The first matching Project record, or None if not found.
         """
-        stmt = select(Project).where(
-            func.lower(Project.client) == func.lower(client),
-            Project.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalars().first()
+        try:
+            stmt = select(Project).where(
+                func.lower(Project.client) == func.lower(client),
+                Project.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalars().first()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_project_by_client", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_project_by_client", error=str(exc))
+            raise
 
     async def get_project_by_normalized_name(self, ticket_project_name: str) -> Project | None:
         """Look up an active project by normalized name comparison.
 
         Normalization: remove 'zeb-' prefix, replace '-' with space, lowercase, trim.
-        This handles cases like "zeb-touchpoint-pj" matching "Touchpoint PJ".
 
         Args:
             ticket_project_name: The ticket's project name to normalize and match.
@@ -82,22 +104,26 @@ class ServiceNowRepository:
         Returns:
             The first matching Project record, or None if not found.
         """
-        from src.utils.helpers import normalize_project_name
+        try:
+            normalized_ticket_name = normalize_project_name(ticket_project_name)
+            if not normalized_ticket_name:
+                return None
 
-        normalized_ticket_name = normalize_project_name(ticket_project_name)
-        if not normalized_ticket_name:
+            stmt = select(Project).where(Project.is_active == 1)
+            result = await self._session.execute(stmt)
+            projects = result.scalars().all()
+
+            for project in projects:
+                if normalize_project_name(project.project_name) == normalized_ticket_name:
+                    return project
+
             return None
-
-        # Fetch all active projects and compare normalized names
-        stmt = select(Project).where(Project.is_active == 1)
-        result = await self._session.execute(stmt)
-        projects = result.scalars().all()
-
-        for project in projects:
-            if normalize_project_name(project.project_name) == normalized_ticket_name:
-                return project
-
-        return None
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_project_by_normalized_name", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_project_by_normalized_name", error=str(exc))
+            raise
 
     async def get_default_project(self) -> Project | None:
         """Get the default project record from the database.
@@ -107,12 +133,19 @@ class ServiceNowRepository:
         Returns:
             The default Project record, or None if not found.
         """
-        stmt = select(Project).where(
-            func.lower(Project.project_name) == "default",
-            Project.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalars().first()
+        try:
+            stmt = select(Project).where(
+                func.lower(Project.project_name) == "default",
+                Project.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalars().first()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_default_project", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_default_project", error=str(exc))
+            raise
 
     async def get_inactive_status(self) -> Status | None:
         """Get the 'Inactive' status record from the statuses table.
@@ -120,12 +153,19 @@ class ServiceNowRepository:
         Returns:
             The Inactive Status record, or None if not found.
         """
-        stmt = select(Status).where(
-            func.lower(Status.status_name) == "inactive",
-            Status.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        try:
+            stmt = select(Status).where(
+                func.lower(Status.status_name) == "inactive",
+                Status.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_inactive_status", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_inactive_status", error=str(exc))
+            raise
 
     async def get_specialization_by_name(self, specialization_name: str) -> Specialization | None:
         """Look up an active specialization by name (case-insensitive).
@@ -136,12 +176,19 @@ class ServiceNowRepository:
         Returns:
             The matching Specialization record, or None if not found.
         """
-        stmt = select(Specialization).where(
-            func.lower(Specialization.specialization_name) == func.lower(specialization_name),
-            Specialization.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        try:
+            stmt = select(Specialization).where(
+                func.lower(Specialization.specialization_name) == func.lower(specialization_name),
+                Specialization.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_specialization_by_name", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_specialization_by_name", error=str(exc))
+            raise
 
     async def create_project(self, project: Project) -> Project:
         """Insert a new project record into the database.
@@ -152,9 +199,16 @@ class ServiceNowRepository:
         Returns:
             The persisted Project instance.
         """
-        self._session.add(project)
-        await self._session.flush()
-        return project
+        try:
+            self._session.add(project)
+            await self._session.flush()
+            return project
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in create_project", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in create_project", error=str(exc))
+            raise
 
     async def update_project(
         self,
@@ -167,33 +221,24 @@ class ServiceNowRepository:
         client: str | None,
         modified_by: str,
     ) -> Project:
-        """Update an existing project record with new details.
-
-        Args:
-            project: The existing Project ORM instance to update.
-            project_name: Updated project name.
-            onboarded_date: Updated onboarded date.
-            project_type: Updated project type.
-            specialization_name: Updated specialization name.
-            is_applicable: Updated applicability flag.
-            client: Updated client name.
-            modified_by: The service account performing the update.
-
-        Returns:
-            The updated Project instance.
-        """
-        from datetime import datetime
-
-        project.project_name = project_name
-        project.onboarded_date = onboarded_date
-        project.project_type = project_type
-        project.specialization_name = specialization_name
-        project.is_applicable = is_applicable
-        project.client = client
-        project.modified_at = datetime.utcnow()
-        project.modified_by = modified_by
-        await self._session.flush()
-        return project
+        """Update an existing project record with new details."""
+        try:
+            project.project_name = project_name
+            project.onboarded_date = onboarded_date
+            project.project_type = project_type
+            project.specialization_name = specialization_name
+            project.is_applicable = is_applicable
+            project.client = client
+            project.modified_at = datetime.utcnow()
+            project.modified_by = modified_by
+            await self._session.flush()
+            return project
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in update_project", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in update_project", error=str(exc))
+            raise
 
     async def create_ticket(self, ticket: DevsecopsTicket) -> DevsecopsTicket:
         """Insert a new DevSecOps ticket record into the database.
@@ -204,36 +249,38 @@ class ServiceNowRepository:
         Returns:
             The persisted DevsecopsTicket instance.
         """
-        self._session.add(ticket)
-        await self._session.flush()
-        return ticket
+        try:
+            self._session.add(ticket)
+            await self._session.flush()
+            return ticket
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in create_ticket", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in create_ticket", error=str(exc))
+            raise
 
     async def get_ticket_by_sn_or_devsec_id(
         self, sn_project_id: str, devsec_project_id: str | None
     ) -> DevsecopsTicket | None:
-        """Look up an existing ticket by sn_project_id or devSec_project_id.
+        """Look up an existing ticket by sn_project_id or devSec_project_id."""
+        try:
+            conditions = [DevsecopsTicket.sn_project_id == sn_project_id]
+            if devsec_project_id:
+                conditions.append(DevsecopsTicket.devsec_project_id == devsec_project_id)
 
-        Checks sn_project_id first, then devSec_project_id as fallback.
-
-        Args:
-            sn_project_id: The ServiceNow project ID.
-            devsec_project_id: The Azure DevOps project ID (optional).
-
-        Returns:
-            The matching DevsecopsTicket record, or None if not found.
-        """
-        from sqlalchemy import or_
-
-        conditions = [DevsecopsTicket.sn_project_id == sn_project_id]
-        if devsec_project_id:
-            conditions.append(DevsecopsTicket.devsec_project_id == devsec_project_id)
-
-        stmt = select(DevsecopsTicket).where(
-            or_(*conditions),
-            DevsecopsTicket.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalars().first()
+            stmt = select(DevsecopsTicket).where(
+                or_(*conditions),
+                DevsecopsTicket.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalars().first()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_ticket_by_sn_or_devsec_id", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_ticket_by_sn_or_devsec_id", error=str(exc))
+            raise
 
     async def update_ticket(
         self,
@@ -249,39 +296,27 @@ class ServiceNowRepository:
         requested_at=None,
         modified_by: str = "",
     ) -> DevsecopsTicket:
-        """Update an existing ticket record with new details.
-
-        Args:
-            ticket: The existing DevsecopsTicket ORM instance.
-            specialization_id: Updated specialization ID.
-            project_id: Updated project ID.
-            sn_project_id: Updated ServiceNow project ID.
-            devsec_project_id: Updated DevSec project ID.
-            project_name: Updated project name.
-            client: Updated client.
-            requested_by: Updated requester.
-            approver: Updated approver.
-            requested_at: Updated request timestamp.
-            modified_by: The service account performing the update.
-
-        Returns:
-            The updated DevsecopsTicket instance.
-        """
-        from datetime import datetime
-
-        ticket.specialization_id = specialization_id
-        ticket.project_id = project_id
-        ticket.sn_project_id = sn_project_id
-        ticket.devsec_project_id = devsec_project_id
-        ticket.project_name = project_name
-        ticket.client = client
-        ticket.requested_by = requested_by
-        ticket.approver = approver
-        ticket.requested_at = requested_at.replace(tzinfo=None) if requested_at else None
-        ticket.modified_at = datetime.utcnow()
-        ticket.modified_by = modified_by
-        await self._session.flush()
-        return ticket
+        """Update an existing ticket record with new details."""
+        try:
+            ticket.specialization_id = specialization_id
+            ticket.project_id = project_id
+            ticket.sn_project_id = sn_project_id
+            ticket.devsec_project_id = devsec_project_id
+            ticket.project_name = project_name
+            ticket.client = client
+            ticket.requested_by = requested_by
+            ticket.approver = approver
+            ticket.requested_at = requested_at.replace(tzinfo=None) if requested_at else None
+            ticket.modified_at = datetime.utcnow()
+            ticket.modified_by = modified_by
+            await self._session.flush()
+            return ticket
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in update_ticket", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in update_ticket", error=str(exc))
+            raise
 
     async def get_repository_by_name_and_ticket(self, repo_name: str, ticket_id: uuid.UUID) -> Repository | None:
         """Look up a repository by name and ticket ID.
@@ -293,13 +328,20 @@ class ServiceNowRepository:
         Returns:
             The matching Repository record, or None if not found.
         """
-        stmt = select(Repository).where(
-            Repository.repository_name == repo_name,
-            Repository.ticket_id == ticket_id,
-            Repository.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        try:
+            stmt = select(Repository).where(
+                Repository.repository_name == repo_name,
+                Repository.ticket_id == ticket_id,
+                Repository.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_repository_by_name_and_ticket", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_repository_by_name_and_ticket", error=str(exc))
+            raise
 
     async def get_repository_by_ado_repo_id_and_ticket(
         self, ado_repo_id: str, ticket_id: uuid.UUID
@@ -313,13 +355,20 @@ class ServiceNowRepository:
         Returns:
             The matching Repository record, or None if not found.
         """
-        stmt = select(Repository).where(
-            Repository.ado_repo_id == ado_repo_id,
-            Repository.ticket_id == ticket_id,
-            Repository.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalars().first()
+        try:
+            stmt = select(Repository).where(
+                Repository.ado_repo_id == ado_repo_id,
+                Repository.ticket_id == ticket_id,
+                Repository.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalars().first()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_repository_by_ado_repo_id_and_ticket", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_repository_by_ado_repo_id_and_ticket", error=str(exc))
+            raise
 
     async def update_repository(
         self,
@@ -328,25 +377,20 @@ class ServiceNowRepository:
         lead_approvers: str | None,
         modified_by: str,
     ) -> Repository:
-        """Update an existing repository record.
-
-        Args:
-            repository: The existing Repository ORM instance.
-            repository_name: Updated repository name.
-            lead_approvers: Updated lead approvers (comma-separated).
-            modified_by: The service account performing the update.
-
-        Returns:
-            The updated Repository instance.
-        """
-        from datetime import datetime
-
-        repository.repository_name = repository_name
-        repository.lead_approvers = lead_approvers
-        repository.modified_at = datetime.utcnow()
-        repository.modified_by = modified_by
-        await self._session.flush()
-        return repository
+        """Update an existing repository record."""
+        try:
+            repository.repository_name = repository_name
+            repository.lead_approvers = lead_approvers
+            repository.modified_at = datetime.utcnow()
+            repository.modified_by = modified_by
+            await self._session.flush()
+            return repository
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in update_repository", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in update_repository", error=str(exc))
+            raise
 
     async def create_repository(self, repository: Repository) -> Repository:
         """Insert a new repository record into the database.
@@ -357,10 +401,32 @@ class ServiceNowRepository:
         Returns:
             The persisted Repository instance.
         """
-        self._session.add(repository)
-        await self._session.flush()
-        return repository
+        try:
+            self._session.add(repository)
+            await self._session.flush()
+            return repository
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in create_repository", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in create_repository", error=str(exc))
+            raise
 
-    async def commit(self) -> None:
-        """Commit the current transaction."""
-        await self._session.commit()
+    async def mark_project_onboarded(self, project: Project, modified_by: str) -> None:
+        """Mark a project as DevSecOps onboarded.
+
+        Args:
+            project: The Project ORM instance to update.
+            modified_by: The service account performing the update.
+        """
+        try:
+            project.is_devsecops_onboarded = True
+            project.modified_at = datetime.utcnow()
+            project.modified_by = modified_by
+            await self._session.flush()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in mark_project_onboarded", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in mark_project_onboarded", error=str(exc))
+            raise

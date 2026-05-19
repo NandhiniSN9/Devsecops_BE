@@ -3,10 +3,10 @@
 import pytest
 from pydantic import ValidationError
 
-from src.dtos.request.overview_request import PeriodEnum
-from src.dtos.response.base_response import BaseResponse
-from src.dtos.response.filter_response import FilterItemResponse, FiltersDataResponse
-from src.dtos.response.overview_response import (
+from src.models.request.overview_request import PeriodEnum
+from src.models.response.base_response import BaseResponse
+from src.models.response.filter_response import FilterItemResponse, FiltersDataResponse
+from src.models.response.overview_response import (
     AttentionBannerResponse,
     KpiTileResponse,
     OverviewDataResponse,

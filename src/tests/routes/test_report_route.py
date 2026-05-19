@@ -28,11 +28,11 @@ def client(mock_report_service):
 
 
 class TestGenerateReportsEndpoint:
-    """Tests for POST /api/v1/reports/generate endpoint."""
+    """Tests for GET /api/v1/reports/generate endpoint."""
 
     def test_generate_reports_success(self, client, mock_report_service):
         """Should return 200 with success message when reports are generated."""
-        response = client.post("/api/v1/reports/generate")
+        response = client.get("/api/v1/reports/generate")
 
         assert response.status_code == 200
         data = response.json()
@@ -45,7 +45,7 @@ class TestGenerateReportsEndpoint:
         """Should return 500 when an unhandled exception occurs."""
         mock_report_service.generate_reports.side_effect = RuntimeError("PDF generation failed")
 
-        response = client.post("/api/v1/reports/generate")
+        response = client.get("/api/v1/reports/generate")
 
         assert response.status_code == 500
         data = response.json()
@@ -54,14 +54,14 @@ class TestGenerateReportsEndpoint:
 
     def test_generate_reports_no_body_required(self, client, mock_report_service):
         """Should accept request without any body."""
-        response = client.post("/api/v1/reports/generate", content=b"")
+        response = client.get("/api/v1/reports/generate")
 
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "success"
 
     def test_generate_reports_method_not_allowed(self, client):
-        """Should return 405 for GET requests."""
-        response = client.get("/api/v1/reports/generate")
+        """Should return 405 for POST requests."""
+        response = client.post("/api/v1/reports/generate")
 
         assert response.status_code == 405

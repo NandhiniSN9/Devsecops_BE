@@ -2,7 +2,6 @@
 
 import uuid
 from typing import Literal
-
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 

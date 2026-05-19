@@ -148,7 +148,6 @@ class TestGenerateReports:
         result = await service.generate_reports()
 
         assert result["specializations_processed"] == 0
-        mock_repo.commit.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_generate_reports_with_specializations(
@@ -169,7 +168,6 @@ class TestGenerateReports:
             result = await service.generate_reports()
 
         assert result["specializations_processed"] == 1
-        mock_repo.commit.assert_called_once()
 
 
 class TestIsReportDue:

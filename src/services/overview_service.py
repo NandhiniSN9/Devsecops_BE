@@ -1,9 +1,11 @@
-"""Overview service for KPI aggregation and trend calculation."""
+"""Overview service for KPI aggregation and trend calculation.
 
-import uuid
+Computes live project counts from the database and calculates
+trends by comparing current counts with historical snapshots.
+"""
 
-from src.dtos.request.overview_request import PeriodEnum
-from src.dtos.response.overview_response import (
+from src.models.request.overview_request import PeriodEnum
+from src.models.response.overview_response import (
     KpiTileResponse,
     OverviewDataResponse,
     OverviewMetricsResponse,
@@ -12,74 +14,72 @@ from src.dtos.response.overview_response import (
     SyncDetailResponse,
 )
 from src.repositories.overview_repository import OverviewRepository
-from src.repositories.schema.kpi_history import KpiHistory
-from src.settings import (
-    MAX_SPECIALIZATION_FILTER_COUNT,
-    PERIOD_DAYS_MAP,
-)
-from src.utils.exceptions import InvalidParameterError
+from src.settings import PERIOD_DAYS_MAP
+from src.utils.exceptions.exceptions import InvalidParameterError
+from src.utils.logger import logger
 
 
 class OverviewService:
     """Service for computing overview dashboard data.
 
-    Calculates KPI metrics by comparing the current record (today/yesterday)
-    with the record from N days ago to derive trends and change values.
+    Calculates KPI metrics by comparing live counts from the projects table
+    with historical snapshots from kpi_history to derive trends.
     """
 
-    def __init__(
-        self,
-        overview_repo: OverviewRepository,
-    ) -> None:
+    def __init__(self, overview_repo: OverviewRepository) -> None:
         """Initialize with repository dependency."""
         self._overview_repo = overview_repo
 
-    async def get_overview(self, period: str | None, specialization: str | None) -> OverviewDataResponse:
+    async def get_overview(self, period: str | None) -> OverviewDataResponse:
         """Compute and return the full overview dashboard data.
 
         Args:
             period: Period filter value (last_week, last_month, last_3_months) or None.
-            specialization: Comma-separated specialization UUIDs or None.
 
         Returns:
-            OverviewData containing metrics and status distribution.
+            OverviewDataResponse containing metrics and status distribution.
 
         Raises:
             InvalidParameterError: If period is invalid or empty string.
         """
-        # Step 1: Validate period BEFORE specialization (fail fast)
-        validated_period = self._validate_period(period)
-        period_days = PERIOD_DAYS_MAP[validated_period]
+        try:
+            # Step 1: Validate period
+            validated_period = self._validate_period(period)
+            period_days = PERIOD_DAYS_MAP[validated_period]
 
-        # Step 2: Parse specialization filter
-        specialization_ids = self._parse_specialization(specialization)
+            # Step 2: Get sync details
+            last_synced_dt = await self._overview_repo.get_last_synced()
+            last_synced = last_synced_dt.strftime("%d %b %Y, %H:%M") if last_synced_dt else None
+            is_sync_in_progress = await self._overview_repo.is_sync_in_progress()
 
-        # Step 3: Get last_synced from settings
-        last_synced_dt = await self._overview_repo.get_last_synced(specialization_ids)
-        last_synced = last_synced_dt.strftime("%d %b %Y, %H:%M") if last_synced_dt else None
+            sync_detail = SyncDetailResponse(
+                last_sync_datetime=last_synced,
+                is_sync_in_progress=is_sync_in_progress,
+            )
 
-        # Step 4: Check if sync is in progress
-        is_sync_in_progress = await self._overview_repo.is_sync_in_progress()
+            # Step 3: Get live counts from projects table
+            current_counts = await self._overview_repo.get_live_counts()
 
-        # Step 5: Build sync_detail object
-        sync_detail = SyncDetailResponse(
-            last_sync_datetime=last_synced,
-            is_sync_in_progress=is_sync_in_progress,
-        )
+            # Step 4: Get historical counts for trend comparison
+            historical_counts = await self._overview_repo.get_historical_counts(period_days)
 
-        # Step 6: Get current and comparison KPI records, compute metrics
-        current_records = await self._overview_repo.get_current_records(specialization_ids)
-        metrics = await self._compute_metrics(current_records, specialization_ids, period_days)
+            # Step 5: Build metrics with trends
+            metrics = self._build_metrics(current_counts, historical_counts)
 
-        # Step 7: Compute status distribution from KPI counts
-        total_projects = metrics.total_projects.count
-        status_distribution = await self._compute_status_distribution(current_records, total_projects)
+            # Step 6: Build status distribution
+            status_distribution = self._build_status_distribution(current_counts)
 
-        return OverviewDataResponse(
-            sync_detail=sync_detail,
-            metrics=metrics,
-            status_distribution=status_distribution,
-        )
+            return OverviewDataResponse(
+                sync_detail=sync_detail,
+                metrics=metrics,
+                status_distribution=status_distribution,
+            )
+
+        except InvalidParameterError:
+            raise
+        except Exception as exc:
+            logger.error("Error computing overview data", error=str(exc))
+            raise
 
     def _validate_period(self, period: str | None) -> str:
         """Validate and normalize the period parameter.
@@ -96,124 +96,56 @@ class OverviewService:
         if period is None:
             return PeriodEnum.LAST_WEEK.value
 
-        # Empty string is invalid
         if period == "":
             accepted = [e.value for e in PeriodEnum]
             raise InvalidParameterError(f"Invalid value for parameter 'period'. Accepted values: {accepted}")
 
-        # Check against valid enum values
         valid_values = [e.value for e in PeriodEnum]
         if period not in valid_values:
             raise InvalidParameterError(f"Invalid value for parameter 'period'. Accepted values: {valid_values}")
 
         return period
 
-    def _parse_specialization(self, specialization: str | None) -> list[uuid.UUID] | None:
-        """Parse the specialization CSV parameter into a list of UUIDs.
+    def _build_metrics(self, current: dict, historical: dict | None) -> OverviewMetricsResponse:
+        """Build KPI metrics by comparing current vs historical counts.
 
-        Args:
-            specialization: Comma-separated specialization IDs or None.
-
-        Returns:
-            List of valid UUIDs, or None if no filter should be applied.
-        """
-        if specialization is None or specialization.strip() == "":
-            return None
-
-        # Split by comma, trim whitespace, limit to MAX_SPECIALIZATION_FILTER_COUNT
-        raw_ids = specialization.split(",")
-        trimmed_ids = [id_str.strip() for id_str in raw_ids]
-        limited_ids = trimmed_ids[:MAX_SPECIALIZATION_FILTER_COUNT]
-
-        # Parse as UUID, skip non-UUID values
-        valid_uuids: list[uuid.UUID] = []
-        for id_str in limited_ids:
-            try:
-                valid_uuids.append(uuid.UUID(id_str))
-            except (ValueError, AttributeError):
-                continue
-
-        # All invalid IDs → treated as no filter (return all)
-        if not valid_uuids:
-            return None
-
-        return valid_uuids
-
-    async def _compute_metrics(
-        self, current_records: list, specialization_ids: list[uuid.UUID] | None, period_days: int
-    ) -> OverviewMetricsResponse:
-        """Compute KPI metrics by comparing current vs comparison records.
-
-        Current record: today's record, or yesterday's if today doesn't exist.
-        Comparison record: record from exactly N days ago, or closest previous.
-
-        Change = current.count - comparison.count
+        Change = current_count - historical_count
         Trend = increase/decrease/flat based on change sign.
+        If no historical data exists, trend is None.
 
         Args:
-            current_records: Already-fetched current KPI records.
-            specialization_ids: Optional list of specialization UUIDs to filter by.
-            period_days: Number of days to look back for comparison.
+            current: Current live counts dict.
+            historical: Historical counts dict from N days ago, or None.
 
         Returns:
-            OverviewMetricsResponse with all six KPI tiles.
+            OverviewMetricsResponse with all seven KPI tiles.
         """
-        # If no current records → all zeros
-        if not current_records:
-            null_tile = KpiTileResponse(count=0, trend=None, change=0)
+        try:
+            if historical is None:
+                # No historical data — show counts with null trends
+                return OverviewMetricsResponse(
+                    total_projects=KpiTileResponse(count=current["total_projects"], trend=None, change=0),
+                    adopted=KpiTileResponse(count=current["adopted"], trend=None, change=0),
+                    completed=KpiTileResponse(count=current["completed"], trend=None, change=0),
+                    active=KpiTileResponse(count=current["active"], trend=None, change=0),
+                    inactive=KpiTileResponse(count=current["inactive"], trend=None, change=0),
+                    at_risk=KpiTileResponse(count=current["at_risk"], trend=None, change=0),
+                    not_applicable=KpiTileResponse(count=current["not_applicable"], trend=None, change=0),
+                )
+
             return OverviewMetricsResponse(
-                total_projects=null_tile,
-                completed=null_tile,
-                active=null_tile,
-                inactive=null_tile,
-                at_risk=null_tile,
-                not_applicable=null_tile,
+                total_projects=self._build_tile(current["total_projects"], historical["total_projects"]),
+                adopted=self._build_tile(current["adopted"], historical["adopted"]),
+                completed=self._build_tile(current["completed"], historical["completed"]),
+                active=self._build_tile(current["active"], historical["active"]),
+                inactive=self._build_tile(current["inactive"], historical["inactive"]),
+                at_risk=self._build_tile(current["at_risk"], historical["at_risk"]),
+                not_applicable=self._build_tile(current["not_applicable"], historical["not_applicable"]),
             )
 
-        # Fetch comparison records (N days ago or closest previous) per specialization
-        comparison_records = await self._overview_repo.get_comparison_records(specialization_ids, period_days)
-
-        # Build comparison lookup by specialization_id
-        comparison_map: dict[uuid.UUID, KpiHistory] = {}
-        for record in comparison_records:
-            if record.specialization_id:
-                comparison_map[record.specialization_id] = record
-
-        # Sum current counts across all specializations
-        total_projects_current = sum((r.projects_count or 0) for r in current_records)
-        completed_current = sum((r.completed_count or 0) for r in current_records)
-        active_current = sum((r.active_count or 0) for r in current_records)
-        inactive_current = sum((r.inactive_count or 0) for r in current_records)
-        at_risk_current = sum((r.at_risk_count or 0) for r in current_records)
-        not_applicable_current = sum((r.not_applicable_count or 0) for r in current_records)
-
-        # Sum comparison counts (matching specializations)
-        total_projects_comparison = 0
-        completed_comparison = 0
-        active_comparison = 0
-        inactive_comparison = 0
-        at_risk_comparison = 0
-        not_applicable_comparison = 0
-
-        for record in current_records:
-            comp = comparison_map.get(record.specialization_id) if record.specialization_id else None
-            if comp:
-                total_projects_comparison += comp.projects_count or 0
-                completed_comparison += comp.completed_count or 0
-                active_comparison += comp.active_count or 0
-                inactive_comparison += comp.inactive_count or 0
-                at_risk_comparison += comp.at_risk_count or 0
-                not_applicable_comparison += comp.not_applicable_count or 0
-
-        # Calculate change and derive trends
-        return OverviewMetricsResponse(
-            total_projects=self._build_tile(total_projects_current, total_projects_comparison),
-            completed=self._build_tile(completed_current, completed_comparison),
-            active=self._build_tile(active_current, active_comparison),
-            inactive=self._build_tile(inactive_current, inactive_comparison),
-            at_risk=self._build_tile(at_risk_current, at_risk_comparison),
-            not_applicable=self._build_tile(not_applicable_current, not_applicable_comparison),
-        )
+        except Exception as exc:
+            logger.error("Error building metrics", error=str(exc))
+            raise
 
     @staticmethod
     def _build_tile(current_count: int, comparison_count: int) -> KpiTileResponse:
@@ -237,49 +169,44 @@ class OverviewService:
 
         return KpiTileResponse(count=current_count, trend=trend, change=abs(change))
 
-    async def _compute_status_distribution(
-        self, current_records: list, total_projects: int
-    ) -> StatusDistributionResponse:
-        """Compute status distribution from KPI history counts.
-
-        total = projects_count (sum across specializations)
-        breakdown = completed + active + inactive + at_risk + not_applicable
-        percentage = (count / total) * 100
+    def _build_status_distribution(self, counts: dict) -> StatusDistributionResponse:
+        """Build status distribution from live counts.
 
         Args:
-            current_records: Current KPI records per specialization.
-            total_projects: Total projects count (sum of projects_count).
+            counts: Current live counts dict.
 
         Returns:
             StatusDistributionResponse with total and breakdown items.
         """
-        completed = sum((r.completed_count or 0) for r in current_records)
-        active = sum((r.active_count or 0) for r in current_records)
-        inactive = sum((r.inactive_count or 0) for r in current_records)
-        at_risk = sum((r.at_risk_count or 0) for r in current_records)
-        not_applicable = sum((r.not_applicable_count or 0) for r in current_records)
+        try:
+            total = counts["total_projects"]
 
-        breakdown_data = [
-            {"status_name": "Active", "count": active},
-            {"status_name": "At Risk", "count": at_risk},
-            {"status_name": "Completed", "count": completed},
-            {"status_name": "Inactive", "count": inactive},
-            {"status_name": "Not Applicable", "count": not_applicable},
-        ]
+            breakdown_data = [
+                {"status_name": "Adopted", "count": counts["adopted"]},
+                {"status_name": "Active", "count": counts["active"]},
+                {"status_name": "At Risk", "count": counts["at_risk"]},
+                {"status_name": "Completed", "count": counts["completed"]},
+                {"status_name": "Inactive", "count": counts["inactive"]},
+                {"status_name": "Not Applicable", "count": counts["not_applicable"]},
+            ]
 
-        breakdown: list[StatusBreakdownItemResponse] = []
-        for item in breakdown_data:
-            if total_projects == 0:
-                percentage = 0.0
-            else:
-                percentage = round((item["count"] / total_projects) * 100, 1)
+            breakdown: list[StatusBreakdownItemResponse] = []
+            for item in breakdown_data:
+                if total == 0:
+                    percentage = 0.0
+                else:
+                    percentage = round((item["count"] / total) * 100, 1)
 
-            breakdown.append(
-                StatusBreakdownItemResponse(
-                    status=item["status_name"],
-                    count=item["count"],
-                    percentage=percentage,
+                breakdown.append(
+                    StatusBreakdownItemResponse(
+                        status=item["status_name"],
+                        count=item["count"],
+                        percentage=percentage,
+                    )
                 )
-            )
 
-        return StatusDistributionResponse(total=total_projects, breakdown=breakdown)
+            return StatusDistributionResponse(total=total, breakdown=breakdown)
+
+        except Exception as exc:
+            logger.error("Error building status distribution", error=str(exc))
+            raise

@@ -2,15 +2,16 @@
 
 import asyncio
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repositories.schema.error_log import ErrorLog
 from src.utils.logger import logger
 
-# Maximum character length for text fields (MySQL TEXT limit)
+# Maximum length for text fields before truncation
 _MAX_TEXT_LENGTH = 65_535
 
-# Timeout for the database insert operation (seconds)
+# Timeout for DB insert operations (seconds)
 _DB_INSERT_TIMEOUT = 10
 
 
@@ -38,10 +39,10 @@ class ErrorLogRepository:
         This method is designed to be called via asyncio.create_task
         from the global exception handler to ensure non-blocking execution.
         """
-        truncated_message = error_message[:_MAX_TEXT_LENGTH]
-        truncated_stack_trace = stack_trace[:_MAX_TEXT_LENGTH]
-
         try:
+            truncated_message = error_message[:_MAX_TEXT_LENGTH]
+            truncated_stack_trace = stack_trace[:_MAX_TEXT_LENGTH]
+
             await asyncio.wait_for(
                 self._insert_error_log(
                     error_message=truncated_message,
@@ -52,6 +53,7 @@ class ErrorLogRepository:
                 ),
                 timeout=_DB_INSERT_TIMEOUT,
             )
+
         except TimeoutError:
             logger.error(
                 "Error log DB insert timed out after 10 seconds",
@@ -60,6 +62,7 @@ class ErrorLogRepository:
                 error_file=error_file,
                 created_by=created_by,
             )
+
         except Exception as exc:
             logger.error(
                 "Failed to persist error log to database",

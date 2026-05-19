@@ -1,8 +1,7 @@
-"""Unit tests for src/utils/helpers.py — normalize_project_name function."""
+"""Unit tests for src/utils/helpers.py — normalize_project_name and error logging helpers."""
 
-import pytest
 
-from src.utils.helpers import normalize_project_name
+from src.utils.helpers import get_file_name, get_function_name, normalize_project_name
 
 
 class TestNormalizeProjectName:
@@ -59,3 +58,39 @@ class TestNormalizeProjectName:
     def test_complex_name(self):
         """Complex name with multiple transformations."""
         assert normalize_project_name("ZEB-Multi-Word-Project-Name") == "multi word project name"
+
+
+class TestGetFunctionName:
+    """Tests for the get_function_name helper."""
+
+    def test_returns_function_name_from_traceback(self):
+        """Should extract the function name from the exception traceback."""
+        try:
+            raise ValueError("test error")
+        except ValueError as exc:
+            result = get_function_name(exc)
+            assert result == "test_returns_function_name_from_traceback"
+
+    def test_returns_unknown_when_no_traceback(self):
+        """Should return 'unknown' when exception has no traceback."""
+        exc = ValueError("no traceback")
+        result = get_function_name(exc)
+        assert result == "unknown"
+
+
+class TestGetFileName:
+    """Tests for the get_file_name helper."""
+
+    def test_returns_file_name_from_traceback(self):
+        """Should extract the file name from the exception traceback."""
+        try:
+            raise ValueError("test error")
+        except ValueError as exc:
+            result = get_file_name(exc)
+            assert "test_helpers" in result
+
+    def test_returns_unknown_when_no_traceback(self):
+        """Should return 'unknown' when exception has no traceback."""
+        exc = ValueError("no traceback")
+        result = get_file_name(exc)
+        assert result == "unknown"

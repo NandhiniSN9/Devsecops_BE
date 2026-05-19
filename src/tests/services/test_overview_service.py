@@ -1,18 +1,17 @@
 """Unit tests for OverviewService.
 
 Tests cover the public get_overview() method and internal helpers:
-_build_tile(), _validate_period(), _parse_specialization(), _compute_status_distribution().
+_build_tile(), _validate_period(), _compute_status_distribution().
 
-Validates: Requirements 1.2, 1.4, 1.7, 1.10, 2.1, 2.2, 2.3, 2.4, 3.3, 3.4, 4.2, 4.3, 4.4
+Validates: Requirements 1.2, 1.4, 1.10, 2.1, 2.2, 2.3, 2.4, 3.3, 3.4, 4.2, 4.3, 4.4
 """
 
 import uuid
-from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.dtos.response.overview_response import (
+from src.models.response.overview_response import (
     OverviewDataResponse,
     OverviewMetricsResponse,
     StatusDistributionResponse,
@@ -103,72 +102,6 @@ class TestValidatePeriod:
             service._validate_period("Last_Week")
 
 
-class TestParseSpecialization:
-    """Tests for OverviewService._parse_specialization."""
-
-    def test_none_returns_none(self, service):
-        """None specialization returns None (no filter)."""
-        result = service._parse_specialization(None)
-        assert result is None
-
-    def test_empty_string_returns_none(self, service):
-        """Empty string specialization returns None (no filter)."""
-        result = service._parse_specialization("")
-        assert result is None
-
-    def test_whitespace_only_returns_none(self, service):
-        """Whitespace-only specialization returns None (no filter)."""
-        result = service._parse_specialization("   ")
-        assert result is None
-
-    def test_valid_single_uuid(self, service):
-        """Single valid UUID is parsed correctly."""
-        test_uuid = str(uuid.uuid4())
-        result = service._parse_specialization(test_uuid)
-        assert result is not None
-        assert len(result) == 1
-        assert result[0] == uuid.UUID(test_uuid)
-
-    def test_valid_multiple_uuids(self, service):
-        """Multiple valid UUIDs are parsed correctly."""
-        uuid1 = str(uuid.uuid4())
-        uuid2 = str(uuid.uuid4())
-        result = service._parse_specialization(f"{uuid1},{uuid2}")
-        assert result is not None
-        assert len(result) == 2
-
-    def test_all_invalid_uuids_returns_none(self, service):
-        """All invalid UUIDs returns None (treated as no filter).
-
-        Validates: Requirements 1.7
-        """
-        result = service._parse_specialization("not-a-uuid,also-invalid")
-        assert result is None
-
-    def test_mix_valid_and_invalid_uuids(self, service):
-        """Mix of valid and invalid UUIDs keeps only valid ones."""
-        valid_uuid = str(uuid.uuid4())
-        result = service._parse_specialization(f"{valid_uuid},not-a-uuid")
-        assert result is not None
-        assert len(result) == 1
-        assert result[0] == uuid.UUID(valid_uuid)
-
-    def test_trims_whitespace_around_uuids(self, service):
-        """Whitespace around UUIDs is trimmed."""
-        test_uuid = str(uuid.uuid4())
-        result = service._parse_specialization(f"  {test_uuid}  ")
-        assert result is not None
-        assert len(result) == 1
-
-    def test_limits_to_50_ids(self, service):
-        """Specialization IDs are limited to MAX_SPECIALIZATION_FILTER_COUNT (50)."""
-        uuids = [str(uuid.uuid4()) for _ in range(55)]
-        csv = ",".join(uuids)
-        result = service._parse_specialization(csv)
-        assert result is not None
-        assert len(result) == 50
-
-
 class TestBuildTile:
     """Tests for OverviewService._build_tile static method."""
 
@@ -239,7 +172,7 @@ class TestGetOverview:
         mock_overview_repo.get_current_records.return_value = []
         mock_overview_repo.get_comparison_records.return_value = []
 
-        await service.get_overview(period=None, specialization=None)
+        await service.get_overview(period=None)
 
         mock_overview_repo.get_current_records.assert_called_once_with(None)
 
@@ -252,7 +185,7 @@ class TestGetOverview:
         mock_overview_repo.get_current_records.return_value = []
         mock_overview_repo.get_comparison_records.return_value = []
 
-        await service.get_overview(period="last_month", specialization=None)
+        await service.get_overview(period="last_month")
 
         mock_overview_repo.get_current_records.assert_called_once_with(None)
 
@@ -265,24 +198,9 @@ class TestGetOverview:
         mock_overview_repo.get_current_records.return_value = []
         mock_overview_repo.get_comparison_records.return_value = []
 
-        await service.get_overview(period="last_3_months", specialization=None)
+        await service.get_overview(period="last_3_months")
 
         mock_overview_repo.get_current_records.assert_called_once_with(None)
-
-    async def test_valid_specialization_filter_passes_uuids(
-        self, service, mock_overview_repo
-    ):
-        """Valid specialization filter passes parsed UUIDs to repositories."""
-        spec_id = uuid.uuid4()
-        mock_overview_repo.get_last_synced.return_value = None
-        mock_overview_repo.is_sync_in_progress.return_value = False
-        mock_overview_repo.get_current_records.return_value = []
-        mock_overview_repo.get_comparison_records.return_value = []
-
-        await service.get_overview(period=None, specialization=str(spec_id))
-
-        call_args = mock_overview_repo.get_current_records.call_args
-        assert call_args[0][0] == [spec_id]
 
     async def test_invalid_period_raises_error(self, service):
         """Invalid period raises InvalidParameterError before querying repos.
@@ -290,7 +208,7 @@ class TestGetOverview:
         Validates: Requirements 1.4
         """
         with pytest.raises(InvalidParameterError):
-            await service.get_overview(period="invalid", specialization=None)
+            await service.get_overview(period="invalid")
 
     async def test_empty_period_raises_error(self, service):
         """Empty period string raises InvalidParameterError.
@@ -298,24 +216,7 @@ class TestGetOverview:
         Validates: Requirements 1.4
         """
         with pytest.raises(InvalidParameterError):
-            await service.get_overview(period="", specialization=None)
-
-    async def test_all_invalid_specialization_ids_returns_all_data(
-        self, service, mock_overview_repo
-    ):
-        """All invalid specialization IDs treated as no filter (returns all data).
-
-        Validates: Requirements 1.7
-        """
-        mock_overview_repo.get_last_synced.return_value = None
-        mock_overview_repo.is_sync_in_progress.return_value = False
-        mock_overview_repo.get_current_records.return_value = []
-        mock_overview_repo.get_comparison_records.return_value = []
-
-        await service.get_overview(period=None, specialization="not-a-uuid,also-invalid")
-
-        # Should be called with None (no filter)
-        mock_overview_repo.get_current_records.assert_called_once_with(None)
+            await service.get_overview(period="")
 
     async def test_no_kpi_records_returns_zeros_with_null_trends(
         self, service, mock_overview_repo
@@ -329,7 +230,7 @@ class TestGetOverview:
         mock_overview_repo.get_current_records.return_value = []
         mock_overview_repo.get_comparison_records.return_value = []
 
-        result = await service.get_overview(period=None, specialization=None)
+        result = await service.get_overview(period=None)
 
         assert isinstance(result, OverviewDataResponse)
         metrics = result.metrics
@@ -374,23 +275,10 @@ class TestGetOverview:
         mock_overview_repo.get_current_records.return_value = [record1, record2]
         mock_overview_repo.get_comparison_records.return_value = []
 
-        result = await service.get_overview(period=None, specialization=None)
+        result = await service.get_overview(period=None)
 
         assert result.metrics.total_projects.count == 15
         assert result.metrics.at_risk.count == 5
-
-    async def test_period_validated_before_specialization(
-        self, service, mock_overview_repo
-    ):
-        """Period is validated before specialization (fail fast).
-
-        Validates: Requirements 1.4
-        """
-        with pytest.raises(InvalidParameterError) as exc_info:
-            await service.get_overview(period="invalid", specialization="also-invalid")
-        assert "period" in exc_info.value.message
-        # Repos should never be called
-        mock_overview_repo.get_current_records.assert_not_called()
 
     async def test_returns_overview_data_type(
         self, service, mock_overview_repo
@@ -401,7 +289,7 @@ class TestGetOverview:
         mock_overview_repo.get_current_records.return_value = []
         mock_overview_repo.get_comparison_records.return_value = []
 
-        result = await service.get_overview(period=None, specialization=None)
+        result = await service.get_overview(period=None)
 
         assert isinstance(result, OverviewDataResponse)
         assert isinstance(result.metrics, OverviewMetricsResponse)
@@ -431,7 +319,7 @@ class TestStatusDistributionComputation:
         mock_overview_repo.get_current_records.return_value = [record]
         mock_overview_repo.get_comparison_records.return_value = []
 
-        result = await service.get_overview(period=None, specialization=None)
+        result = await service.get_overview(period=None)
 
         breakdown = result.status_distribution.breakdown
         assert result.status_distribution.total == 10
@@ -451,7 +339,7 @@ class TestStatusDistributionComputation:
         mock_overview_repo.get_current_records.return_value = []
         mock_overview_repo.get_comparison_records.return_value = []
 
-        result = await service.get_overview(period=None, specialization=None)
+        result = await service.get_overview(period=None)
 
         assert result.status_distribution.total == 0
 
@@ -472,7 +360,7 @@ class TestStatusDistributionComputation:
         mock_overview_repo.get_current_records.return_value = [record]
         mock_overview_repo.get_comparison_records.return_value = []
 
-        result = await service.get_overview(period=None, specialization=None)
+        result = await service.get_overview(period=None)
 
         assert result.status_distribution.total == 15
         active_item = next(b for b in result.status_distribution.breakdown if b.status == "Active")
@@ -498,7 +386,7 @@ class TestStatusDistributionComputation:
         mock_overview_repo.get_current_records.return_value = [record]
         mock_overview_repo.get_comparison_records.return_value = []
 
-        result = await service.get_overview(period=None, specialization=None)
+        result = await service.get_overview(period=None)
 
         breakdown = result.status_distribution.breakdown
         active_item = next(b for b in breakdown if b.status == "Active")
@@ -516,6 +404,6 @@ class TestStatusDistributionComputation:
         mock_overview_repo.get_current_records.return_value = []
         mock_overview_repo.get_comparison_records.return_value = []
 
-        result = await service.get_overview(period=None, specialization=None)
+        result = await service.get_overview(period=None)
 
         assert result.status_distribution.total == 0

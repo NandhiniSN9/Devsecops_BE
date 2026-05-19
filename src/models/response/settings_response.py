@@ -1,7 +1,6 @@
 """Response DTOs for the Settings endpoint."""
 
 import uuid
-
 from pydantic import BaseModel, ConfigDict
 
 

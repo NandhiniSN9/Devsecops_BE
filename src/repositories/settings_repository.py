@@ -5,13 +5,13 @@ Provides CRUD operations for settings and email recipient management.
 
 import uuid
 from datetime import datetime
-
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.repositories.schema.email_recipient import EmailRecipient
 from src.repositories.schema.setting import Setting
 from src.repositories.schema.specialization import Specialization
+from src.utils.logger import logger
 
 
 class SettingsRepository:
@@ -29,12 +29,19 @@ class SettingsRepository:
         Returns:
             Specialization record or None if not found/inactive.
         """
-        stmt = select(Specialization).where(
-            Specialization.specialization_id == specialization_id,
-            Specialization.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        try:
+            stmt = select(Specialization).where(
+                Specialization.specialization_id == specialization_id,
+                Specialization.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_specialization", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_specialization", error=str(exc))
+            raise
 
     async def get_settings_by_specialization(self, specialization_id: uuid.UUID) -> Setting | None:
         """Get the active settings record for a specialization.
@@ -45,12 +52,19 @@ class SettingsRepository:
         Returns:
             Setting record or None if not found.
         """
-        stmt = select(Setting).where(
-            Setting.specialization_id == specialization_id,
-            Setting.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        try:
+            stmt = select(Setting).where(
+                Setting.specialization_id == specialization_id,
+                Setting.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_settings_by_specialization", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_settings_by_specialization", error=str(exc))
+            raise
 
     async def get_email_recipients(self, specialization_id: uuid.UUID) -> list[EmailRecipient]:
         """Get all active email recipients for a specialization.
@@ -61,12 +75,19 @@ class SettingsRepository:
         Returns:
             List of active EmailRecipient records.
         """
-        stmt = select(EmailRecipient).where(
-            EmailRecipient.specialization_id == specialization_id,
-            EmailRecipient.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return list(result.scalars().all())
+        try:
+            stmt = select(EmailRecipient).where(
+                EmailRecipient.specialization_id == specialization_id,
+                EmailRecipient.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return list(result.scalars().all())
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_email_recipients", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_email_recipients", error=str(exc))
+            raise
 
     async def update_setting_fields(
         self,
@@ -84,12 +105,19 @@ class SettingsRepository:
         Returns:
             The updated Setting instance.
         """
-        for field_name, value in fields.items():
-            setattr(setting, field_name, value)
-        setting.modified_at = datetime.utcnow()
-        setting.modified_by = modified_by
-        await self._session.flush()
-        return setting
+        try:
+            for field_name, value in fields.items():
+                setattr(setting, field_name, value)
+            setting.modified_at = datetime.utcnow()
+            setting.modified_by = modified_by
+            await self._session.flush()
+            return setting
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in update_setting_fields", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in update_setting_fields", error=str(exc))
+            raise
 
     async def add_email_recipient(
         self,
@@ -109,17 +137,24 @@ class SettingsRepository:
         Returns:
             The newly created EmailRecipient instance.
         """
-        recipient = EmailRecipient(
-            email_recipient_id=uuid.uuid4(),
-            setting_id=setting_id,
-            specialization_id=specialization_id,
-            alert_recipient=alert_recipient,
-            created_by=created_by,
-            is_active=1,
-        )
-        self._session.add(recipient)
-        await self._session.flush()
-        return recipient
+        try:
+            recipient = EmailRecipient(
+                email_recipient_id=uuid.uuid4(),
+                setting_id=setting_id,
+                specialization_id=specialization_id,
+                alert_recipient=alert_recipient,
+                created_by=created_by,
+                is_active=1,
+            )
+            self._session.add(recipient)
+            await self._session.flush()
+            return recipient
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in add_email_recipient", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in add_email_recipient", error=str(exc))
+            raise
 
     async def get_recipient_by_id(self, email_recipient_id: uuid.UUID) -> EmailRecipient | None:
         """Get an active email recipient by ID.
@@ -130,12 +165,19 @@ class SettingsRepository:
         Returns:
             EmailRecipient record or None if not found/inactive.
         """
-        stmt = select(EmailRecipient).where(
-            EmailRecipient.email_recipient_id == email_recipient_id,
-            EmailRecipient.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        try:
+            stmt = select(EmailRecipient).where(
+                EmailRecipient.email_recipient_id == email_recipient_id,
+                EmailRecipient.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_recipient_by_id", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_recipient_by_id", error=str(exc))
+            raise
 
     async def check_duplicate_recipient(
         self, specialization_id: uuid.UUID, alert_recipient: str
@@ -149,13 +191,20 @@ class SettingsRepository:
         Returns:
             True if a duplicate active recipient exists.
         """
-        stmt = select(EmailRecipient).where(
-            EmailRecipient.specialization_id == specialization_id,
-            EmailRecipient.alert_recipient == alert_recipient,
-            EmailRecipient.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none() is not None
+        try:
+            stmt = select(EmailRecipient).where(
+                EmailRecipient.specialization_id == specialization_id,
+                EmailRecipient.alert_recipient == alert_recipient,
+                EmailRecipient.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return result.scalar_one_or_none() is not None
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in check_duplicate_recipient", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in check_duplicate_recipient", error=str(exc))
+            raise
 
     async def soft_delete_recipient(
         self, recipient: EmailRecipient, modified_by: str
@@ -166,11 +215,14 @@ class SettingsRepository:
             recipient: The EmailRecipient ORM instance to deactivate.
             modified_by: Identifier of who made the change.
         """
-        recipient.is_active = 0
-        recipient.modified_at = datetime.utcnow()
-        recipient.modified_by = modified_by
-        await self._session.flush()
-
-    async def commit(self) -> None:
-        """Commit the current transaction."""
-        await self._session.commit()
+        try:
+            recipient.is_active = 0
+            recipient.modified_at = datetime.utcnow()
+            recipient.modified_by = modified_by
+            await self._session.flush()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in soft_delete_recipient", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in soft_delete_recipient", error=str(exc))
+            raise

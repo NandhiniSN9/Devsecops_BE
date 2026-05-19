@@ -8,12 +8,10 @@ Both endpoints authenticate via encrypted token with ServiceNow email validation
 """
 
 import json
-
 from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, Request
-
-from src.dtos.request.servicenow_request import SyncDevSecOpsTicketsRequest, SyncProjectRequest
-from src.dtos.response.base_response import BaseResponse
+from src.models.request.servicenow_request import SyncDevSecOpsTicketsRequest, SyncProjectRequest
+from src.models.response.base_response import BaseResponse
 from src.services.dependencies import get_servicenow_service
 from src.services.servicenow_service import ServiceNowService
 from src.settings import get_settings
@@ -39,7 +37,6 @@ async def _validate_servicenow_auth(request: Request) -> str:
         AuthenticationError: If token is missing, invalid, or email doesn't match.
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
-
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         logger.warning(
@@ -101,25 +98,26 @@ async def sync_projects(
     Returns:
         BaseResponse with sync result.
     """
-    # NOTE: Auth disabled temporarily for Swagger UI testing
-    # created_by = await _validate_servicenow_auth(request)
-    created_by = "swagger-test@local"
+    try:
+        created_by = await _validate_servicenow_auth(request)
+        trace_id = getattr(request.state, "trace_id", "unknown")
+        logger.info(
+            "Processing ServiceNow project sync",
+            trace_id=trace_id,
+            project_count=len(body.projects),
+        )
 
-    trace_id = getattr(request.state, "trace_id", "unknown")
-    logger.info(
-        "Processing ServiceNow project sync",
-        trace_id=trace_id,
-        project_count=len(body.projects),
-    )
+        result = await servicenow_service.sync_projects(body, created_by)
 
-    await servicenow_service.sync_projects(body, created_by)
-
-    return BaseResponse(
-        status_code=200,
-        status="success",
-        message="Sync completed successfully",
-        data=[],
-    )
+        return BaseResponse(
+            status_code=200,
+            status="success",
+            message="Sync completed successfully",
+            data=result,
+        )
+    except Exception as exc:
+        logger.error("Error in sync_projects endpoint", error=str(exc))
+        raise
 
 
 @router.post("/devsecops-tickets")
@@ -142,22 +140,24 @@ async def sync_devsecops_tickets(
     Returns:
         BaseResponse with sync result.
     """
-    # NOTE: Auth disabled temporarily for Swagger UI testing
-    # created_by = await _validate_servicenow_auth(request)
-    created_by = "swagger-test@local"
+    try:
+        created_by = await _validate_servicenow_auth(request)
+        trace_id = getattr(request.state, "trace_id", "unknown")
 
-    trace_id = getattr(request.state, "trace_id", "unknown")
-    logger.info(
-        "Processing ServiceNow DevSecOps tickets sync",
-        trace_id=trace_id,
-        ticket_count=len(body.tickets),
-    )
+        logger.info(
+            "Processing ServiceNow DevSecOps tickets sync",
+            trace_id=trace_id,
+            ticket_count=len(body.tickets),
+        )
 
-    await servicenow_service.sync_devsecops_tickets(body, created_by)
+        result = await servicenow_service.sync_devsecops_tickets(body, created_by)
 
-    return BaseResponse(
-        status_code=200,
-        status="success",
-        message="Sync completed successfully",
-        data=[],
-    )
+        return BaseResponse(
+            status_code=200,
+            status="success",
+            message="Sync completed successfully",
+            data=result,
+        )
+    except Exception as exc:
+        logger.error("Error in sync_devsecops_tickets endpoint", error=str(exc))
+        raise

@@ -4,10 +4,8 @@ Uses aioboto3 for async S3 operations with configurable bucket and region.
 """
 
 import aioboto3
-
 from src.utils.logger import logger
 
-# Default pre-signed URL expiration: 7 days in seconds
 DEFAULT_URL_EXPIRY_SECONDS = 7 * 24 * 60 * 60
 
 
@@ -16,7 +14,6 @@ class S3Client:
 
     Handles PDF upload and generates time-limited download URLs.
     """
-
     def __init__(self, bucket_name: str, region: str, url_expiry_days: int = 7) -> None:
         """Initialize the S3 client.
 
@@ -55,6 +52,7 @@ class S3Client:
             s3_uri = f"s3://{self._bucket_name}/{s3_key}"
             logger.info("PDF uploaded to S3", s3_key=s3_key, bucket=self._bucket_name)
             return s3_uri
+
         except Exception as exc:
             logger.error("Failed to upload PDF to S3", s3_key=s3_key, error=str(exc))
             raise RuntimeError(f"S3 upload failed: {exc}") from exc
@@ -79,9 +77,9 @@ class S3Client:
                     Params={"Bucket": self._bucket_name, "Key": s3_key},
                     ExpiresIn=self._url_expiry_seconds,
                 )
-
             logger.info("Pre-signed URL generated", s3_key=s3_key)
             return presigned_url
+            
         except Exception as exc:
             logger.error("Failed to generate pre-signed URL", s3_key=s3_key, error=str(exc))
             raise RuntimeError(f"Pre-signed URL generation failed: {exc}") from exc

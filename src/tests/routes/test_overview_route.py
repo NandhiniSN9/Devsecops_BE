@@ -12,7 +12,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.dtos.response.overview_response import (
+from src.models.response.overview_response import (
     KpiTileResponse,
     OverviewDataResponse,
     OverviewMetricsResponse,
@@ -120,37 +120,37 @@ class TestGetOverviewRoute:
 
         client.get("/api/v1/overview?period=last_month")
 
-        mock_overview_service.get_overview.assert_called_once_with("last_month", None)
+        mock_overview_service.get_overview.assert_called_once_with("last_month")
 
-    def test_specialization_query_param_passed_to_service(
+    def test_specialization_query_param_ignored(
         self, client, mock_overview_service, sample_overview_data
     ):
-        """Specialization query parameter is passed to the service."""
+        """Specialization query parameter is no longer passed to the service."""
         mock_overview_service.get_overview.return_value = sample_overview_data
 
         client.get("/api/v1/overview?specialization=abc,def")
 
-        mock_overview_service.get_overview.assert_called_once_with(None, "abc,def")
+        mock_overview_service.get_overview.assert_called_once_with(None)
 
-    def test_both_params_passed_to_service(
+    def test_period_param_passed_to_service(
         self, client, mock_overview_service, sample_overview_data
     ):
-        """Both period and specialization params are passed to the service."""
+        """Period param is passed to the service; specialization is ignored."""
         mock_overview_service.get_overview.return_value = sample_overview_data
 
         client.get("/api/v1/overview?period=last_week&specialization=uuid1,uuid2")
 
-        mock_overview_service.get_overview.assert_called_once_with("last_week", "uuid1,uuid2")
+        mock_overview_service.get_overview.assert_called_once_with("last_week")
 
     def test_no_params_passes_none_to_service(
         self, client, mock_overview_service, sample_overview_data
     ):
-        """No query params passes None for both period and specialization."""
+        """No query params passes None for period."""
         mock_overview_service.get_overview.return_value = sample_overview_data
 
         client.get("/api/v1/overview")
 
-        mock_overview_service.get_overview.assert_called_once_with(None, None)
+        mock_overview_service.get_overview.assert_called_once_with(None)
 
     def test_response_content_type_is_json(
         self, client, mock_overview_service, sample_overview_data

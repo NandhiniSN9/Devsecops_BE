@@ -2,11 +2,15 @@
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.repositories.schema.base import Base
+
+if TYPE_CHECKING:
+    from src.repositories.schema.specialization import Specialization
 
 
 class DevsecopsTicket(Base):
@@ -31,8 +35,5 @@ class DevsecopsTicket(Base):
     modified_by: Mapped[str | None] = mapped_column(String(255))
     is_active: Mapped[int | None] = mapped_column(Integer, default=1)
 
-    # Relationships
+    # Relationships (use string reference to avoid circular import)
     specialization: Mapped["Specialization | None"] = relationship(back_populates="devsecops_tickets")
-
-
-from src.repositories.schema.specialization import Specialization  # noqa: E402

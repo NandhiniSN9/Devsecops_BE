@@ -1,44 +1,9 @@
-"""Pydantic models package.
+"""Pydantic models package — request and response models for the API.
 
-NOTE: Request/response DTOs have been moved to src/dtos/request/ and src/dtos/response/.
-This module re-exports for backward compatibility with existing imports.
+Structure:
+- src/models/request/  — Input validation models (what the client sends)
+- src/models/response/ — Output serialization models (what the API returns)
 """
 
-from src.dtos.request.overview_request import PeriodEnum
-from src.dtos.request.servicenow_request import (
-    RepositoryItemRequest,
-    SyncDevSecOpsTicketItemRequest,
-    SyncDevSecOpsTicketsRequest,
-    SyncProjectItemRequest,
-    SyncProjectRequest,
-)
-from src.dtos.response.base_response import BaseResponse
-from src.dtos.response.filter_response import FilterItemResponse, FiltersDataResponse
-from src.dtos.response.overview_response import (
-    AttentionBannerResponse,
-    KpiTileResponse,
-    OverviewDataResponse,
-    OverviewMetricsResponse,
-    StatusBreakdownItemResponse,
-    StatusDistributionResponse,
-    SyncDetailResponse,
-)
-
-__all__ = [
-    "AttentionBannerResponse",
-    "BaseResponse",
-    "FilterItemResponse",
-    "FiltersDataResponse",
-    "KpiTileResponse",
-    "OverviewDataResponse",
-    "OverviewMetricsResponse",
-    "PeriodEnum",
-    "RepositoryItemRequest",
-    "StatusBreakdownItemResponse",
-    "StatusDistributionResponse",
-    "SyncDetailResponse",
-    "SyncDevSecOpsTicketItemRequest",
-    "SyncDevSecOpsTicketsRequest",
-    "SyncProjectItemRequest",
-    "SyncProjectRequest",
-]
+from src.models.request import *  # noqa: F401, F403
+from src.models.response import *  # noqa: F401, F403

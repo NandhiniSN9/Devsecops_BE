@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.dtos.request.settings_request import EmailRecipientAction, SettingsUpdateRequest
+from src.models.request.settings_request import EmailRecipientAction, SettingsUpdateRequest
 from src.repositories.settings_repository import SettingsRepository
 from src.services.settings_service import SettingsService
 from src.utils.exceptions import InvalidParameterError, NotFoundError
@@ -308,23 +308,3 @@ class TestUpdateSettings:
 
         with pytest.raises(NotFoundError):
             await service.update_settings(request)
-
-    @pytest.mark.asyncio
-    async def test_commits_transaction(self, service, mock_settings_repo):
-        """Should commit the transaction after all updates."""
-        spec_id = uuid.uuid4()
-        spec = _make_specialization(spec_id)
-        setting = _make_setting(spec_id=spec_id)
-
-        mock_settings_repo.get_specialization.return_value = spec
-        mock_settings_repo.get_settings_by_specialization.return_value = setting
-        mock_settings_repo.get_email_recipients.return_value = []
-
-        request = SettingsUpdateRequest(
-            specialization_id=spec_id,
-            at_risk_threshold=7,
-        )
-
-        await service.update_settings(request)
-
-        mock_settings_repo.commit.assert_called_once()

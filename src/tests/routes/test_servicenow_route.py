@@ -1,10 +1,8 @@
 """Unit tests for ServiceNow sync route endpoints."""
 
-import json
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 
 from main import app
@@ -22,9 +20,14 @@ def mock_servicenow_service():
 
 @pytest.fixture
 def client(mock_servicenow_service):
-    """Create a test client with mocked service."""
+    """Create a test client with mocked service and auth bypassed."""
     app.dependency_overrides[get_servicenow_service] = lambda: mock_servicenow_service
-    yield TestClient(app, raise_server_exceptions=False)
+    with patch(
+        "src.routes.servicenow_route._validate_servicenow_auth",
+        new_callable=AsyncMock,
+        return_value="servicenow@test.local",
+    ):
+        yield TestClient(app, raise_server_exceptions=False)
     app.dependency_overrides.clear()
 
 

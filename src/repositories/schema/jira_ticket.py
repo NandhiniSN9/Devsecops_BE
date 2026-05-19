@@ -2,10 +2,8 @@
 
 import uuid
 from datetime import datetime
-
 from sqlalchemy import ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
-
 from src.repositories.schema.base import Base
 
 

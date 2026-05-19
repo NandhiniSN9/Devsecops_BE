@@ -1,7 +1,6 @@
 """Standardized API response envelope model."""
 
 from typing import Any, Literal
-
 from pydantic import BaseModel, ConfigDict, Field
 
 

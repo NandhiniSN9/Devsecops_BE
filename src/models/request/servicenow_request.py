@@ -1,7 +1,6 @@
 """Request DTOs for ServiceNow sync endpoints."""
 
 from datetime import date, datetime
-
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 

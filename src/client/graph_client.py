@@ -5,7 +5,6 @@ and sends emails via the /users/{sender}/sendMail endpoint.
 """
 
 import httpx
-
 from src.utils.logger import logger
 
 # Microsoft Graph API constants
@@ -54,29 +53,38 @@ class GraphClient:
         Raises:
             RuntimeError: If token acquisition fails.
         """
-        url = f"{MS_LOGIN_URL}/{self._tenant_id}/oauth2/v2.0/token"
-        data = {
-            "grant_type": "client_credentials",
-            "client_id": self._client_id,
-            "client_secret": self._client_secret,
-            "scope": MS_GRAPH_SCOPE,
-        }
+        try:
+            url = f"{MS_LOGIN_URL}/{self._tenant_id}/oauth2/v2.0/token"
+            data = {
+                "grant_type": "client_credentials",
+                "client_id": self._client_id,
+                "client_secret": self._client_secret,
+                "scope": MS_GRAPH_SCOPE,
+            }
 
-        async with httpx.AsyncClient(timeout=GRAPH_API_TIMEOUT) as client:
-            response = await client.post(url, data=data)
-            if response.status_code != 200:
-                error_detail = response.text[:500]
-                logger.error(
-                    "Failed to acquire Graph API token",
-                    status_code=response.status_code,
-                    error=error_detail,
-                )
-                raise RuntimeError(f"Graph API token acquisition failed: HTTP {response.status_code}")
+            async with httpx.AsyncClient(timeout=GRAPH_API_TIMEOUT) as client:
+                response = await client.post(url, data=data)
+                if response.status_code != 200:
+                    error_detail = response.text[:500]
+                    logger.error(
+                        "Failed to acquire Graph API token",
+                        status_code=response.status_code,
+                        error=error_detail,
+                    )
+                    raise RuntimeError(f"Graph API token acquisition failed: HTTP {response.status_code}")
 
-            token_data = response.json()
-            self._access_token = token_data["access_token"]
-            logger.info("Graph API access token acquired successfully")
-            return self._access_token
+                token_data = response.json()
+                self._access_token = token_data["access_token"]
+                logger.info("Graph API access token acquired successfully")
+                return self._access_token
+        except RuntimeError:
+            raise
+        except httpx.TimeoutException as exc:
+            logger.error("Timeout acquiring Graph API token", error=str(exc))
+            raise RuntimeError(f"Graph API token acquisition timed out: {exc}") from exc
+        except Exception as exc:
+            logger.error("Unexpected error in _acquire_token", error=str(exc))
+            raise
 
     async def get_token(self) -> str:
         """Get a valid access token, acquiring one if needed.
@@ -84,9 +92,15 @@ class GraphClient:
         Returns:
             The access token string.
         """
-        if not self._access_token:
-            return await self._acquire_token()
-        return self._access_token
+        try:
+            if not self._access_token:
+                return await self._acquire_token()
+            return self._access_token
+        except RuntimeError:
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_token", error=str(exc))
+            raise
 
     async def send_email(
         self,
@@ -104,29 +118,28 @@ class GraphClient:
         Returns:
             True if the email was sent successfully, False otherwise.
         """
-        token = await self.get_token()
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        }
-
-        payload = {
-            "message": {
-                "subject": subject,
-                "body": {
-                    "contentType": "HTML",
-                    "content": html_body,
-                },
-                "toRecipients": [
-                    {"emailAddress": {"address": to_email}},
-                ],
-            },
-            "saveToSentItems": "false",
-        }
-
-        url = f"{MS_GRAPH_URL}/users/{self._sender_email}/sendMail"
-
         try:
+            token = await self.get_token()
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            }
+
+            payload = {
+                "message": {
+                    "subject": subject,
+                    "body": {
+                        "contentType": "HTML",
+                        "content": html_body,
+                    },
+                    "toRecipients": [
+                        {"emailAddress": {"address": to_email}},
+                    ],
+                },
+                "saveToSentItems": "false",
+            }
+
+            url = f"{MS_GRAPH_URL}/users/{self._sender_email}/sendMail"
             async with httpx.AsyncClient(timeout=GRAPH_API_TIMEOUT) as client:
                 response = await client.post(url, headers=headers, json=payload)
                 if response.status_code in (200, 202):
@@ -141,9 +154,13 @@ class GraphClient:
                         error=error_detail,
                     )
                     return False
+
         except httpx.TimeoutException:
             logger.warning("Email send timed out", to=to_email)
             return False
         except httpx.HTTPError as exc:
             logger.warning("Email send HTTP error", to=to_email, error=str(exc))
             return False
+        except Exception as exc:
+            logger.error("Unexpected error in send_email", to=to_email, error=str(exc))
+            raise

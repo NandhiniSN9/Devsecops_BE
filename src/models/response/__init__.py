@@ -1,9 +1,8 @@
-"""Response DTOs — Pydantic models for outgoing API response serialization."""
+"""Response models — Pydantic models for outgoing API response serialization."""
 
-from src.dtos.response.base_response import BaseResponse
-from src.dtos.response.filter_response import FilterItemResponse, FiltersDataResponse
-from src.dtos.response.overview_response import (
-    AttentionBannerResponse,
+from src.models.response.base_response import BaseResponse
+from src.models.response.filter_response import FilterItemResponse, FiltersDataResponse
+from src.models.response.overview_response import (
     KpiTileResponse,
     OverviewDataResponse,
     OverviewMetricsResponse,
@@ -11,17 +10,16 @@ from src.dtos.response.overview_response import (
     StatusDistributionResponse,
     SyncDetailResponse,
 )
-from src.dtos.response.projects_response import (
+from src.models.response.projects_response import (
     NotApplicableDetailsResponse,
     PaginationResponse,
     ProjectItemResponse,
     ProjectsListDataResponse,
     RepositoryItemResponse,
 )
-from src.dtos.response.settings_response import EmailRecipientResponse, SettingsDataResponse
+from src.models.response.settings_response import EmailRecipientResponse, SettingsDataResponse
 
 __all__ = [
-    "AttentionBannerResponse",
     "BaseResponse",
     "EmailRecipientResponse",
     "FilterItemResponse",

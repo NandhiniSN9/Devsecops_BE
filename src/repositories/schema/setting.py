@@ -2,12 +2,15 @@
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.repositories.schema.base import Base
 
+if TYPE_CHECKING:
+    from src.repositories.schema.specialization import Specialization
 
 class Setting(Base):
     """ORM model for the settings table."""
@@ -29,5 +32,3 @@ class Setting(Base):
     # Relationships
     specialization: Mapped["Specialization | None"] = relationship(back_populates="settings")
 
-
-from src.repositories.schema.specialization import Specialization  # noqa: E402

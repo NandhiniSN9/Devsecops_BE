@@ -46,13 +46,20 @@ SERVICENOW_SYNC_METHOD: str = "servicenow"
 # Maximum number of specialization IDs allowed in filter
 MAX_SPECIALIZATION_FILTER_COUNT: int = 50
 
+# Service identifier for projects error logging
+PROJECTS_SERVICE_IDENTIFIER: str = "projects_service"
+
+# Period filter mapping for projects endpoint: enum value → number of days
+PROJECTS_PERIOD_DAYS_MAP: dict[str, int] = {
+    "last_week": 7,
+    "last_month": 30,
+    "last_3_months": 90,
+    "last_6_months": 180,
+    "last_year": 365,
+}
+
 # Fixed UUID namespace for deterministic client ID generation (UUID v5)
 CLIENT_UUID_NAMESPACE: uuid.UUID = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
-
-
-# ============================================================
-# Settings Class
-# ============================================================
 
 
 class Settings(BaseSettings):

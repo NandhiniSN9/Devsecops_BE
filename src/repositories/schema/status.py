@@ -2,11 +2,15 @@
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.repositories.schema.base import Base
+
+if TYPE_CHECKING:
+    from src.repositories.schema.project import Project
 
 
 class Status(Base):
@@ -22,8 +26,5 @@ class Status(Base):
     modified_by: Mapped[str | None] = mapped_column(String(255))
     is_active: Mapped[int | None] = mapped_column(Integer, default=1)
 
-    # Relationships
+    # Relationships (use string reference to avoid circular import)
     projects: Mapped[list["Project"]] = relationship(back_populates="status")
-
-
-from src.repositories.schema.project import Project  # noqa: E402

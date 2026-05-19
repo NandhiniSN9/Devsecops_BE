@@ -8,19 +8,19 @@ and services into route handlers.
 """
 
 from collections.abc import AsyncGenerator
-
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-
 from src.client.graph_client import GraphClient
 from src.client.s3_client import S3Client
 from src.repositories.filters_repository import ClientRepository
 from src.repositories.overview_repository import OverviewRepository
+from src.repositories.projects_repository import ProjectsRepository
 from src.repositories.report_repository import ReportRepository
 from src.repositories.servicenow_repository import ServiceNowRepository
 from src.repositories.settings_repository import SettingsRepository
 from src.services.filter_service import FilterService
 from src.services.overview_service import OverviewService
+from src.services.projects_service import ProjectsService
 from src.services.report_service import ReportService
 from src.services.servicenow_service import ServiceNowService
 from src.services.settings_service import SettingsService
@@ -42,14 +42,18 @@ _async_session_factory = async_sessionmaker(
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
-    """Yield an async database session and ensure cleanup on exit.
+    """Yield an async database session with auto-commit/rollback lifecycle.
 
     Used as a FastAPI dependency to provide a scoped session per request.
-    The session is automatically closed after the request completes.
+    Commits on success, rolls back on exception, and closes on exit.
     """
     async with _async_session_factory() as session:
         try:
             yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
         finally:
             await session.close()
 
@@ -147,5 +151,23 @@ def get_report_service(
     return ReportService(
         report_repo=report_repo,
         graph_client=graph_client,
+        s3_client=s3_client,
+    )
+
+
+def get_projects_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> ProjectsRepository:
+    """Factory for ProjectsRepository with injected database session."""
+    return ProjectsRepository(session)
+
+
+def get_projects_service(
+    projects_repo: ProjectsRepository = Depends(get_projects_repository),
+    s3_client: S3Client = Depends(get_s3_client),
+) -> ProjectsService:
+    """Factory for ProjectsService with injected dependencies."""
+    return ProjectsService(
+        projects_repo=projects_repo,
         s3_client=s3_client,
     )

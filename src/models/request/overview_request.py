@@ -1,7 +1,6 @@
 """Request DTOs for the Overview endpoint query parameters."""
 
 from enum import StrEnum
-
 from pydantic import BaseModel, ConfigDict
 
 

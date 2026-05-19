@@ -9,7 +9,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from src.dtos.request.overview_request import PeriodEnum
+from src.models.request.overview_request import PeriodEnum
 from src.repositories.overview_repository import OverviewRepository
 from src.services.overview_service import OverviewService
 
@@ -54,7 +54,7 @@ async def test_get_overview_with_none_period_uses_7_days(period: None) -> None:
         overview_repo=overview_repo,
     )
 
-    await service.get_overview(period=period, specialization=None)
+    await service.get_overview(period=period)
 
     # Verify that repo was called with None (no specialization filter)
     overview_repo.get_current_records.assert_called_once_with(None)

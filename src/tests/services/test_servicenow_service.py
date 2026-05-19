@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.dtos.request.servicenow_request import (
+from src.models.request.servicenow_request import (
     RepositoryItemRequest,
     SyncDevSecOpsTicketItemRequest,
     SyncDevSecOpsTicketsRequest,
@@ -96,7 +96,6 @@ class TestSyncProjects:
         assert result["updated"] == 0
         assert result["total"] == 1
         mock_repo.create_project.assert_called_once()
-        mock_repo.commit.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_sync_projects_updates_existing_project(self, service, mock_repo, sample_project_request):
@@ -380,7 +379,7 @@ class TestSyncDevsecopsTicketsAdvanced:
 
     @pytest.mark.asyncio
     async def test_sync_tickets_sets_is_devsecops_onboarded(self, service, mock_repo):
-        """Should set is_devsecops_onboarded=True on the resolved project."""
+        """Should call mark_project_onboarded on the resolved project."""
         spec = Specialization(specialization_id=uuid.uuid4(), specialization_name="DevSecOps", is_active=1)
         project = Project(
             project_id=uuid.uuid4(),
@@ -406,13 +405,12 @@ class TestSyncDevsecopsTicketsAdvanced:
 
         await service.sync_devsecops_tickets(request, "servicenow@zeb.co")
 
-        assert project.is_devsecops_onboarded is True
+        mock_repo.mark_project_onboarded.assert_called_once_with(project, "servicenow@zeb.co")
 
     @pytest.mark.asyncio
     async def test_sync_tickets_already_onboarded_not_modified(self, service, mock_repo):
-        """Should not re-set modified_at if project is already onboarded."""
+        """Should not call mark_project_onboarded if project is already onboarded."""
         spec = Specialization(specialization_id=uuid.uuid4(), specialization_name="DevSecOps", is_active=1)
-        original_modified_at = datetime(2026, 1, 1, 12, 0, 0)
         project = Project(
             project_id=uuid.uuid4(),
             sn_project_id="SN-PRJ-001",
@@ -420,7 +418,6 @@ class TestSyncDevsecopsTicketsAdvanced:
             onboarded_date=date(2026, 1, 1),
             project_type="Application",
             is_devsecops_onboarded=True,
-            modified_at=original_modified_at,
         )
         request = SyncDevSecOpsTicketsRequest(
             tickets=[
@@ -438,8 +435,8 @@ class TestSyncDevsecopsTicketsAdvanced:
 
         await service.sync_devsecops_tickets(request, "servicenow@zeb.co")
 
-        # modified_at should not have changed since it was already onboarded
-        assert project.modified_at == original_modified_at
+        # mark_project_onboarded should NOT be called since already onboarded
+        mock_repo.mark_project_onboarded.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_sync_tickets_updates_existing_ticket(self, service, mock_repo):

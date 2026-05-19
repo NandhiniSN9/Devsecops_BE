@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.dtos.response.filter_response import FiltersDataResponse
+from src.models.response.filter_response import FiltersDataResponse
 from src.repositories.filters_repository import ClientRepository
 from src.services.filter_service import FilterService
 from src.settings import CLIENT_UUID_NAMESPACE

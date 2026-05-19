@@ -2,11 +2,15 @@
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.repositories.schema.base import Base
+
+if TYPE_CHECKING:
+    from src.repositories.schema.specialization import Specialization
 
 
 class KpiHistory(Base):
@@ -58,4 +62,4 @@ class KpiHistory(Base):
     specialization: Mapped["Specialization | None"] = relationship(back_populates="kpi_histories")
 
 
-from src.repositories.schema.specialization import Specialization  # noqa: E402
+

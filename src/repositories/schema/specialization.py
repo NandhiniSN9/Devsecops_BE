@@ -2,11 +2,17 @@
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.repositories.schema.base import Base
+
+if TYPE_CHECKING:
+    from src.repositories.schema.devsecops_ticket import DevsecopsTicket
+    from src.repositories.schema.kpi_history import KpiHistory
+    from src.repositories.schema.setting import Setting
 
 
 class Specialization(Base):
@@ -22,12 +28,7 @@ class Specialization(Base):
     modified_by: Mapped[str | None] = mapped_column(String(255))
     is_active: Mapped[int | None] = mapped_column(Integer, default=1)
 
-    # Relationships
+    # Relationships (use string references to avoid circular imports)
     kpi_histories: Mapped[list["KpiHistory"]] = relationship(back_populates="specialization")
     devsecops_tickets: Mapped[list["DevsecopsTicket"]] = relationship(back_populates="specialization")
     settings: Mapped[list["Setting"]] = relationship(back_populates="specialization")
-
-
-from src.repositories.schema.devsecops_ticket import DevsecopsTicket  # noqa: E402
-from src.repositories.schema.kpi_history import KpiHistory  # noqa: E402
-from src.repositories.schema.setting import Setting  # noqa: E402

@@ -2,12 +2,9 @@
 
 import uuid
 from datetime import datetime
-
 from sqlalchemy import Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
-
 from src.repositories.schema.base import Base
-
 
 class ErrorLog(Base):
     """ORM model for the error_log table."""
