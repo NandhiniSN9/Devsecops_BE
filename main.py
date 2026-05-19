@@ -7,11 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.migrations.migration import Migration
 from src.routes import (
+    ado_sync_route,
     default_route,
     filter_route,
     overview_route,
     projects_route,
     report_route,
+    repository_detail_route,
     servicenow_route,
     settings_route,
 )
@@ -61,3 +63,5 @@ app.include_router(servicenow_route.router, prefix="/api/v1")
 app.include_router(settings_route.router, prefix="/api/v1")
 app.include_router(report_route.router, prefix="/api/v1")
 app.include_router(projects_route.router, prefix="/api/v1")
+app.include_router(ado_sync_route.router, prefix="/api/v1")
+app.include_router(repository_detail_route.router, prefix="/api/v1")

@@ -13,11 +13,11 @@ class EmailRecipientAction(BaseModel):
     action: Literal["add", "remove"]
     """Action type: 'add' to create a new recipient, 'remove' to soft-delete."""
 
-    alert_recipient: EmailStr | None = None
-    """Email address to add (required when action is 'add')."""
+    alert_recipient: list[EmailStr] | None = None
+    """List of email addresses to add (required when action is 'add')."""
 
-    email_recipient_id: uuid.UUID | None = None
-    """UUID of the recipient to remove (required when action is 'remove')."""
+    email_recipient_id: list[uuid.UUID] | None = None
+    """List of UUIDs of the recipients to remove (required when action is 'remove')."""
 
 
 class SettingsUpdateRequest(BaseModel):

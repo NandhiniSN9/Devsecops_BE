@@ -82,6 +82,11 @@ class Settings(BaseSettings):
     S3_URL_EXPIRY_DAYS: int = 7
     AWS_REGION: str = "us-east-1"
 
+    # Azure DevOps API
+    ADO_ORG_URL: str = ""
+    ADO_PAT: str = ""
+    ADO_PROJECT: str = ""
+
     model_config = ConfigDict(env_file=".env", extra="ignore")
 
 

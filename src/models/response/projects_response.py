@@ -70,6 +70,9 @@ class ProjectItemResponse(BaseModel):
     status: str
     """Current status of the project."""
 
+    overdue_days: int = 0
+    """Number of days the project is overdue (0 if not at risk)."""
+
     repositories: list[RepositoryItemResponse] = []
     """List of repositories under this project."""
 

@@ -39,8 +39,5 @@ class SettingsDataResponse(BaseModel):
     at_risk_alert: str | None = None
     """At-risk alert schedule value (daily/weekly/bi-weekly/monthly/not_required)."""
 
-    last_synced: str | None = None
-    """Timestamp of the last sync operation in ISO format."""
-
     email_recipients: list[EmailRecipientResponse] = []
     """List of active email recipients for this specialization."""

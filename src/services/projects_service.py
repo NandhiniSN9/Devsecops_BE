@@ -108,6 +108,8 @@ class ProjectsService:
                 for repo in repositories
             ]
 
+            at_risk_overdue = self._calculate_at_risk_overdue(project, repo_items)
+
             project_items.append(
                 ProjectItemResponse(
                     id=project.project_id,
@@ -115,6 +117,7 @@ class ProjectsService:
                     onboarded_date=project.onboarded_date,
                     repository_count=len(repo_items),
                     status=status_name or "Unknown",
+                    overdue_days=at_risk_overdue,
                     repositories=repo_items,
                 )
             )
@@ -415,3 +418,23 @@ class ProjectsService:
                 return "PASSED"
             return "FAILED"
         return "PASSED"
+
+    @staticmethod
+    def _calculate_at_risk_overdue(project, repo_items: list) -> int:
+        """Calculate the number of overdue days for an at-risk project.
+
+        A project is considered at-risk overdue when it has been onboarded
+        but has no repositories yet. The overdue count is the number of days
+        since onboarding.
+
+        Args:
+            project: Project ORM object.
+            repo_items: List of repository response items for the project.
+
+        Returns:
+            Number of overdue days, or 0 if not at risk.
+        """
+        if repo_items:
+            return 0
+        days_since_onboarding = (datetime.utcnow().date() - project.onboarded_date).days
+        return max(days_since_onboarding, 0)

@@ -180,7 +180,7 @@ class TestUpdateSettings:
         request = SettingsUpdateRequest(
             specialization_id=spec_id,
             email_recipients=[
-                EmailRecipientAction(action="add", alert_recipient="new@company.com")
+                EmailRecipientAction(action="add", alert_recipient=["new@company.com"])
             ],
         )
 
@@ -202,7 +202,7 @@ class TestUpdateSettings:
         request = SettingsUpdateRequest(
             specialization_id=spec_id,
             email_recipients=[
-                EmailRecipientAction(action="add", alert_recipient="existing@company.com")
+                EmailRecipientAction(action="add", alert_recipient=["existing@company.com"])
             ],
         )
 
@@ -227,7 +227,7 @@ class TestUpdateSettings:
         request = SettingsUpdateRequest(
             specialization_id=spec_id,
             email_recipients=[
-                EmailRecipientAction(action="remove", email_recipient_id=recipient_id)
+                EmailRecipientAction(action="remove", email_recipient_id=[recipient_id])
             ],
         )
 
@@ -249,7 +249,7 @@ class TestUpdateSettings:
         request = SettingsUpdateRequest(
             specialization_id=spec_id,
             email_recipients=[
-                EmailRecipientAction(action="remove", email_recipient_id=uuid.uuid4())
+                EmailRecipientAction(action="remove", email_recipient_id=[uuid.uuid4()])
             ],
         )
 
