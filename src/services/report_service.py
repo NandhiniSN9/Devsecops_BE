@@ -361,7 +361,7 @@ class ReportService:
         Returns:
             Dict with at-risk project details.
         """
-        from datetime import date
+
 
         project_list = []
         today = date.today()
