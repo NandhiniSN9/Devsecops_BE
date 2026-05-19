@@ -204,6 +204,8 @@ components:
       properties:
         total_projects:
           $ref: '#/components/schemas/KpiTile'
+        adopted:
+          $ref: '#/components/schemas/KpiTile'
         completed:
           $ref: '#/components/schemas/KpiTile'
         active:
@@ -216,27 +218,31 @@ components:
           $ref: '#/components/schemas/KpiTile'
       example:
         total_projects:
-          count: 12
+          count: 44
           trend: "increase"
-          change: 4
+          change: 13
+        adopted:
+          count: 32
+          trend: "increase"
+          change: 12
         completed:
-          count: 5
+          count: 11
           trend: "increase"
           change: 2
         active:
-          count: 4
+          count: 19
           trend: "increase"
-          change: 1
+          change: 12
         inactive:
-          count: 1
+          count: 7
           trend: "flat"
           change: 0
         at_risk:
-          count: 2
+          count: 6
           trend: "increase"
-          change: 1
+          change: 11
         not_applicable:
-          count: 0
+          count: 1
           trend: "flat"
           change: 0
 
