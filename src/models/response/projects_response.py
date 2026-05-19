@@ -61,6 +61,12 @@ class ProjectItemResponse(BaseModel):
     name: str
     """Name of the project."""
 
+    client_name: str | None = None
+    """Name of the client associated with the project."""
+
+    project_type: str
+    """Type of the project."""
+
     onboarded_date: date
     """Date when the project was onboarded."""
 

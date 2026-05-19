@@ -952,6 +952,15 @@ components:
           type: string
           description: Name of the project
           example: "Project Xenon"
+        client_name:
+          type: string
+          nullable: true
+          description: Name of the client associated with the project
+          example: "ABN AMRO"
+        project_type:
+          type: string
+          description: Type of the project
+          example: "App"
         onboarded_date:
           type: string
           format: date

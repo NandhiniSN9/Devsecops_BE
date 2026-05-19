@@ -114,6 +114,8 @@ class ProjectsService:
                 ProjectItemResponse(
                     id=project.project_id,
                     name=project.project_name,
+                    client_name=project.client,
+                    project_type=project.project_type,
                     onboarded_date=project.onboarded_date,
                     repository_count=len(repo_items),
                     status=status_name or "Unknown",

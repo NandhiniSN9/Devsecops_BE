@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, Form, Query, Request, UploadFile
 from fastapi.params import File
+
 from src.models.response.base_response import BaseResponse
 from src.services.dependencies import get_projects_service
 from src.services.projects_service import ProjectsService
@@ -12,7 +13,7 @@ router = APIRouter(prefix="")
 @router.get("/projects")
 async def get_projects(
     period: str | None = Query(default=None),
-    search: str | None = Query(default=None),
+    search: str | None = Query(default=None), #This is to project name alone. Case insensitive and partial search allowed.
     status: str | None = Query(default=None),
     client: str | None = Query(default=None),
     specialization: str | None = Query(default=None),
