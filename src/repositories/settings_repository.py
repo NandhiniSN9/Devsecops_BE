@@ -36,37 +36,41 @@ class SettingsRepository:
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_settings_by_specialization(self, specialization_id: uuid.UUID) -> Setting | None:
-        """Get the active settings record for a specialization.
+    async def get_settings_with_recipients(
+        self, specialization_id: uuid.UUID
+    ) -> tuple[Setting | None, list[EmailRecipient]]:
+        """Get settings and email recipients for a specialization using a single joined query.
 
         Args:
             specialization_id: UUID of the specialization.
 
         Returns:
-            Setting record or None if not found.
+            Tuple of (Setting or None, list of EmailRecipient).
+            If no recipients exist, returns an empty list.
         """
-        stmt = select(Setting).where(
-            Setting.specialization_id == specialization_id,
-            Setting.is_active == 1,
+        stmt = (
+            select(Setting, EmailRecipient)
+            .outerjoin(
+                EmailRecipient,
+                (EmailRecipient.setting_id == Setting.setting_id)
+                & (EmailRecipient.is_active == 1),
+            )
+            .where(
+                Setting.specialization_id == specialization_id,
+                Setting.is_active == 1,
+            )
         )
         result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
+        rows = result.all()
 
-    async def get_email_recipients(self, specialization_id: uuid.UUID) -> list[EmailRecipient]:
-        """Get all active email recipients for a specialization.
+        if not rows:
+            return None, []
 
-        Args:
-            specialization_id: UUID of the specialization.
+        setting = rows[0][0]
+        recipients = [row[1] for row in rows if row[1] is not None]
 
-        Returns:
-            List of active EmailRecipient records.
-        """
-        stmt = select(EmailRecipient).where(
-            EmailRecipient.specialization_id == specialization_id,
-            EmailRecipient.is_active == 1,
-        )
-        result = await self._session.execute(stmt)
-        return list(result.scalars().all())
+        return setting, recipients
+
 
     async def update_setting_fields(
         self,

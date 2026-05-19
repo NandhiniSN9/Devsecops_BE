@@ -40,11 +40,11 @@ class SettingsService:
         if not specialization:
             raise NotFoundError("Specialization not found")
 
-        setting = await self._settings_repo.get_settings_by_specialization(specialization_id)
+        setting, recipients = await self._settings_repo.get_settings_with_recipients(
+            specialization_id
+        )
         if not setting:
             raise NotFoundError("Settings not found for this specialization")
-
-        recipients = await self._settings_repo.get_email_recipients(specialization_id)
 
         return SettingsDataResponse(
             setting_id=setting.setting_id,
@@ -59,7 +59,9 @@ class SettingsService:
                     alert_recipient=r.alert_recipient,
                 )
                 for r in recipients
-            ],
+            ]
+            if recipients
+            else [],
         )
 
     async def update_settings(self, request: SettingsUpdateRequest) -> SettingsDataResponse:
@@ -79,7 +81,9 @@ class SettingsService:
         if not specialization:
             raise NotFoundError("Specialization not found")
 
-        setting = await self._settings_repo.get_settings_by_specialization(request.specialization_id)
+        setting, _ = await self._settings_repo.get_settings_with_recipients(
+            request.specialization_id
+        )
         if not setting:
             raise NotFoundError("Settings not found for this specialization")
 
