@@ -2,10 +2,8 @@
 
 import uuid
 from datetime import datetime
-
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.repositories.schema.artifact import Artifact
 from src.repositories.schema.commit import Commit
 from src.repositories.schema.devsecops_ticket import DevsecopsTicket

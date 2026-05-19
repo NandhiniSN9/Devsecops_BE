@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.migrations.migration import Migration
+from src.migrations.migration import run_migration
 from src.routes import (
     ado_sync_route,
     default_route,
@@ -30,8 +30,8 @@ async def lifespan(app: FastAPI):
     validate_settings_at_startup()
     logger.info("Settings validated successfully")
 
-    async with _engine.connect() as conn:
-        await conn.run_sync(lambda sync_conn: Migration(sync_conn).create_tables())
+    async with _engine.begin() as conn:
+        await conn.run_sync(run_migration)
     logger.info("Database migration check completed")
 
     yield
