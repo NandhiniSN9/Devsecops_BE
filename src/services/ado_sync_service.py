@@ -27,6 +27,8 @@ class AdoSyncService:
         self._ado_client = ado_client
 
     async def sync_ado_data(self, specialization_id: uuid.UUID | None = None) -> str:
+
+        logger.debug("Inside sync_ado_data")
         """Trigger ADO sync for applicable projects.
 
         Args:
@@ -46,7 +48,7 @@ class AdoSyncService:
             created_by=SYNC_ADO_SERVICE_IDENTIFIER,
         )
         await self._repo.commit()
-
+        logger.debug("Committed the cron job record")
         has_errors = False
 
         try:

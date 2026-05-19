@@ -58,6 +58,8 @@ class AdoSyncRepository:
         self, specialization_id: uuid.UUID | None = None
     ) -> list[Project]:
         """Get applicable active projects, optionally filtered by specialization."""
+
+        logger.debug("Inside get_applicable_projects function")
         stmt = select(Project).where(
             Project.is_applicable == True,  # noqa: E712
             Project.is_active == 1,
