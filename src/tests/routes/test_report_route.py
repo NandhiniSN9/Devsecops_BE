@@ -65,3 +65,11 @@ class TestGenerateReportsEndpoint:
         response = client.post("/api/v1/reports/generate")
 
         assert response.status_code == 405
+
+    def test_generate_reports_response_data_is_empty_list(self, client, mock_report_service):
+        """Should return data as empty list on success."""
+        response = client.get("/api/v1/reports/generate")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["data"] == []

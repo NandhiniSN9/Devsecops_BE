@@ -54,6 +54,27 @@ class TestSyncProjectsEndpoint:
         assert body["message"] == "Sync completed successfully"
         mock_servicenow_service.sync_projects.assert_called_once()
 
+    def test_sync_projects_returns_data_with_created_updated_total(self, client, mock_servicenow_service):
+        """Should return data with created, updated, and total counts."""
+        mock_servicenow_service.sync_projects.return_value = {"created": 2, "updated": 1, "total": 3}
+        payload = {
+            "projects": [
+                {
+                    "sn_project_id": "SN-001",
+                    "project_name": "Project 1",
+                    "onboarded_date": "2026-01-15",
+                    "project_type": "App",
+                }
+            ]
+        }
+        response = client.post("/api/v1/sync/servicenow/projects", json=payload)
+
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert data["created"] == 2
+        assert data["updated"] == 1
+        assert data["total"] == 3
+
     def test_sync_projects_empty_projects_list_rejected(self, client):
         """Should return 422 when projects list is empty."""
         payload = {"projects": []}
@@ -106,7 +127,6 @@ class TestSyncProjectsEndpoint:
         response = client.post("/api/v1/sync/servicenow/projects", json=payload)
 
         assert response.status_code == 200
-        # Verify the service received stripped values
         call_args = mock_servicenow_service.sync_projects.call_args[0][0]
         assert call_args.projects[0].sn_project_id == "SN-001"
         assert call_args.projects[0].project_name == "Test Project"
@@ -116,6 +136,43 @@ class TestSyncProjectsEndpoint:
         response = client.get("/api/v1/sync/servicenow/projects")
 
         assert response.status_code == 405
+
+    def test_sync_projects_service_error_returns_500(self, client, mock_servicenow_service):
+        """Should return 500 when service raises an unhandled exception."""
+        mock_servicenow_service.sync_projects.side_effect = RuntimeError("DB connection lost")
+        payload = {
+            "projects": [
+                {
+                    "sn_project_id": "SN-001",
+                    "project_name": "Test",
+                    "onboarded_date": "2026-01-15",
+                    "project_type": "App",
+                }
+            ]
+        }
+        response = client.post("/api/v1/sync/servicenow/projects", json=payload)
+
+        assert response.status_code == 500
+        assert response.json()["status"] == "error"
+
+    def test_sync_projects_auth_returns_email(self, client, mock_servicenow_service):
+        """Auth validation returns email which is passed as created_by."""
+        payload = {
+            "projects": [
+                {
+                    "sn_project_id": "SN-001",
+                    "project_name": "Test",
+                    "onboarded_date": "2026-01-15",
+                    "project_type": "App",
+                }
+            ]
+        }
+        response = client.post("/api/v1/sync/servicenow/projects", json=payload)
+
+        assert response.status_code == 200
+        # The second arg to sync_projects is created_by (the email from auth)
+        call_args = mock_servicenow_service.sync_projects.call_args[0]
+        assert call_args[1] == "servicenow@test.local"
 
 
 class TestSyncDevsecopsTicketsEndpoint:
@@ -138,6 +195,26 @@ class TestSyncDevsecopsTicketsEndpoint:
         body = response.json()
         assert body["status"] == "success"
         mock_servicenow_service.sync_devsecops_tickets.assert_called_once()
+
+    def test_sync_tickets_returns_data_with_created_failed_total(self, client, mock_servicenow_service):
+        """Should return data with created, failed, and total counts."""
+        mock_servicenow_service.sync_devsecops_tickets.return_value = {"created": 3, "failed": 1, "total": 4}
+        payload = {
+            "tickets": [
+                {
+                    "sn_project_id": "SN-001",
+                    "project_name": "Test",
+                    "specialization_name": "Backend",
+                }
+            ]
+        }
+        response = client.post("/api/v1/sync/servicenow/devsecops-tickets", json=payload)
+
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert data["created"] == 3
+        assert data["failed"] == 1
+        assert data["total"] == 4
 
     def test_sync_tickets_empty_list_rejected(self, client):
         """Should return 422 when tickets list is empty."""
@@ -218,3 +295,20 @@ class TestSyncDevsecopsTicketsEndpoint:
 
         assert response.status_code == 500
         assert response.json()["status"] == "error"
+
+    def test_sync_tickets_auth_returns_email_as_created_by(self, client, mock_servicenow_service):
+        """Auth validation returns email which is passed as created_by."""
+        payload = {
+            "tickets": [
+                {
+                    "sn_project_id": "SN-001",
+                    "project_name": "Test",
+                    "specialization_name": "Backend",
+                }
+            ]
+        }
+        response = client.post("/api/v1/sync/servicenow/devsecops-tickets", json=payload)
+
+        assert response.status_code == 200
+        call_args = mock_servicenow_service.sync_devsecops_tickets.call_args[0]
+        assert call_args[1] == "servicenow@test.local"
