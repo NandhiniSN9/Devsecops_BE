@@ -26,11 +26,10 @@ class AdoSyncRepository:
         self._session = session
 
     async def create_cron_job(
-        self, specialization_id: str, created_by: str
+        self, created_by: str
     ) -> CronJob:
         """Create a new cron job record with pending status."""
         cron_job = CronJob(
-            specialization_id=specialization_id,
             type="azure",
             sync_status="pending",
             created_by=created_by,

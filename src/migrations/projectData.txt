@@ -1,0 +1,3181 @@
+​================================================================================
+Azure DevOps Organization: zeb-ai
+================================================================================
+
+Found 129 projects
+
+------------------------------------------------------------
+Project: zeb-zeb-devsecops-demo-poc
+  Project ID: 29943320-f52d-4607-98a7-283ea971ba5c
+  Repositories:
+    - zeb-web-frontend
+      Repo ID: 5c550db8-702c-40bb-ab79-d214876075d1
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zeb-devsecops-demo-poc/_git/zeb-web-frontend
+    - zeb-zeb-devsecops-demo-poc
+      Repo ID: 4dac43b1-ff09-479d-a92c-1b52c339f66a
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-zeb-devsecops-demo-poc/_git/zeb-zeb-devsecops-demo-poc
+------------------------------------------------------------
+Project: zeb-test3-demo
+  Project ID: b526956e-8d37-436d-b703-49e785ac1e21
+  Repositories:
+    - zeb-test3-demo
+      Repo ID: 06c75d50-d239-4e66-8179-3166ae38a8a6
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-test3-demo/_git/zeb-test3-demo
+    - zeb-test3-fe
+      Repo ID: 54ec8e73-2bea-443f-9806-a9a922ef862c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-test3-demo/_git/zeb-test3-fe
+------------------------------------------------------------
+Project: zeb-devtest-demo
+  Project ID: 84f88925-f2b9-4f25-a742-3520cf019a3c
+  Repositories:
+    - zeb-devtest-demo
+      Repo ID: 726dd62d-a8e3-4fd6-8517-a067a61796dd
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-devtest-demo/_git/zeb-devtest-demo
+    - zeb-devtest-fe
+      Repo ID: daf50c12-1cdd-4d07-afc1-b1314b38516a
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-devtest-demo/_git/zeb-devtest-fe
+------------------------------------------------------------
+Project: zeb-dbx-demo
+  Project ID: 9d057a67-5709-49af-bebd-129ca6d33c0c
+  Repositories:
+    - zeb-dbx-demo
+      Repo ID: 67713f4f-84f0-42a5-869a-f17bfdd709b2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-demo/_git/zeb-dbx-demo
+    - zeb-dbx-doc-iq-demo
+      Repo ID: 64e040b7-8cb6-4fce-bc1b-2010530ae1b1
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-demo/_git/zeb-dbx-doc-iq-demo
+------------------------------------------------------------
+Project: ds-mccain
+  Project ID: b2bbe81f-7b41-4946-a284-e24b720b509a
+  Repositories:
+    - daia-powerbi-report
+      Repo ID: 2869a8c0-cfde-483e-9c7d-20090867e571
+      Default Branch: refs/heads/APACSA_DATA_MARKET_PLACE_UAT
+      URL: https://dev.azure.com/zeb-ai/ds-mccain/_git/daia-powerbi-report
+    - McCain S_OP
+      Repo ID: 4d64a405-a5c2-4343-af21-7b9b3ebeed5f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-mccain/_git/McCain%20S_OP
+    - powerbi
+      Repo ID: 5ed38c10-b502-4940-b2b0-f938f974d035
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-mccain/_git/powerbi
+    - powerbi-repointing-and-validation
+      Repo ID: dc89594b-479b-40c0-bcf0-bc333d853b73
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-mccain/_git/powerbi-repointing-and-validation
+    - powerbi-validation
+      Repo ID: afe48016-33c5-4bc0-a90a-16a0bee2f371
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-mccain/_git/powerbi-validation
+    - synapse-to-databricks-migration
+      Repo ID: e0cc0a91-aae2-4d72-8961-88230e8e630d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-mccain/_git/synapse-to-databricks-migration
+------------------------------------------------------------
+Project: zeb-adani-demo
+  Project ID: 7df0b1b6-1f16-4060-b1c5-38bd605c3f5f
+  Repositories:
+    - powertrading-frontend-web
+      Repo ID: 3e255858-d90f-4f6b-b40f-0f909b68775f
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-adani-demo/_git/powertrading-frontend-web
+    - zeb-adani-demo
+      Repo ID: a328f59f-9281-4b97-a1ef-cf631a668b74
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-adani-demo/_git/zeb-adani-demo
+------------------------------------------------------------
+Project: zeb-williams-demo
+  Project ID: dee9fa35-f881-43ee-b6c9-b60bb588ed0b
+  Repositories:
+    - williams-web-frontend
+      Repo ID: d744c689-8372-4430-9b5a-9e65f2501373
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-williams-demo/_git/williams-web-frontend
+    - zeb-williams-demo
+      Repo ID: 8d7a87d7-9fb9-4b5c-a729-fe02fd44f7c4
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-williams-demo/_git/zeb-williams-demo
+------------------------------------------------------------
+Project: zeb-brehotels-demo
+  Project ID: af4e523a-e375-40cc-af77-09321f08deee
+  Repositories:
+    - brehotels-web-frontend
+      Repo ID: 7c2903f6-4565-4723-a9fd-7752a4ae8d44
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-brehotels-demo/_git/brehotels-web-frontend
+    - zeb-brehotels-demo
+      Repo ID: fbe9e3d8-d9b2-4c61-a386-582c589019c2
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-brehotels-demo/_git/zeb-brehotels-demo
+------------------------------------------------------------
+Project: zeb-freespace-robotics-poc
+  Project ID: 32d89a82-92eb-4ec9-b38a-e4b056540848
+  Repositories:
+    - freespace-mvp-agent
+      Repo ID: 493318a0-288e-4be1-a3d7-46dca9609d65
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-freespace-robotics-poc/_git/freespace-mvp-agent
+    - freespace-mvp-be
+      Repo ID: d4fce954-c16a-4e33-920d-201380b886de
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-freespace-robotics-poc/_git/freespace-mvp-be
+    - freespace-mvp-fe
+      Repo ID: e815d2b4-8b4d-4701-83dd-9d99fd45e13f
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-freespace-robotics-poc/_git/freespace-mvp-fe
+    - freespace-mvp-iac
+      Repo ID: 82cc8251-7f76-464d-a925-fe3dcd0ec09b
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-freespace-robotics-poc/_git/freespace-mvp-iac
+    - zeb-freespace-robotics-poc
+      Repo ID: 41686450-a1ea-408f-9d3a-9f04c3cb5e24
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-freespace-robotics-poc/_git/zeb-freespace-robotics-poc
+------------------------------------------------------------
+Project: cloud-centralized-pipeline
+  Project ID: fe05252a-90e4-4cfa-8368-978f8fadc131
+  Repositories:
+    - cloud-centralized-pipeline
+      Repo ID: 03f410c6-fcd1-4d4a-b4c2-6c1f780dfd7c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-centralized-pipeline/_git/cloud-centralized-pipeline
+    - folder-structure-templates
+      Repo ID: a09baa09-6cb4-4a02-a9be-13fb950204a7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-centralized-pipeline/_git/folder-structure-templates
+    - terraform-project
+      Repo ID: b0085514-eaf6-4b43-b6b1-0f2695db53c7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-centralized-pipeline/_git/terraform-project
+    - terraform-templates
+      Repo ID: 28a20af6-8e47-478d-99a6-42a4fc4f71ac
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-centralized-pipeline/_git/terraform-templates
+------------------------------------------------------------
+Project: zeb-cloud-rnd
+  Project ID: aa7cbfd8-1d61-40a0-b476-bbc187d2ec83
+  Repositories:
+    - zeb-account-payable
+      Repo ID: 5174d2f3-4465-47da-8f0d-f15d95e8558e
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-cloud-rnd/_git/zeb-account-payable
+    - zeb-cftgen-access
+      Repo ID: fb190f29-0502-4d8e-9273-1363d23dc20a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-cloud-rnd/_git/zeb-cftgen-access
+    - zeb-cloud-and-platform-rnd-iac
+      Repo ID: f670aeb8-5468-49d0-b8be-aa2d3722c78f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-cloud-rnd/_git/zeb-cloud-and-platform-rnd-iac
+    - zeb-cloud-rnd
+      Repo ID: da02057e-2a8a-4d11-9993-e33b06e586b6
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-cloud-rnd/_git/zeb-cloud-rnd
+    - zeb-demo-centralized-repo
+      Repo ID: 6fb7b4e1-ef9d-4c8f-b1bd-8e5af9b5629c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-cloud-rnd/_git/zeb-demo-centralized-repo
+    - zeb-excalidraw-internal
+      Repo ID: 8b1c974c-34e8-4f41-96eb-406e50d7918b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-cloud-rnd/_git/zeb-excalidraw-internal
+    - zeb-rnd-codebase-sync-repo
+      Repo ID: 23ed8068-a3f4-4f6c-a346-55c09c2de345
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-cloud-rnd/_git/zeb-rnd-codebase-sync-repo
+    - z-grc-application-repo
+      Repo ID: d7e2f026-90e3-4002-bbe4-ab9404809172
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-cloud-rnd/_git/z-grc-application-repo
+------------------------------------------------------------
+Project: ai-artifacts-store
+  Project ID: cf1638b9-db63-4814-b7a3-2e59ff1db8bd
+  Repositories:
+    - ai-artifacts-store
+      Repo ID: d3cd7f1a-d559-4155-8bf9-0f8f402733a7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-artifacts-store/_git/ai-artifacts-store
+------------------------------------------------------------
+Project: zeb-test-prototype-app-demo
+  Project ID: 5719a7c3-de77-4976-bd3a-00de58dc9f03
+  Repositories:
+    - prototypes-test-1
+      Repo ID: 189f303c-f669-4c28-9f7c-250e95335ead
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-test-prototype-app-demo/_git/prototypes-test-1
+    - zeb-test-prototype
+      Repo ID: 71a48daa-3ca0-492c-904b-0fc07bc65a7c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-test-prototype-app-demo/_git/zeb-test-prototype
+    - zeb-test-prototype-app-demo
+      Repo ID: 8a468a92-790b-440c-98e5-fffadf0a7cbe
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-test-prototype-app-demo/_git/zeb-test-prototype-app-demo
+------------------------------------------------------------
+Project: zeb-zebco-demo
+  Project ID: 7ee3f2c1-3e1e-4787-8660-010eafca3f94
+  Repositories:
+    - zebai-website-frontend
+      Repo ID: cbe5fd08-0a27-45ac-a8f5-dd479b8d5562
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zebco-demo/_git/zebai-website-frontend
+    - zeb-zebco-demo
+      Repo ID: 1d0362d8-ca03-46d3-aaa7-9380d0586a93
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-zebco-demo/_git/zeb-zebco-demo
+------------------------------------------------------------
+Project: zeb-bayou-prod
+  Project ID: 7548b20d-6467-460f-ab16-1550a2bf3b24
+  Repositories:
+    - bayou-demo
+      Repo ID: 545870f4-5151-430f-a3a0-814a89f982af
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-bayou-prod/_git/bayou-demo
+    - bayou-prod
+      Repo ID: 88dd9bf6-4f3d-45b7-9b50-e2a9b4b5db21
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-bayou-prod/_git/bayou-prod
+    - zeb-bayou-prod
+      Repo ID: bd19ad6a-a6ee-401a-ba49-f324577f08ee
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-bayou-prod/_git/zeb-bayou-prod
+------------------------------------------------------------
+Project: zeb-xfinitywifi-demo
+  Project ID: 530997fa-8de2-439e-a0b2-ad24e4463f80
+  Repositories:
+    - xfinitywifi-web
+      Repo ID: 01b824d0-dafc-43ac-bbdf-5209b17688e4
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-xfinitywifi-demo/_git/xfinitywifi-web
+    - zeb-xfinitywifi-demo
+      Repo ID: 89d1829d-6f2a-408c-8816-a58678d8f586
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-xfinitywifi-demo/_git/zeb-xfinitywifi-demo
+------------------------------------------------------------
+Project: zeb-cognosos-demo
+  Project ID: b93e3b98-e92d-4a72-b9af-384cb6cc4442
+  Repositories:
+    - cognosos-web-frontend
+      Repo ID: 99cb35e3-0f7e-4369-8090-aa37e2ed1edc
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-cognosos-demo/_git/cognosos-web-frontend
+    - zeb-cognosos-demo
+      Repo ID: 4c9f8c9d-8fac-447d-aeb8-408ee7d85fcc
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-cognosos-demo/_git/zeb-cognosos-demo
+------------------------------------------------------------
+Project: zeb-lk-packaging-demo
+  Project ID: 87146433-8121-496a-a73e-e338be3305fb
+  Repositories:
+    - lkpackaging-web-frontend
+      Repo ID: 344e9ced-6460-4b2d-8c50-adce0af24d48
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-lk-packaging-demo/_git/lkpackaging-web-frontend
+    - zeb-lk-packaging-demo
+      Repo ID: 58995f43-dbdb-4c13-8d1f-bfe332dfb79d
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-lk-packaging-demo/_git/zeb-lk-packaging-demo
+------------------------------------------------------------
+Project: newforma-assessment
+  Project ID: f4165f27-3026-4cd3-8517-111a8e34f63f
+  Repositories:
+    - newforma-assessment
+      Repo ID: 4c82925d-9016-4e5e-b680-0ca536da1a38
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/newforma-assessment/_git/newforma-assessment
+------------------------------------------------------------
+Project: zeb-apollo-agentic-usecase-prod
+  Project ID: 3810179f-366b-4af8-965c-574510106268
+  Repositories:
+    - zeb-apollo-agentic-usecase-prod
+      Repo ID: 4b2c09bd-13ba-4efc-9c6b-69ccbc3a9d84
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-apollo-agentic-usecase-prod/_git/zeb-apollo-agentic-usecase-prod
+    - zeb-apollo-backend-repo
+      Repo ID: a08cfc1b-922f-4b5a-9a03-a666f8961a73
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-apollo-agentic-usecase-prod/_git/zeb-apollo-backend-repo
+    - zeb-apollo-iac-repo
+      Repo ID: aa2f4e7d-a660-4cd5-9aa2-40dccab9b394
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-apollo-agentic-usecase-prod/_git/zeb-apollo-iac-repo
+    - zeb-apollo-tf-repo
+      Repo ID: 41db16e6-625e-4892-8954-a1393332b957
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-apollo-agentic-usecase-prod/_git/zeb-apollo-tf-repo
+    - zeb-eus1-apollo-kb-repo
+      Repo ID: 1ff4e8f1-a4d0-4acd-bb56-ca1e162e8564
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-apollo-agentic-usecase-prod/_git/zeb-eus1-apollo-kb-repo
+------------------------------------------------------------
+Project: vzyr-ai
+  Project ID: 60782aa3-8ed5-4db8-9e97-9d6e2e176e1a
+  Repositories:
+    - vzyr-ai
+      Repo ID: 5d3caca3-9f16-422b-897a-b3b9794a86ce
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/vzyr-ai/_git/vzyr-ai
+------------------------------------------------------------
+Project: zeb-aws-clients-demo
+  Project ID: d690dbe3-9bc6-4f1b-be0e-9f9283280a84
+  Repositories:
+    - Corteva
+      Repo ID: 84ca40a1-b1a6-491e-b53e-e1b4f0897b2b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-aws-clients-demo/_git/Corteva
+    - Drivewealth-Demo
+      Repo ID: f386400b-9c7b-476d-ac5f-9e2b68bb3ea5
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-aws-clients-demo/_git/Drivewealth-Demo
+    - innovation-center-agentcore-backend
+      Repo ID: a3e047b4-36cb-4723-b7b4-81f867a9b2ca
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-aws-clients-demo/_git/innovation-center-agentcore-backend
+    - innovation-center-demo-backend
+      Repo ID: ad983559-bbfa-444a-bef2-b40e597c09d4
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-aws-clients-demo/_git/innovation-center-demo-backend
+    - innovation-center-demo-frontend
+      Repo ID: baa5b29b-60f2-46d5-a97f-cce57d4efcae
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-aws-clients-demo/_git/innovation-center-demo-frontend
+    - jenkins-pipeline-test-repo
+      Repo ID: 1afbe239-c620-4e5a-b031-4b0b3cbac2b9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-aws-clients-demo/_git/jenkins-pipeline-test-repo
+    - pg-demo-backend
+      Repo ID: 8e33743c-2318-40f7-880c-97db1f14266f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-aws-clients-demo/_git/pg-demo-backend
+    - pg-demo-frontend
+      Repo ID: da432160-ae8c-4f80-93ed-5f7391b4ff71
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-aws-clients-demo/_git/pg-demo-frontend
+------------------------------------------------------------
+Project: zeb-onbtest-demo
+  Project ID: bbc3635f-8c0d-40f9-b810-b6808a7047b3
+  Repositories:
+    - onbtest-web-frontend
+      Repo ID: 7060da66-a96a-4d55-9f68-26ffe3b2858c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-onbtest-demo/_git/onbtest-web-frontend
+    - zeb-onbtest-demo
+      Repo ID: 80aa732a-bc07-4bf4-b537-abc55a557c42
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-onbtest-demo/_git/zeb-onbtest-demo
+------------------------------------------------------------
+Project: Zeb-MAP-Assistant
+  Project ID: f18cc912-feba-440d-9943-4e2607989f97
+  Repositories:
+    - Zeb-MAP-Assistant
+      Repo ID: d6461528-7f1c-4dd8-a376-5bb927d113c9
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/Zeb-MAP-Assistant/_git/Zeb-MAP-Assistant
+    - Zeb-MAP-Assistant-BE
+      Repo ID: 9d1c157c-8de2-46f6-aeb4-a1fb85a5cc02
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/Zeb-MAP-Assistant/_git/Zeb-MAP-Assistant-BE
+    - Zeb-MAP-Assistant-FE
+      Repo ID: 68e20ef7-4dfc-4a36-a5e2-6d4ad37f0b9d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/Zeb-MAP-Assistant/_git/Zeb-MAP-Assistant-FE
+------------------------------------------------------------
+Project: zeb-qa-test-automation
+  Project ID: 6cb3159c-6c46-46e5-a96b-c5906c8c7ffb
+  Repositories:
+    - Hive
+      Repo ID: ba792162-8e23-4150-a106-39e327549ee2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/Hive
+    - LSD
+      Repo ID: 38b93fb5-914a-4060-a3f4-42ee3a520289
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/LSD
+    - lsd-qa-api-script-repo
+      Repo ID: bf552b0d-26fc-44a2-ab7d-47343317006e
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/lsd-qa-api-script-repo
+    - Lynxis-Gate-Automation
+      Repo ID: 10e74ae6-d49d-4a3b-bc13-20e2e8c46658
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/Lynxis-Gate-Automation
+    - mlflow-poc-eval-service
+      Repo ID: 7a5819ef-4411-4ae0-b3b2-a47519ac9e2d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/mlflow-poc-eval-service
+    - mlflow-poc-langchain-agent
+      Repo ID: 78ecb5e2-f19d-4902-8918-190922829be9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/mlflow-poc-langchain-agent
+    - mlflow-poc-tracking-server
+      Repo ID: 53809d11-315b-438b-8924-79f2632b5461
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/mlflow-poc-tracking-server
+    - mlflow-test-repo
+      Repo ID: 3ffd3b8e-afd7-4f7a-9b82-e34110fabf69
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/mlflow-test-repo
+    - Precisely_Engage_API
+      Repo ID: 80130a4b-37b4-4cf2-b8f9-3cc138cd69a4
+      Default Branch: refs/heads/Engage_RCX_API_FW
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/Precisely_Engage_API
+    - Precisely_LightHouse_API
+      Repo ID: 799c2fdb-aeed-4c5b-85d5-cdba7ee65b93
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/Precisely_LightHouse_API
+    - Quest
+      Repo ID: a36900a0-21c3-49c5-8582-ff1d8c34e1a2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/Quest
+    - sbs-qa-testing-repo
+      Repo ID: 4a833a62-6234-49b3-b7b6-4fe13a6a36e3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/sbs-qa-testing-repo
+    - zeb-qa-test-automation
+      Repo ID: 8fd2141d-2ef1-4ec1-9602-d4e9bd0c948d
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-qa-test-automation/_git/zeb-qa-test-automation
+------------------------------------------------------------
+Project: zeb-outcomehubcafe-prod
+  Project ID: bd57e19c-6865-4001-a191-9783ba1d3ac7
+  Repositories:
+    - outcomehubcafe-aws-infra
+      Repo ID: b6d579d0-91c3-4185-ba18-ec90e8214602
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-outcomehubcafe-prod/_git/outcomehubcafe-aws-infra
+    - outcomehubcafe-web-backend
+      Repo ID: 9028ba51-a66a-420d-a3a8-703e0a7cf6a9
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-outcomehubcafe-prod/_git/outcomehubcafe-web-backend
+    - outcomehubcafe-web-frontend
+      Repo ID: 3888488d-50ad-450f-ba36-ac9bca58c280
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-outcomehubcafe-prod/_git/outcomehubcafe-web-frontend
+    - zeb-outcomehubcafe-prod
+      Repo ID: 0503d686-df77-4d30-82d2-ace72e1c1c35
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-outcomehubcafe-prod/_git/zeb-outcomehubcafe-prod
+------------------------------------------------------------
+Project: zeb-fe-demo
+  Project ID: 5c1778d6-5e09-4497-867b-a8c42c70f2d1
+  Repositories:
+    - fe-test-demo2
+      Repo ID: 5829e2b3-a68d-470f-adc6-89eb9952612d
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fe-demo/_git/fe-test-demo2
+    - frontend-test-demo1
+      Repo ID: 9b36f3bc-bba4-4f04-8e86-65900ab03530
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fe-demo/_git/frontend-test-demo1
+    - zeb-fe-demo
+      Repo ID: 3b796f46-bdb4-4046-a5e3-a505e7dd05aa
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-fe-demo/_git/zeb-fe-demo
+    - zeb-prototype-fe
+      Repo ID: f0b0e99d-d477-488b-b5d8-04e6cca314f2
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fe-demo/_git/zeb-prototype-fe
+------------------------------------------------------------
+Project: zeb-precisely-testing-poc
+  Project ID: 797fbd84-e13d-4a55-88ee-cb3ed09baca2
+  Repositories:
+    - precisely-testing-frontend-poc
+      Repo ID: 455a3eac-9888-4435-9135-db0e8844af8f
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-testing-poc/_git/precisely-testing-frontend-poc
+    - zeb-precisely-testing-poc
+      Repo ID: 9d01babc-8b22-474b-8518-1e114dd4b885
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-testing-poc/_git/zeb-precisely-testing-poc
+------------------------------------------------------------
+Project: zeb-soundry-ai-prod
+  Project ID: 73addb4d-b2b8-40e1-bf0b-a361e893b940
+  Repositories:
+    - soundry-ai-backend
+      Repo ID: 14fae56c-4909-4f77-9ca5-c7b620ebe785
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-soundry-ai-prod/_git/soundry-ai-backend
+    - soundry-ai-frontend
+      Repo ID: c0ae6707-70aa-4eeb-8476-94f6327faf0d
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-soundry-ai-prod/_git/soundry-ai-frontend
+    - soundry-ai-iac
+      Repo ID: 585d79d4-4901-4fd6-acc9-30a5a30e9263
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-soundry-ai-prod/_git/soundry-ai-iac
+    - soundry-ai-training-repo
+      Repo ID: f1bb83a4-53b2-4fde-898a-60d8c534e4f7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-soundry-ai-prod/_git/soundry-ai-training-repo
+    - zeb-soundry-ai-prod
+      Repo ID: f1c1e8c4-de3b-4e26-9246-44d05accb1e4
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-soundry-ai-prod/_git/zeb-soundry-ai-prod
+------------------------------------------------------------
+Project: zeb-artifacts-store
+  Project ID: 599c3411-8c49-4670-84bc-fd6553498743
+  Repositories:
+    - agentic-ai
+      Repo ID: c4a47d3c-48ad-4b6e-ad35-5e51f814646e
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-artifacts-store/_git/agentic-ai
+    - ai-platform-engineering
+      Repo ID: a1253456-797e-43b3-845a-d5bd46001be3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-artifacts-store/_git/ai-platform-engineering
+    - cloud-platform-engineering-DevOps-SRE
+      Repo ID: c5dd01f4-3f9c-49f0-942a-c250fde95d4c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-artifacts-store/_git/cloud-platform-engineering-DevOps-SRE
+    - data-engineering
+      Repo ID: 0b3160aa-aaf4-4b60-99d3-0435da1d0bb0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-artifacts-store/_git/data-engineering
+    - frontend
+      Repo ID: 67869459-deb5-4995-8190-2fa7d48bf3fa
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-artifacts-store/_git/frontend
+    - low-code-no-code
+      Repo ID: 1552caf0-5b10-49c5-993f-1e260410a95b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-artifacts-store/_git/low-code-no-code
+    - model-building-finetuning
+      Repo ID: 89c78220-2703-43f3-95d1-98e245fd3e7c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-artifacts-store/_git/model-building-finetuning
+    - zeb-artifacts-store
+      Repo ID: 92155aa6-326c-4806-9ed9-ca0c0c928df5
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-artifacts-store/_git/zeb-artifacts-store
+------------------------------------------------------------
+Project: uxd-figma-artifact
+  Project ID: ffb2e372-2ccd-4575-8211-022efae854ff
+  Repositories:
+    - Creategradientbutton
+      Repo ID: d54a89a6-10d3-405a-b214-4d401817e8be
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/uxd-figma-artifact/_git/Creategradientbutton
+    - Iem
+      Repo ID: 30ee7df0-8532-435c-aadb-b356c3b431a0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/uxd-figma-artifact/_git/Iem
+    - sample-repo
+      Repo ID: 83c39aca-d795-4b6f-8b80-90c0c4a40be6
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/uxd-figma-artifact/_git/sample-repo
+    - testing-repo
+      Repo ID: be408833-2aaa-4f3a-b13e-1ff7c07a789d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/uxd-figma-artifact/_git/testing-repo
+    - Trials
+      Repo ID: e8d9742b-7b30-4fe8-9e57-4c2d188404e9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/uxd-figma-artifact/_git/Trials
+    - uxd-figma-artifact
+      Repo ID: 2b9a44c9-f400-4be5-885d-52fe8b96cade
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/uxd-figma-artifact/_git/uxd-figma-artifact
+    - Zds
+      Repo ID: 2ddf430a-5566-4817-879c-64b133130ad8
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/uxd-figma-artifact/_git/Zds
+    - zeb-final-test
+      Repo ID: 51a7ed36-0186-48d6-a45f-ba2755e1593a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/uxd-figma-artifact/_git/zeb-final-test
+------------------------------------------------------------
+Project: ds-ctc
+  Project ID: dc2ad5f1-4251-4570-8a6a-747b9512e15c
+  Repositories:
+    - ds-ctc
+      Repo ID: fc1070b7-c719-401b-b87f-4980566d3a99
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-ctc/_git/ds-ctc
+------------------------------------------------------------
+Project: zeb-tai-software-prod
+  Project ID: f7234c7e-573e-4907-bdb8-720a8f63b479
+  Repositories:
+    - tai-software-mcp-service
+      Repo ID: dfc21821-67ea-406d-a2b7-f17a4fc79d0f
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-tai-software-prod/_git/tai-software-mcp-service
+    - zeb-tai-software-prod
+      Repo ID: 0018f466-38b8-4fc3-ba85-08d844c2857f
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-tai-software-prod/_git/zeb-tai-software-prod
+------------------------------------------------------------
+Project: databricks-sales
+  Project ID: 927e1567-81f7-4606-aacc-7582f67a2f7f
+  Repositories:
+    - bre-hospitality-platform
+      Repo ID: 7ec66937-e00c-4f16-9df8-f8ad49bf32b2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/databricks-sales/_git/bre-hospitality-platform
+    - databricks-sales
+      Repo ID: 685b1831-4cbd-4150-85b0-5f0898116e77
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/databricks-sales/_git/databricks-sales
+------------------------------------------------------------
+Project: zeb-test2-demo
+  Project ID: d25f24a8-0b92-4c63-a7cc-f3e1ab53c2c9
+  Repositories:
+    - zeb-test2-demo
+      Repo ID: a718f586-c60e-49a8-9b24-c620afc6a94f
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-test2-demo/_git/zeb-test2-demo
+    - zeb-test2-fe
+      Repo ID: 4a9b6b73-0e5b-4b27-aa9f-9e6699daa940
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-test2-demo/_git/zeb-test2-fe
+------------------------------------------------------------
+Project: zeb-partner-revenue-recognition-system
+  Project ID: cc931b08-1ed6-4dcb-b892-5f13967efca8
+  Repositories:
+    - Partner-revenue-backend-repo
+      Repo ID: 1abfca49-5f03-4602-ae32-ecb178a07908
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-partner-revenue-recognition-system/_git/Partner-revenue-backend-repo
+    - partner-revenue-frontend-repo
+      Repo ID: 0fb0220a-bdaf-423f-88b1-a6d062593cf2
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-partner-revenue-recognition-system/_git/partner-revenue-frontend-repo
+    - Partner-revenue-tf-repo
+      Repo ID: 9537a0fb-d833-4303-a48f-aed787956645
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-partner-revenue-recognition-system/_git/Partner-revenue-tf-repo
+    - zeb-partner-revenue-recognition-system
+      Repo ID: 26305d27-ec8f-4356-ae47-2a0be580c618
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-partner-revenue-recognition-system/_git/zeb-partner-revenue-recognition-system
+------------------------------------------------------------
+Project: zeb-website
+  Project ID: 5e6b63e6-ab84-4acb-9f88-6a28d08c3fb8
+  Repositories:
+    - zeb-website
+      Repo ID: d919b7cb-e842-4c4a-bec3-7da558b550e9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-website/_git/zeb-website
+    - zeb-website-tf
+      Repo ID: 08fd6a9a-06ac-480d-804a-bf76173cadb4
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-website/_git/zeb-website-tf
+------------------------------------------------------------
+Project: zeb-zap-prod
+  Project ID: f0e1e81a-1353-41ab-971e-e790cccbb746
+  Repositories:
+    - zap-ai-services
+      Repo ID: 90157d2d-6896-4706-bca6-c7e44bb41a12
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zap-prod/_git/zap-ai-services
+    - zap-app-fe
+      Repo ID: 2e2979d0-90f0-46a0-9a2e-747e07bee80d
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zap-prod/_git/zap-app-fe
+    - zap-ap-service
+      Repo ID: 7482a7f9-aa5f-40f8-8477-a4887cf42e7d
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zap-prod/_git/zap-ap-service
+    - zap-ar-service
+      Repo ID: 7b0b722d-fdd6-4d26-a3c4-27772b1970f7
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zap-prod/_git/zap-ar-service
+    - zap-attachment-processor
+      Repo ID: 550114b9-56eb-40be-958f-c638db71f98a
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zap-prod/_git/zap-attachment-processor
+    - zap-auth-service
+      Repo ID: e2d2c90d-5b01-453b-b230-5a2086604866
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zap-prod/_git/zap-auth-service
+    - zap-common-service
+      Repo ID: 7f8db142-b69b-4a9d-a561-9efdb08a2419
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zap-prod/_git/zap-common-service
+    - zap-transaction-lambda
+      Repo ID: 37b4e58f-70fa-4960-a72c-0bdb3bcd299e
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zap-prod/_git/zap-transaction-lambda
+    - zeb-zap-prod
+      Repo ID: 72c4a37c-9661-4a82-bc47-fe98577a08eb
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-zap-prod/_git/zeb-zap-prod
+------------------------------------------------------------
+Project: ai-internal-demo
+  Project ID: f1536d99-6e35-4cd4-8b10-bd14d445b82a
+  Repositories:
+    - ai-internal-demo
+      Repo ID: 676bac66-e308-4238-82a7-5c5b33783b54
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/ai-internal-demo/_git/ai-internal-demo
+------------------------------------------------------------
+Project: zeb-eis-poc
+  Project ID: aeaceab0-f7a2-4fc8-b400-9e43aeccc35f
+  Repositories:
+    - eis-frontend-poc
+      Repo ID: fd2a9b10-76b6-427e-9199-d7ca6ed1d0d9
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-eis-poc/_git/eis-frontend-poc
+    - zeb-eis-poc
+      Repo ID: 8128f255-cf7a-4d82-8a57-210fc192a6ca
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-eis-poc/_git/zeb-eis-poc
+------------------------------------------------------------
+Project: zeb-sales-dashboard
+  Project ID: 6dce2b4a-59e9-4cd8-aece-783f8cdc216d
+  Repositories:
+    - zeb-sales-dashboard
+      Repo ID: d6907dec-3675-4206-9b5c-e76620f88633
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-sales-dashboard/_git/zeb-sales-dashboard
+    - zeb-sales-dashboard-Iac
+      Repo ID: 1594c770-e081-4090-b07c-9ead6e155dd7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-sales-dashboard/_git/zeb-sales-dashboard-Iac
+------------------------------------------------------------
+Project: zeb-bayou-poc
+  Project ID: 81cc132d-5740-4420-a436-417195c54768
+  Repositories:
+    - bayou-repo
+      Repo ID: 258ed093-fda7-4d4b-82c0-b621fc7375e5
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-bayou-poc/_git/bayou-repo
+    - zeb-bayou-poc
+      Repo ID: 81fba833-c37e-4b0f-a327-03577e37eba7
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-bayou-poc/_git/zeb-bayou-poc
+------------------------------------------------------------
+Project: hive-revamp-redemtion
+  Project ID: 7600e900-444f-41ab-9eb8-59f2f398f9ea
+  Repositories:
+    - hive-admin
+      Repo ID: f3f44392-b7f6-4be1-88c0-1e175320b682
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-admin
+    - hive-audit
+      Repo ID: fccb662c-4555-4520-8f8e-a80fe3c76c9a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-audit
+    - hive-delta-scripts
+      Repo ID: 0a7dedce-8a2f-4b0b-8dbe-e138276321f3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-delta-scripts
+    - hive-devenv
+      Repo ID: 652861fc-cd20-4a2d-aae4-0bbf9579698d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-devenv
+    - hive-employee
+      Repo ID: 15f96f7b-e10e-4c70-9422-7984065bea90
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-employee
+    - hive-identity
+      Repo ID: 41bac0b8-efa1-4037-acd6-65ca237fd8de
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-identity
+    - hive-lifecycle
+      Repo ID: fbfe6c32-dc59-48db-8b4b-153e1b8782b7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-lifecycle
+    - hive-outbound
+      Repo ID: c5582ec4-ef5b-4bf1-863f-daa40b0effa9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-outbound
+    - hive-payroll
+      Repo ID: d0d75ee7-db82-4f13-890f-b931c14b8391
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-payroll
+    - hive-performance
+      Repo ID: 628023f4-935f-460c-b144-99fc0b19e99d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-performance
+    - hive-resources
+      Repo ID: eb15e275-9ccf-4a55-b550-41f02d92ccae
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-resources
+    - hive-revamp-redemtion
+      Repo ID: 649db41b-0adc-4e7f-91b9-02f090c44811
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-revamp-redemtion
+    - hive-time-off
+      Repo ID: b0e28c54-ec34-4678-816d-d33fc9d3e051
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-time-off
+    - hive-ui
+      Repo ID: c09fb3be-c192-48da-997b-fbfef5fbcef4
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-ui
+    - hive-workflow
+      Repo ID: e363e190-982a-4742-aacf-fcefa5c0adc2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hive-revamp-redemtion/_git/hive-workflow
+------------------------------------------------------------
+Project: zeb-mosh-jd-prod
+  Project ID: 44c0b0d4-8bed-402a-90d4-fbab5b7936fb
+  Repositories:
+    - moshjd-agent-service
+      Repo ID: 30cb2639-e4db-4940-bad6-0315f8e01d32
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mosh-jd-prod/_git/moshjd-agent-service
+    - moshjd-mcp-service
+      Repo ID: 781bbab6-7a84-4388-b973-173eeea829cb
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mosh-jd-prod/_git/moshjd-mcp-service
+    - moshjd-workflow-service
+      Repo ID: 148e900e-496d-4423-95c8-347821a80838
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mosh-jd-prod/_git/moshjd-workflow-service
+    - zeb-mosh-jd-prod
+      Repo ID: 92576b99-2c57-4d92-bf8d-32503e9f2179
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-mosh-jd-prod/_git/zeb-mosh-jd-prod
+------------------------------------------------------------
+Project: hr-hive2.0-product
+  Project ID: faf47e41-4650-4188-9122-4d0001de5c5d
+  Repositories:
+    - ai_services
+      Repo ID: 0f00218e-105e-4c57-b393-a29a719d60aa
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-hive2.0-product/_git/ai_services
+    - auth_service_BE
+      Repo ID: 866c11bb-1dd0-4448-982c-5da71d64c93c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-hive2.0-product/_git/auth_service_BE
+    - employee_services
+      Repo ID: b6a7834b-e9c3-44bb-82f3-f2ed2b51a824
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-hive2.0-product/_git/employee_services
+    - hive_iac
+      Repo ID: 92ce039e-ae61-44e6-a0fa-e89d556955e9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-hive2.0-product/_git/hive_iac
+    - hive-gitops
+      Repo ID: 41b70724-7fe5-4b44-89f5-15f636614345
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-hive2.0-product/_git/hive-gitops
+    - hr-hive2.0-product
+      Repo ID: fda5f9aa-3264-4391-b50c-e488fddcdf95
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-hive2.0-product/_git/hr-hive2.0-product
+    - portal_service_BE
+      Repo ID: 9408521c-78e3-4d06-ba50-6b6c11015af9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-hive2.0-product/_git/portal_service_BE
+    - portal_service_FE
+      Repo ID: 20eca5b8-9cdc-48a2-8307-3391dc9e707a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-hive2.0-product/_git/portal_service_FE
+    - recruitment_service_BE
+      Repo ID: 41a43937-e6ff-45f5-903a-49badbc0c487
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-hive2.0-product/_git/recruitment_service_BE
+    - recruitment_service_FE
+      Repo ID: e5a979f8-b3ec-45d3-be20-ed1c18d3633b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-hive2.0-product/_git/recruitment_service_FE
+------------------------------------------------------------
+Project: ai-neural-hub
+  Project ID: 13bd9b0c-1e14-4dc9-8a4f-da0280358cec
+  Repositories:
+    - ai-neural-hub
+      Repo ID: c1d9c7a1-80fd-46fa-b9fa-273174bb0891
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/ai-neural-hub/_git/ai-neural-hub
+    - neuralhub-agents-be-repo
+      Repo ID: b107d76a-d84d-48a4-9c81-93007f4603f1
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-neural-hub/_git/neuralhub-agents-be-repo
+    - neuralhub-fe-repo
+      Repo ID: 42a20165-825b-4317-abb8-1f940cf3e51c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-neural-hub/_git/neuralhub-fe-repo
+    - neuralhub-iac-repo
+      Repo ID: 3953b587-4362-47c0-a00f-e7c7b8255967
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-neural-hub/_git/neuralhub-iac-repo
+    - neuralhub-platform-be-repo
+      Repo ID: e10f614d-c8c6-410d-b544-16e526285ace
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-neural-hub/_git/neuralhub-platform-be-repo
+    - neuralhub-workflows-be-repo
+      Repo ID: 453d6bf6-b408-44cc-b59d-827994b635dc
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-neural-hub/_git/neuralhub-workflows-be-repo
+------------------------------------------------------------
+Project: zeb-fortra-demo
+  Project ID: 6507560e-ba11-479b-8dbb-c623967a96f9
+  Repositories:
+    - fortra-dev-api
+      Repo ID: 50321ac5-254d-4d28-9b3f-1467e6c8ca50
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-demo/_git/fortra-dev-api
+    - fortra-web-frontend
+      Repo ID: 82b92caf-0210-489f-ad4b-d685ded84592
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-demo/_git/fortra-web-frontend
+    - zeb-fortra-demo
+      Repo ID: c2a3199d-7e8a-4fa6-9b37-ff7708c43548
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-demo/_git/zeb-fortra-demo
+------------------------------------------------------------
+Project: crm-migration-framework
+  Project ID: ad14f6a2-44ea-490c-89c9-b2dce90d31e3
+  Repositories:
+    - crm-mig-datamigration
+      Repo ID: 94f1be90-e74f-433e-93ab-901094cb2887
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/crm-migration-framework/_git/crm-mig-datamigration
+    - crm-mig-frontend
+      Repo ID: 849c08d8-057a-40de-b07c-8f6aa89065b7
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/crm-migration-framework/_git/crm-mig-frontend
+    - crm-mig-manageorganizations
+      Repo ID: 8028d320-29fa-4800-afbb-af6a9d656e90
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/crm-migration-framework/_git/crm-mig-manageorganizations
+    - crm-mig-phase3demo
+      Repo ID: d2a76fa9-8391-4b09-8d74-47b84fb8973b
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/crm-migration-framework/_git/crm-mig-phase3demo
+    - crm-migration-framework
+      Repo ID: 805d6759-6279-42f3-91bf-38ed50b93bde
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/crm-migration-framework/_git/crm-migration-framework
+    - crm-mig-sfcrmmigrator
+      Repo ID: 922d8d6a-f9a6-405a-b31f-52c6534c3130
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/crm-migration-framework/_git/crm-mig-sfcrmmigrator
+    - crm-mig-versions
+      Repo ID: 093b1ad6-9a8d-4e51-8a42-8de6dec380e9
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/crm-migration-framework/_git/crm-mig-versions
+------------------------------------------------------------
+Project: zeb-precisely-poc
+  Project ID: cd9cce69-85da-483a-aa7e-075ddc2808ec
+  Repositories:
+    - precisely-auth-api
+      Repo ID: 9165a98b-2e9b-41be-b9f3-7756c2f3130a
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-poc/_git/precisely-auth-api
+    - precisely-poc-lgn-test
+      Repo ID: 72e1f21f-b32a-4eeb-9549-050abd4bbaed
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-poc/_git/precisely-poc-lgn-test
+    - precisely-test-lgn
+      Repo ID: 63187c76-1262-41a6-a232-fc70224c953b
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-poc/_git/precisely-test-lgn
+    - precisely-web-infra
+      Repo ID: eac48183-0219-4c1b-98c0-4684dc83232c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-poc/_git/precisely-web-infra
+    - zeb-precisely-poc
+      Repo ID: b9ca312f-7472-4876-8c60-d8ad4ba29ba4
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-poc/_git/zeb-precisely-poc
+------------------------------------------------------------
+Project: zeb-adanitrading-demo
+  Project ID: d5c25b18-ddfb-414a-9fd5-7cbabf067656
+  Repositories:
+    - adani-web-frontend
+      Repo ID: f5d6476e-a6cc-4581-97bf-42c3c51662b3
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-adanitrading-demo/_git/adani-web-frontend
+    - zeb-adanitrading-demo
+      Repo ID: a0c33263-ab48-44be-b62b-0b0f8cb1a56e
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-adanitrading-demo/_git/zeb-adanitrading-demo
+------------------------------------------------------------
+Project: zeb-devsecops-sre-demo
+  Project ID: dc4f8cd3-1da3-4390-8c72-8c1832f9d5f3
+  Repositories:
+    - zeb-devsecops-sre-demo
+      Repo ID: d8fe7650-172d-4ed7-b81f-f34dbc8a2afe
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-sre-demo/_git/zeb-devsecops-sre-demo
+    - zeb-web-frontend
+      Repo ID: 65236214-126d-4834-9e3f-0a11cdd2c81a
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-sre-demo/_git/zeb-web-frontend
+------------------------------------------------------------
+Project: zeb-fortra-prod
+  Project ID: 7650a613-75e0-415f-a768-fffbfdb74dd5
+  Repositories:
+    - fortra-agents-cicd-repo
+      Repo ID: 5a2e8d9f-6d60-4f87-be8e-da9afea2c780
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/fortra-agents-cicd-repo
+    - fortra-ga-bff-service
+      Repo ID: 3cb0781e-29ed-4bfb-abbc-04cc0ce9076b
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/fortra-ga-bff-service
+    - ga-ai-chat-develop
+      Repo ID: 599b9988-5f1d-4477-b633-5969e9da7f3b
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/ga-ai-chat-develop
+    - ga-be-crud
+      Repo ID: 73cc53ba-290e-4a04-878a-28f2f4a23666
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/ga-be-crud
+    - ga-metadat-crawler-mcp
+      Repo ID: b7db7b0a-b89f-43d7-a140-3cb45969a2a8
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/ga-metadat-crawler-mcp
+    - ga-module-creation-agent
+      Repo ID: 5f8ad461-7f13-4c8c-8fc5-43e8e40a91f4
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/ga-module-creation-agent
+    - ga-orchestrator-agent
+      Repo ID: 36ebc3f4-1e22-44e6-b6da-a608c7d618e6
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/ga-orchestrator-agent
+    - ga-workflow-creation-agent
+      Repo ID: 0d19fb69-ca90-4910-9429-f28118f5fa8a
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/ga-workflow-creation-agent
+    - gs-bff-service
+      Repo ID: 44a433d9-c0a6-4598-9368-bc79011b632e
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/gs-bff-service
+    - gs-eft-configuration-mcp
+      Repo ID: 3d498691-cb97-4ca7-97fd-c60335263aa5
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/gs-eft-configuration-mcp
+    - gs-event-rule-analysis-agent
+      Repo ID: 8081b0ea-c656-4e3e-8bf8-e050768dface
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/gs-event-rule-analysis-agent
+    - gs-knowledge-base-agent
+      Repo ID: 4e079f30-2b9d-49e4-b904-9b8ca59b6982
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/gs-knowledge-base-agent
+    - gs-metadata-crawler-agent
+      Repo ID: a00e34d3-18b3-4ce7-81bf-628035cb00bb
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/gs-metadata-crawler-agent
+    - gs-ml-flow
+      Repo ID: 6a48df81-450e-4972-8b8b-26500627c213
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/gs-ml-flow
+    - gs-orchestrator-agent
+      Repo ID: 02721aa5-d516-48a2-a05f-444f232b8dab
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/gs-orchestrator-agent
+    - gs-resource-variable-context-agent
+      Repo ID: 56e7606d-8324-4db8-ba77-be052bee7027
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/gs-resource-variable-context-agent
+    - infra-cloudformation-stack
+      Repo ID: 5bf71e0e-b143-438b-a765-b1c60e87390c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/infra-cloudformation-stack
+    - infra-cloudformation-stack-agentcore
+      Repo ID: ecd17222-ceaf-4c01-8b18-5aac0464d01b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/infra-cloudformation-stack-agentcore
+    - Kubernetes-repo
+      Repo ID: c4133075-bef4-4d2e-ae9a-eef43b29d9e9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/Kubernetes-repo
+    - zeb-fortra-prod
+      Repo ID: 14e5df93-66ba-4508-90d6-e3351cac7c53
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-fortra-prod/_git/zeb-fortra-prod
+------------------------------------------------------------
+Project: zeb-havi-poc
+  Project ID: 717407da-1e47-41bb-9c1c-90085280bbd3
+  Repositories:
+    - havi-migration-poc
+      Repo ID: 11372bd5-bfda-42fc-b759-607d549a0534
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-havi-poc/_git/havi-migration-poc
+    - zeb-havi-poc
+      Repo ID: 06b7a561-612a-453e-a66d-ba1ed8547cdd
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-havi-poc/_git/zeb-havi-poc
+------------------------------------------------------------
+Project: ai-zeb-innovation
+  Project ID: 2f38eabe-d2a7-45cf-8c0a-d262f5158762
+  Repositories:
+    - agentcore-deployment-a
+      Repo ID: 75cb5f3f-50ed-441a-ac01-711fa5f5b881
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/agentcore-deployment-a
+    - agentcore-deployment-b
+      Repo ID: c42314f0-9fb6-4d3d-b7c0-aa2ededc5efb
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/agentcore-deployment-b
+    - substarte-plus-cloud-frontend
+      Repo ID: ac6dfbd7-bbe1-4de8-8478-a7fe6f8b8930
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substarte-plus-cloud-frontend
+    - substrate-ingest
+      Repo ID: 02f4a0bc-09b4-4861-9051-4727f922869d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-ingest
+    - substrate-platform
+      Repo ID: 5f484fe9-2efd-47b8-bab0-8097cdab17b0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-platform
+    - substrate-plus-cloud
+      Repo ID: af04d653-6d25-4c54-a588-01fa39e9979b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-plus-cloud
+    - substrate-plus-cloud-consumer
+      Repo ID: 57e21f69-6a0e-4e2c-bbb7-b6032dd7f53e
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-plus-cloud-consumer
+    - substrate-plus-cloud-producer
+      Repo ID: ad7a3476-0d21-4028-8d58-f3d31bc458b6
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-plus-cloud-producer
+    - substrate-plus-cloud-streaming
+      Repo ID: 3a2278ab-4fd8-4fbe-9649-f1d27f487d3e
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-plus-cloud-streaming
+    - substrate-s3-pipeline
+      Repo ID: 15dbe073-a336-4ed7-ae2e-598e905959e6
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-s3-pipeline
+    - substrate-testing
+      Repo ID: 2db847b7-0fe2-41e3-bc3e-2d6acc8e0e96
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-testing
+    - substrate-testing-pilot
+      Repo ID: 4e44c0cf-f18f-4f05-bcf6-8fbe55cb562d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-testing-pilot
+    - substrate-ui
+      Repo ID: 70515c20-8ad8-450e-9519-61fec727128f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-ui
+    - substrate-variant
+      Repo ID: dc1066a8-822a-422f-8da3-d9d5c4449986
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-variant
+    - substrate-variant-registry
+      Repo ID: 61056c4d-e3b1-4b2f-b95e-c4c379a1e439
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/substrate-variant-registry
+    - zeb-labs-dbx-test
+      Repo ID: cd67c64c-0f0f-4293-8252-739586e10119
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-dbx-test
+    - zeb-labs-engine-001-governance
+      Repo ID: c7dc32a8-eb1d-4ae4-98c3-e8357cdc9996
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-engine-001-governance
+    - zeb-labs-engine-001-governance-ssr-application
+      Repo ID: fa8c016f-5502-4684-97ca-ef3b6a91e684
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-engine-001-governance-ssr-application
+    - zeb-labs-gitops-repo
+      Repo ID: 9866031a-3620-428d-94aa-8c01fc42c8cb
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-gitops-repo
+    - zeb-labs-gtm-fe
+      Repo ID: 29361dd7-78ff-4246-acb3-7c0de27c1900
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-gtm-fe
+    - zeb-labs-language-translation-GTM-GRPC
+      Repo ID: fa9734b0-3267-427d-877c-83353b079ccb
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-language-translation-GTM-GRPC
+    - zeb-labs-language-translation-GTM-REST
+      Repo ID: 258d6606-ee1a-4761-a5a0-47216fc06317
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-language-translation-GTM-REST
+    - zeb-labs-mcp-server
+      Repo ID: 8b235ae1-ef43-40cd-8e1c-28e64a4d591b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-mcp-server
+    - zeb-labs-pipeline-experimentation
+      Repo ID: 5bb010cc-d677-487b-af50-7fd663c57f3a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-pipeline-experimentation
+    - zeb-labs-poc-moltbot
+      Repo ID: 6850e86f-7f71-4de4-9781-eecd01834528
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-poc-moltbot
+    - zeb-labs-precisely-workbook
+      Repo ID: 625ccb44-ac73-4ef2-9671-ae32cce6a828
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-precisely-workbook
+    - zeb-labs-sd-kiro-template
+      Repo ID: e9ec498c-4d31-4683-9cba-e10639793917
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-sd-kiro-template
+    - zeb-labs-workbook
+      Repo ID: 6f858f33-c49f-4a40-af08-fb0296a9adc3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-labs-workbook
+    - zeb-rnd-zeb-notes
+      Repo ID: 6ddea880-f5cb-4364-908d-c713d3d8bf9b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-innovation/_git/zeb-rnd-zeb-notes
+------------------------------------------------------------
+Project: zeb-acer-poc
+  Project ID: 17b06ee7-6a2d-4f39-ab4f-9070bede5a0e
+  Repositories:
+    - acer-frontend
+      Repo ID: c90a1247-8811-4b8b-8ed3-417c71e5bd6f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-acer-poc/_git/acer-frontend
+    - zeb-acer-poc
+      Repo ID: 8b162f91-7218-48a9-ab54-f0ce06ad34bf
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-acer-poc/_git/zeb-acer-poc
+------------------------------------------------------------
+Project: zeb-analytics-intell-prod
+  Project ID: 4599e059-b2bc-4d68-abfa-6413d9d058fb
+  Repositories:
+    - zeb-analytics-dev-backend
+      Repo ID: a957f0a1-15d1-49fa-8cae-6c3d6a38a717
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-analytics-intell-prod/_git/zeb-analytics-dev-backend
+    - zeb-analytics-dev-frontend
+      Repo ID: 2afe6e34-37e9-430c-bacb-50811956a83b
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-analytics-intell-prod/_git/zeb-analytics-dev-frontend
+    - zeb-analytics-intell-prod
+      Repo ID: 889ceca0-62e1-4a72-8764-15d4841a6ee3
+      Default Branch: refs/heads/feature/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-analytics-intell-prod/_git/zeb-analytics-intell-prod
+------------------------------------------------------------
+Project: zeb-internal-prod
+  Project ID: 833c70fe-8f85-4cff-abb9-54b6fc49e97a
+  Repositories:
+    - internal-client-cpq-migration-framework
+      Repo ID: 2f4215b3-d68b-472c-b34d-2c4ac0237221
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-internal-prod/_git/internal-client-cpq-migration-framework
+    - internal-server-cpq-migration-framework
+      Repo ID: 622f96ce-c958-4fad-b711-eb1535e0d6b9
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-internal-prod/_git/internal-server-cpq-migration-framework
+    - zeb-internal-prod
+      Repo ID: ee2bb296-19d6-4af8-9791-a7685e1982fb
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-internal-prod/_git/zeb-internal-prod
+------------------------------------------------------------
+Project: zeb-splitz-prod
+  Project ID: 3cbbd537-9ad7-4a3b-8b42-cb6c4ed7f289
+  Repositories:
+    - splitz-be-repo
+      Repo ID: da9d0cc5-d188-4dd4-8e79-d26c8b1740c3
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-splitz-prod/_git/splitz-be-repo
+    - splitz-frontend-repo
+      Repo ID: 78348e16-d2cb-49b2-a893-cf7da0db50b2
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-splitz-prod/_git/splitz-frontend-repo
+    - zeb-splitz-prod
+      Repo ID: bf2209d2-5090-4f5c-8dcd-373d41e6a7f6
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-splitz-prod/_git/zeb-splitz-prod
+------------------------------------------------------------
+Project: zeb-lululemon-prod
+  Project ID: 26a5da04-b2bc-4611-bfd3-53e642233b35
+  Repositories:
+    - lululemon-dbx-uc-migration
+      Repo ID: c6e8f2a0-b6c7-427d-9cf7-9d7b2f5d153c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-lululemon-prod/_git/lululemon-dbx-uc-migration
+    - zeb-lululemon-prod
+      Repo ID: 26c73977-2877-4357-ab1c-a4725ae86216
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-lululemon-prod/_git/zeb-lululemon-prod
+------------------------------------------------------------
+Project: zeb-android-demo
+  Project ID: 2cd880db-5ee4-4091-b020-2679503f3d18
+  Repositories:
+    - zeb-android-demo
+      Repo ID: 46f1c4a5-4611-4147-a97f-23b5911d88fc
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-android-demo/_git/zeb-android-demo
+    - zeb-android-fe
+      Repo ID: 2b9598ef-d5e5-47c7-ba62-e6076d9b698f
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-android-demo/_git/zeb-android-fe
+------------------------------------------------------------
+Project: zeb-Fractal-2026
+  Project ID: 35ac619d-116e-432f-ab98-cb28903b5b99
+  Repositories:
+    - 404-brain-not-found
+      Repo ID: 1af513c7-254c-4146-9a11-a8b2ccb95cbc
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/404-brain-not-found
+    - 404-brain-not-found-2
+      Repo ID: 1cfd6a7f-7b98-4dec-bd3d-5f9344aa0a5d
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/404-brain-not-found-2
+    - 404-chill-found
+      Repo ID: 2edd1f9f-2beb-40c8-85ef-3a0e36bb87a2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/404-chill-found
+    - 404-chill-found-2
+      Repo ID: c5ee0f02-3b13-4753-9b03-ad259e4ea712
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/404-chill-found-2
+    - agentic-alphas
+      Repo ID: 2af78bff-08c6-4f3b-a49f-eaac98093527
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/agentic-alphas
+    - agentic-alphas-2
+      Repo ID: b061af32-5787-4136-98c5-a1bbe885dd69
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/agentic-alphas-2
+    - agent-titans
+      Repo ID: f09775b7-6f99-4133-90bc-1e0820eeb8d9
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/agent-titans
+    - agent-titans-2
+      Repo ID: 4740b55d-cbee-46ba-9c2d-f5baa2fcb1f4
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/agent-titans-2
+    - aiconic-rebels
+      Repo ID: d46331c0-a53e-4c91-bb9e-a3e36ae3db71
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/aiconic-rebels
+    - aiconic-rebels-2
+      Repo ID: 290ed459-ba30-49dc-abad-c885ca11a75a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/aiconic-rebels-2
+    - ajents
+      Repo ID: 33275dc9-4c94-4a35-b377-f5d3322d26bf
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/ajents
+    - ajents-2
+      Repo ID: 903cd76d-15b5-4f48-94db-16437f2a6ad1
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/ajents-2
+    - algorhythm
+      Repo ID: 2187a5a6-0a86-48df-a384-6aad08b52479
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/algorhythm
+    - beyond-journey
+      Repo ID: b7a9cd77-8bfe-4ded-8e7b-02cb185c4eb5
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/beyond-journey
+    - chitti-robo
+      Repo ID: 7df17109-487e-4c1a-9fee-6432d69b87da
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/chitti-robo
+    - cloud-super-kings
+      Repo ID: d07401b0-96b2-4592-a8ee-e3c7bdb983fb
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/cloud-super-kings
+    - ctrl-c-ctrl-v
+      Repo ID: 58181be3-43ff-405e-ab97-bd8a0919c687
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/ctrl-c-ctrl-v
+    - drag-drop-dynamos
+      Repo ID: d266b824-355b-41bd-8fe1-94a96c94afc6
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/drag-drop-dynamos
+    - dr-debuggers
+      Repo ID: 4c8073f2-6988-4c1a-9866-14d9271898af
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/dr-debuggers
+    - fantastic4
+      Repo ID: e55cb100-f351-4f11-ac76-4394c7b72d7b
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/fantastic4
+    - fewclicks
+      Repo ID: 14bb80c9-c0f9-4777-b44a-84133a0459c6
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/fewclicks
+    - fewclicks-2
+      Repo ID: 81d093ad-6bfb-4f99-9ec6-313ca1857624
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/fewclicks-2
+    - fewclicks-3
+      Repo ID: 9ee46f30-5016-494e-a494-c30eca1bd4b2
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/fewclicks-3
+    - fewclicks-4
+      Repo ID: 52430e4e-8165-4c68-b188-ecfab8deb6d8
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/fewclicks-4
+    - fewclicks-5
+      Repo ID: 0eafc293-1958-4314-b751-49f88f026afb
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/fewclicks-5
+    - fewclicks-6
+      Repo ID: 246372bd-9604-4ce2-a717-150d9dbfa8c8
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/fewclicks-6
+    - fewclicks-7
+      Repo ID: 4de432ef-4eb2-4fa3-b633-8357da8fcabd
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/fewclicks-7
+    - gradient-descent
+      Repo ID: fb74d5f7-282d-4f79-a9d5-4370ac69ec93
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/gradient-descent
+    - hack-hustlers
+      Repo ID: 8788d43e-7fd7-416a-b246-f63a8d0e0890
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/hack-hustlers
+    - hacktitans
+      Repo ID: 8c9b7501-91ca-4f2c-9bf9-653809c2fdb0
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/hacktitans
+    - hotfix-chill
+      Repo ID: 0c6c187d-d441-4905-b40b-2a5b60586620
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/hotfix-chill
+    - hubris-ai
+      Repo ID: c717d1b0-ba51-470c-87ca-0c2caef41076
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/hubris-ai
+    - idea-loading
+      Repo ID: 5b260631-ce19-44f4-9a05-d3aae8404ece
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/idea-loading
+    - infinite-loop
+      Repo ID: 739c1ad7-2c60-4b51-bb63-99c6c58221b4
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/infinite-loop
+    - infinite-loop-2
+      Repo ID: a2072405-f2bf-4e4d-9912-edbf045dec36
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/infinite-loop-2
+    - infinite-loop-3
+      Repo ID: 387165b5-3d4d-4970-abf8-abb2a38ab9f1
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/infinite-loop-3
+    - legal-minds
+      Repo ID: 67d474fc-b13d-46f8-8a5a-13192e7bf735
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/legal-minds
+    - legal-minds-2
+      Repo ID: 77ddac4d-254a-4565-aa32-184eb3c43e07
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/legal-minds-2
+    - maverick-squad
+      Repo ID: a4e7e3c7-d15c-41f5-bcbc-4738772ffbae
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/maverick-squad
+    - maverick-squad-2
+      Repo ID: 0834193b-62df-471a-bcf0-5a8aa9652371
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/maverick-squad-2
+    - nexusforge
+      Repo ID: c5353c9f-c669-484b-ad4a-354f9b499965
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/nexusforge
+    - nostalicia-ricordo
+      Repo ID: e56c4dae-ca1f-4ba0-96e7-1ddeaa2bb0f8
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/nostalicia-ricordo
+    - nostalicia-ricordo-2
+      Repo ID: 16ede683-b3cc-4895-bf8d-8612edad64a7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/nostalicia-ricordo-2
+    - nosweat-coders
+      Repo ID: 3bd3cd74-a19b-4473-bfa1-f26ae0e03ceb
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/nosweat-coders
+    - nosweat-coders-2
+      Repo ID: 78a80838-0007-45fb-b9e8-c37bbe9e8ab7
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/nosweat-coders-2
+    - optimus-prime
+      Repo ID: 0c210223-e68b-4b94-a4bf-fced24575488
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/optimus-prime
+    - optimus-prime-2
+      Repo ID: 50ddf9b6-b33b-4089-9993-6bd2e773d3ea
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/optimus-prime-2
+    - optimus-prime-3
+      Repo ID: a284d3ee-db78-43df-bac5-056fe2d420af
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/optimus-prime-3
+    - racpad
+      Repo ID: f66f51ed-d4dd-4523-9303-0bf9744abbee
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/racpad
+    - starks
+      Repo ID: cf7e08db-b4c9-4378-af64-919945c08d19
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/starks
+    - status-code-200
+      Repo ID: 63afb1c3-484e-4454-9f18-3bd92866d0ce
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/status-code-200
+    - strawhat-techies
+      Repo ID: 118e1154-b815-4e20-ac77-2d8477d0a943
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/strawhat-techies
+    - team-copy-paste
+      Repo ID: d4acd69f-c6ad-4123-91dc-b64176ae4909
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/team-copy-paste
+    - team-rdx-2
+      Repo ID: a27c102e-a287-4888-a0ee-e21e3c4aade1
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/team-rdx-2
+    - team-rdx-3
+      Repo ID: 143d8318-aff0-4471-a9f6-8115cc31d451
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/team-rdx-3
+    - team-spartans
+      Repo ID: ca70e266-d6e3-4c7d-ae5b-0a0cb690d1a2
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/team-spartans
+    - team-sss
+      Repo ID: 13c3ea12-6e7f-40ca-9e44-51c82be04141
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/team-sss
+    - Team-SSS-2
+      Repo ID: 37d5b6da-2469-4f24-8df8-0782ef4352eb
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/Team-SSS-2
+    - team-starks
+      Repo ID: 34c0e91d-81a8-4d2c-8ab0-0c4e8f773566
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/team-starks
+    - team-zer0
+      Repo ID: 35dbf1ad-2963-431c-8577-49a4c268d939
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/team-zer0
+    - tech-punks
+      Repo ID: d32b3dbf-5247-41eb-b27c-256c6b1142ed
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/tech-punks
+    - tech-titans
+      Repo ID: 9180d8e5-d103-40db-b47b-7c11d8d45206
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/tech-titans
+    - the-cloudsmiths
+      Repo ID: 8c6864c0-6a82-42ab-9a08-adf2a18c0cfc
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/the-cloudsmiths
+    - the-cloudsmiths-2
+      Repo ID: cbd7379a-fcf2-4e2b-8de1-36c2a0c1bef7
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/the-cloudsmiths-2
+    - vzyr-warriors
+      Repo ID: acc3ca73-46dc-4f73-9453-2c83c2c0acf9
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/vzyr-warriors
+    - zeb-stars
+      Repo ID: 7d775268-14e0-4793-bd85-e3c2857afea9
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/zeb-stars
+    - zxbconnect
+      Repo ID: 12e21bda-4972-4ce0-90ae-9e9c14f72b07
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-Fractal-2026/_git/zxbconnect
+------------------------------------------------------------
+Project: zeb-react-demo-prototype-app-demo
+  Project ID: 19492362-f0f7-4e55-85ab-001ea0adab91
+  Repositories:
+    - react-demo-prototype-app
+      Repo ID: e1caf395-0f8b-46ea-9663-3ebb5050f672
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-react-demo-prototype-app-demo/_git/react-demo-prototype-app
+    - zeb-react-demo-prototype-app-demo
+      Repo ID: 6907d47e-a07d-4a91-a0f2-bc1296777b8f
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-react-demo-prototype-app-demo/_git/zeb-react-demo-prototype-app-demo
+------------------------------------------------------------
+Project: zeb-devsecops-jira-dashboard-prod
+  Project ID: d4bbd9d9-8fd3-4867-b0ef-8d72c3ddd6f9
+  Repositories:
+    - devsecopsjira-dashboard-backend
+      Repo ID: df02936e-09cb-470f-9d0b-a5f7218abd97
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-jira-dashboard-prod/_git/devsecopsjira-dashboard-backend
+    - devsecopsjira-dashboard-frontend
+      Repo ID: 49d9cd2b-385b-484e-a166-5ae02dd16ee5
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-jira-dashboard-prod/_git/devsecopsjira-dashboard-frontend
+    - zeb-devsecops-jira-dashboard-prod
+      Repo ID: b5428e2c-610b-436d-80c2-1bf6caeac564
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-jira-dashboard-prod/_git/zeb-devsecops-jira-dashboard-prod
+------------------------------------------------------------
+Project: zeb-testsample-demo
+  Project ID: 5b9bb23a-e47f-48d6-9d77-4a013f802d8d
+  Repositories:
+    - zeb-testsample-demo
+      Repo ID: 6a385255-d196-4b3a-b252-6b15af0c18cf
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-testsample-demo/_git/zeb-testsample-demo
+    - zeb-testsample-fe
+      Repo ID: 1158faf8-fe52-451f-8314-5bdae64b07ae
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-testsample-demo/_git/zeb-testsample-fe
+------------------------------------------------------------
+Project: zeb-apple-poc
+  Project ID: 20ccfab8-ad14-450f-afc1-8c859df3a49e
+  Repositories:
+    - apple-frontend
+      Repo ID: d8459ab6-30e5-4776-b37d-6cb119f13f2b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-apple-poc/_git/apple-frontend
+    - zeb-apple-poc
+      Repo ID: f211c1e4-b39e-4b4c-901e-15f40e31bb36
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-apple-poc/_git/zeb-apple-poc
+------------------------------------------------------------
+Project: zeb-sbs-idp-utility-prod
+  Project ID: 32093451-f293-4d23-a462-fe974831ebb8
+  Repositories:
+    - sbs-idp-utility-Chatbot-services
+      Repo ID: afd5267d-cce2-4cc7-97eb-4f5be6fe81e0
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-sbs-idp-utility-prod/_git/sbs-idp-utility-Chatbot-services
+    - sbs-idp-utility-frontend-services
+      Repo ID: df0c527a-821f-46ee-8d30-9abd399f5afa
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-sbs-idp-utility-prod/_git/sbs-idp-utility-frontend-services
+    - sbs-idp-utility-iac-code
+      Repo ID: d2e4f944-a202-4cdd-b51c-700bef1b4993
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-sbs-idp-utility-prod/_git/sbs-idp-utility-iac-code
+    - sbs-idp-utility-IDP-services
+      Repo ID: 4d554e0e-7320-4554-97e0-2fe818d0a53c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-sbs-idp-utility-prod/_git/sbs-idp-utility-IDP-services
+------------------------------------------------------------
+Project: dbx-genie-assessment-app
+  Project ID: 8767adad-4072-4cfd-a0f4-abe696d6b52c
+  Repositories:
+    - dbx-genie-ai-repo-test-auth
+      Repo ID: bbde38db-6084-4849-bfc4-67f7fbf0fe29
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/dbx-genie-assessment-app/_git/dbx-genie-ai-repo-test-auth
+    - dbx-genie-assessment-app
+      Repo ID: 39bfbd1a-af3a-42e9-9294-d08171ef3da3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/dbx-genie-assessment-app/_git/dbx-genie-assessment-app
+    - dbx-genie-aws-repo
+      Repo ID: 9ddf8931-2a31-4715-880a-59d34f9320ff
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/dbx-genie-assessment-app/_git/dbx-genie-aws-repo
+    - dbx-genie-lambda-code-repo
+      Repo ID: 2fdd7ceb-c00f-4b55-a18e-4077b1497c58
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/dbx-genie-assessment-app/_git/dbx-genie-lambda-code-repo
+    - genie-squad-reverse-proxy-lambda-repo
+      Repo ID: adcb30eb-5abd-4b08-98d8-a4c659b98d2c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/dbx-genie-assessment-app/_git/genie-squad-reverse-proxy-lambda-repo
+    - genie-squad-sqs-producer-lambda-repo
+      Repo ID: 3bc7ea0c-b2f3-4fa0-98f5-8454ec8f15e0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/dbx-genie-assessment-app/_git/genie-squad-sqs-producer-lambda-repo
+    - genie-squad-sqs-producer-teams-lambda-repo
+      Repo ID: d1df471f-7cd4-4fba-9f03-de09a738b396
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/dbx-genie-assessment-app/_git/genie-squad-sqs-producer-teams-lambda-repo
+    - zeb-genie-assessment-be
+      Repo ID: 7a3695bb-0d8a-4c6d-beab-d64378a3ce00
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/dbx-genie-assessment-app/_git/zeb-genie-assessment-be
+    - zeb-genie-assessment-fe
+      Repo ID: 17c7ad69-e8f3-47ca-b224-0adb87b9e4a9
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/dbx-genie-assessment-app/_git/zeb-genie-assessment-fe
+------------------------------------------------------------
+Project: zeb-zebstrap-prod
+  Project ID: a4df1e2f-61ba-4ef1-bf68-17d5ad59d8ab
+  Repositories:
+    - zebstrap
+      Repo ID: 63982333-49b0-4e11-badd-4df26056f692
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zebstrap-prod/_git/zebstrap
+    - zeb-zebstrap-prod
+      Repo ID: bf7a507e-22dc-4a13-8f67-6c417daf10d4
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-zebstrap-prod/_git/zeb-zebstrap-prod
+------------------------------------------------------------
+Project: databricks-asset-bundles
+  Project ID: f1dfb58a-005a-4663-b75e-45fbd8d4ceaf
+  Repositories:
+    - dab-engine-migration-test
+      Repo ID: b2ad50e8-10de-41e8-92e3-3428cb516297
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/databricks-asset-bundles/_git/dab-engine-migration-test
+    - databricks-asset-bundles
+      Repo ID: 41301d3d-3518-4cd8-a1df-de727779a9e9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/databricks-asset-bundles/_git/databricks-asset-bundles
+    - declarative_asset_bundle_engine_migration_framework
+      Repo ID: 04172148-c480-400c-b3e8-150ce3bca13b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/databricks-asset-bundles/_git/declarative_asset_bundle_engine_migration_framework
+------------------------------------------------------------
+Project: zeb-racsf-prod
+  Project ID: 1af3e2ae-27f7-4263-a9e4-cc03df29e40e
+  Repositories:
+    - racsf-sf-int_commonapisf-api
+      Repo ID: e25be798-bc74-4714-87a6-7540ec6e234c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_commonapisf-api
+    - racsf-sf-int_locationintegration-batch
+      Repo ID: 0e4072ad-1bbf-4026-a002-7f096096ca22
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_locationintegration-batch
+    - racsf-sf-int_onetimelocationtosfcc-batch
+      Repo ID: a0e3307a-229e-459d-b3bd-204ce53e8972
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_onetimelocationtosfcc-batch
+    - racsf-sf-int_onetimeproducttosfcc-batch
+      Repo ID: 8585520b-7583-4861-bfdc-774a09707446
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_onetimeproducttosfcc-batch
+    - racsf-sf-int_orderintegration-batch
+      Repo ID: 3ba22a42-3b93-4961-b1cb-a31fceb054c5
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_orderintegration-batch
+    - racsf-sf-int_sfbestbuy-api
+      Repo ID: 25ec35eb-fec2-4675-8c6e-ca62b0b61ad2
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_sfbestbuy-api
+    - racsf-sf-int_sfclearanceflagbatch-batch
+      Repo ID: c49595f0-d64c-4866-bc9e-43df0db439a9
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_sfclearanceflagbatch-batch
+    - racsf-sf-int_sfinbound-api
+      Repo ID: 27308e3c-3347-4aeb-9777-4a6d1b3b3d6c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_sfinbound-api
+    - racsf-sf-int_sfinboundfusion-api
+      Repo ID: 4050ac10-2b2e-47d7-9db9-9bb903e78413
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_sfinboundfusion-api
+    - racsf-sf-int_sflocalsourcing-api
+      Repo ID: 5e033545-a069-4a02-ab32-eb7f289e9dda
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_sflocalsourcing-api
+    - racsf-sf-int_sfoutbound-api
+      Repo ID: 4b405e3d-1325-4b48-854b-5b100eeda4b8
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_sfoutbound-api
+    - racsf-sf-int_sfproductintegration-batch
+      Repo ID: e032928d-bae9-42ca-9950-46e0f4a910bb
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_sfproductintegration-batch
+    - racsf-sf-int_sfrateandtermintegration-api
+      Repo ID: 9db3adca-671a-4041-8439-1c08e11ae79e
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_sfrateandtermintegration-api
+    - racsf-sf-int_sftohybrisinventorysnapshot-batch
+      Repo ID: ee7809a5-c032-4b52-aff5-6c03dbec41e0
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_sftohybrisinventorysnapshot-batch
+    - racsf-sf-int_sftorms-api
+      Repo ID: cafe86f7-fce8-4950-9cd1-fe9fb2cf8206
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_sftorms-api
+    - racsf-sf-int_storeallreport-batch
+      Repo ID: 15dfc9a7-ed4c-436d-a4de-f95d8b29139f
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/racsf-sf-int_storeallreport-batch
+    - zeb-racsf-prod
+      Repo ID: 523c81dd-78e8-44cf-bb5b-a3ace56d4710
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-racsf-prod/_git/zeb-racsf-prod
+------------------------------------------------------------
+Project: zeb-servrx-idp-prod
+  Project ID: abd7c393-cf24-43cf-8732-b0777412f791
+  Repositories:
+    - servrx-idp-backend-repo
+      Repo ID: 1af3a346-820e-47cb-85f7-9290c3467f4c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-servrx-idp-prod/_git/servrx-idp-backend-repo
+    - servrx-idp-frontend-repo
+      Repo ID: 34dd9d96-c415-4eab-980a-8ac44d3d2d68
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-servrx-idp-prod/_git/servrx-idp-frontend-repo
+    - zeb-servrx-idp-prod
+      Repo ID: 6912a149-b9bd-468e-ad77-6fd9bc7fa55d
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-servrx-idp-prod/_git/zeb-servrx-idp-prod
+------------------------------------------------------------
+Project: zeb-brand-institute-prod
+  Project ID: 71dfe122-b52c-4f57-b6cd-12b13d463c2b
+  Repositories:
+    - bi-brandi-ruti-service-be
+      Repo ID: 21ed990c-38b6-4cc1-b058-df6ee53ac776
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-brand-institute-prod/_git/bi-brandi-ruti-service-be
+    - zeb-brand-institute-prod
+      Repo ID: 0341babc-8871-4093-a021-cf0e4799bcab
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-brand-institute-prod/_git/zeb-brand-institute-prod
+------------------------------------------------------------
+Project: zeb-ai-product-team
+  Project ID: f59bef0e-c238-4224-a548-7f42b54d85df
+  Repositories:
+    - zap
+      Repo ID: 0e843d44-0148-4d91-bf38-36b245b023de
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-product-team/_git/zap
+    - zeb-dbx-digital-natives
+      Repo ID: 4ad49790-e0c4-4bad-bcc4-fac88ba46094
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-product-team/_git/zeb-dbx-digital-natives
+    - zeb-product-team-skills
+      Repo ID: 6947ff5f-dec3-4a25-9a17-26cd6eb5b110
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-product-team/_git/zeb-product-team-skills
+    - zebstrap-react
+      Repo ID: f3aafe9f-3f01-4fdd-adf6-a4a1027cb055
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-product-team/_git/zebstrap-react
+    - zeb-wins-website
+      Repo ID: be1b1978-c1be-4ddf-8657-9f6239e6748f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-product-team/_git/zeb-wins-website
+------------------------------------------------------------
+Project: zeb-precisely-lh-agents-demo
+  Project ID: 9146672c-5fa0-4d4f-ab52-c78115361146
+  Repositories:
+    - ai-evaluation-engine
+      Repo ID: 36d23f1b-fc0d-4202-8367-35d2728636b3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/ai-evaluation-engine
+    - ai-evaluation-service
+      Repo ID: e1542dbf-f6d9-48db-b235-757da5611a82
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/ai-evaluation-service
+    - ai-execution-engine
+      Repo ID: 5b7befac-890e-4b09-b147-04dc75490d0a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/ai-execution-engine
+    - ai-execution-engine-api
+      Repo ID: 8a3d1baa-3b55-494a-964a-c1a4e9ef639f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/ai-execution-engine-api
+    - ai-execution-engine-python
+      Repo ID: 2f4b1da1-a9b7-4fe3-b3dc-71fa3143ec88
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/ai-execution-engine-python
+    - ai-execution-service
+      Repo ID: a2f895fa-95f0-42ae-ae3f-e23dd1420c3a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/ai-execution-service
+    - ai-foundation-registry
+      Repo ID: b793aff4-1fed-45da-b5c6-90a80180a24e
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/ai-foundation-registry
+    - ai-foundation-service-python
+      Repo ID: 0e66c9c2-9bf9-46cc-8942-2f17727f8763
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/ai-foundation-service-python
+    - catalog-mcp
+      Repo ID: d8c029bf-a2c9-47ee-a90f-ccf5baa40b0d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/catalog-mcp
+    - copilot-mcp
+      Repo ID: b022143c-7b98-4555-9c50-680191462f53
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/copilot-mcp
+    - data-catalog-service
+      Repo ID: 043d6178-7c2e-4b88-99d3-26ec1371802f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/data-catalog-service
+    - di-replication-pipeline-mcp
+      Repo ID: 89bb78e6-2eb1-49ea-92ed-e7bb7af60364
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/di-replication-pipeline-mcp
+    - dq-pipeline-mcp
+      Repo ID: e9b1e2a8-22e3-41d3-a42a-178fbb3b17e5
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/dq-pipeline-mcp
+    - dq-rules-mcp
+      Repo ID: 3205c245-e9ee-40cb-b067-1934d19ed01c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/dq-rules-mcp
+    - location-intelligence-mcp
+      Repo ID: 33c01247-380e-46ca-8cfd-fc8fbe171cf9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/location-intelligence-mcp
+    - python-service-kit
+      Repo ID: c3c8a866-6488-4195-b89c-a01ac57c9ad5
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit
+    - python-service-kit-authentication
+      Repo ID: d940ba7c-9a88-4f47-8d2b-569dee8320a5
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-authentication
+    - python-service-kit-aws
+      Repo ID: 23e68ea5-f2f0-4137-af57-8f6cb81181ea
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-aws
+    - python-service-kit-azure
+      Repo ID: 12a2f024-619e-4521-9398-c5ea49e42109
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-azure
+    - python-service-kit-datadog
+      Repo ID: 4bdb0d06-9eb8-4365-9729-5100e35f2391
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-datadog
+    - python-service-kit-fastapi
+      Repo ID: 92fd1aa0-74af-4a81-970c-e38fe34c3a60
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-fastapi
+    - python-service-kit-fastmcp
+      Repo ID: 8d7a8808-ddda-40fc-9f31-151312e0a9c6
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-fastmcp
+    - python-service-kit-gcp
+      Repo ID: b416b68a-e17b-4e08-90dd-b37f71f9192e
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-gcp
+    - python-service-kit-logger
+      Repo ID: a9d666ec-3bcd-48d7-8610-53a9251bc314
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-logger
+    - python-service-kit-mongo
+      Repo ID: 7c494374-9d14-45f8-a814-df264ed58d5f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-mongo
+    - python-service-kit-okta
+      Repo ID: 0bcd68ec-b760-4eae-9ac9-3792f973ded1
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-okta
+    - python-service-kit-redis
+      Repo ID: 3cc56eb6-c43d-417c-ad7c-2df125377372
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/python-service-kit-redis
+    - test-repo
+      Repo ID: afaf1317-1b38-43b8-89b9-ed65e737ff60
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/test-repo
+    - zeb-precisely-demo-FE
+      Repo ID: 818f34bf-a947-49aa-a983-c55ada5a3ac9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/zeb-precisely-demo-FE
+    - zeb-precisely-lh-agents-demo
+      Repo ID: ad9d2739-ffb6-480a-8313-99db70f33319
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-precisely-lh-agents-demo/_git/zeb-precisely-lh-agents-demo
+------------------------------------------------------------
+Project: zeb-noc-connect-flow-prod
+  Project ID: 1791fce3-9613-405b-885b-268c24837035
+  Repositories:
+    - noc-connect-infra
+      Repo ID: 6fe24c2b-1495-44b8-bb1f-c8ac5cb53529
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-noc-connect-flow-prod/_git/noc-connect-infra
+    - zeb-noc-connect-flow-prod
+      Repo ID: 97c85beb-c07b-4f38-ae9c-a0ee1067e360
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-noc-connect-flow-prod/_git/zeb-noc-connect-flow-prod
+    - zeb-noc-Implementation-lambda-repo
+      Repo ID: 808260d1-535e-415c-b770-13b0a87e8e7c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-noc-connect-flow-prod/_git/zeb-noc-Implementation-lambda-repo
+------------------------------------------------------------
+Project: cloud-test-product
+  Project ID: cec58dca-32c3-40bd-aab8-ff2f9648c573
+  Repositories:
+    - azure-azure-sync
+      Repo ID: a2324f9f-dcde-4d9e-a52a-bfa69111bb04
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/azure-azure-sync
+    - Cloud-Product-Repo
+      Repo ID: 3f16179e-a1b1-4905-94d5-e38a208a9ca8
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/Cloud-Product-Repo
+    - cloud-test-product
+      Repo ID: 413594fc-6350-452c-a64d-985559405e75
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/cloud-test-product
+    - dashboard-test
+      Repo ID: d6186922-e3d5-4926-8ce9-69162d2bf709
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/dashboard-test
+    - DevSecOps-BackEnd-Repo
+      Repo ID: 0dbd93cf-ba15-4f37-9335-32a253877faa
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/DevSecOps-BackEnd-Repo
+    - DevSecOps-FrontEnd-Repo
+      Repo ID: 837b5385-a6b2-47f3-900b-127ea621a7c8
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/DevSecOps-FrontEnd-Repo
+    - llm-testing-agent-repo
+      Repo ID: e8ab7397-90ca-4405-be66-84d3dc35715f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/llm-testing-agent-repo
+    - ml-dl-testing-repo
+      Repo ID: 9970905f-dadc-47ba-b30c-5012f52a8b68
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/ml-dl-testing-repo
+    - react-azure-azure-sync
+      Repo ID: 253692c3-bbb5-4e0a-bb79-2ba2a653af80
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/react-azure-azure-sync
+    - react-project
+      Repo ID: 62ed1d99-dbaa-4ec1-aaf4-070c5056a693
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/react-project
+    - react-test
+      Repo ID: d4a1532d-f1c0-444f-98ed-c57976466dba
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/react-test
+    - sub-pipeline-test
+      Repo ID: 1f6acd98-e5ea-45c4-b705-903de69b30fa
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-test-product/_git/sub-pipeline-test
+------------------------------------------------------------
+Project: zeb-devsecops-internal-ai-poc
+  Project ID: 4020bd5c-4b5a-4fba-9f0b-3513ac7648f0
+  Repositories:
+    - zeb-devsecops-internal-ai
+      Repo ID: 9182c33d-0620-48d9-b041-616f6f61dcca
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-internal-ai-poc/_git/zeb-devsecops-internal-ai
+    - zeb-devsecops-internal-ai-poc
+      Repo ID: 152a34ec-dc07-467c-ade8-75c235cb529b
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-internal-ai-poc/_git/zeb-devsecops-internal-ai-poc
+------------------------------------------------------------
+Project: zeb-powertest1-demo
+  Project ID: 6af84ce2-6e30-4fed-a182-4946d913297d
+  Repositories:
+    - powertest-web-frontend
+      Repo ID: 85daf196-c909-403c-a231-e476b720a7d6
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-powertest1-demo/_git/powertest-web-frontend
+    - zeb-powertest1-demo
+      Repo ID: 78893b4d-537f-4c66-85e7-6bf5287726a7
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-powertest1-demo/_git/zeb-powertest1-demo
+------------------------------------------------------------
+Project: zeb-tmobile-demo
+  Project ID: 6833f087-ec42-4857-8209-c17419b5a2a4
+  Repositories:
+    - tmobile-demo
+      Repo ID: c9de649d-3b38-4521-be36-48cc23dffc0c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-tmobile-demo/_git/tmobile-demo
+    - zeb-tmobile-demo
+      Repo ID: c3545236-a857-445e-845b-7025a74bd1b2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-tmobile-demo/_git/zeb-tmobile-demo
+------------------------------------------------------------
+Project: zeb-rxgenomix-prod
+  Project ID: 72ba182b-535a-4029-aa5f-09bddd4f4a1f
+  Repositories:
+    - rxgenomix-adminapp-frontend
+      Repo ID: 514788e3-80b4-48e2-abf4-59987a0a7d94
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-rxgenomix-prod/_git/rxgenomix-adminapp-frontend
+    - rxgenomix-ai-backend
+      Repo ID: a27291e0-181d-486a-9628-dcea716785c5
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-rxgenomix-prod/_git/rxgenomix-ai-backend
+    - rxgenomix-api-backend
+      Repo ID: 87c4a554-361b-4925-a473-992f1a7ec5da
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-rxgenomix-prod/_git/rxgenomix-api-backend
+    - rxgenomix-app-frontend
+      Repo ID: 844dc34f-2c6a-4044-bdff-4cb5a7eb4c0f
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-rxgenomix-prod/_git/rxgenomix-app-frontend
+    - rxgenomix-iac
+      Repo ID: 56a84e24-4bc3-4a47-94f5-1ab365ca5cde
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-rxgenomix-prod/_git/rxgenomix-iac
+    - zeb-rxgenomix-prod
+      Repo ID: eea9ff99-1561-496c-afd3-79f261508290
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-rxgenomix-prod/_git/zeb-rxgenomix-prod
+------------------------------------------------------------
+Project: zeb-mac-poc
+  Project ID: 1d370424-55d8-4932-9237-d1b5bed64c7e
+  Repositories:
+    - mac-frontend
+      Repo ID: c0d1f73e-2641-494b-87aa-e9a238cfd3e9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-mac-poc/_git/mac-frontend
+    - zeb-mac-poc
+      Repo ID: c7fb1667-ee7c-457e-8540-16e366a227d5
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-mac-poc/_git/zeb-mac-poc
+------------------------------------------------------------
+Project: zeb-racpad-poc
+  Project ID: 53eca64a-88b3-4f7f-a6c5-c1f80fd7ce01
+  Repositories:
+    - racpad-infra-backend
+      Repo ID: 10c211f6-8d25-4519-9694-c1123401ded4
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racpad-poc/_git/racpad-infra-backend
+    - racpad-web-frontend
+      Repo ID: b900cf35-be5a-4a1d-81c4-8653862af6ea
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racpad-poc/_git/racpad-web-frontend
+    - zeb-racpad-poc
+      Repo ID: 4348919a-f11f-446f-b721-688c6edecd99
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-racpad-poc/_git/zeb-racpad-poc
+------------------------------------------------------------
+Project: zeb-internal-devsecops-poc
+  Project ID: 96d2124c-3200-49a4-ad39-89379fb3783f
+  Repositories:
+    - zeb-internal-devsecops-poc
+      Repo ID: f2d09ef0-d13a-406a-836d-4e347af2c137
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-internal-devsecops-poc/_git/zeb-internal-devsecops-poc
+------------------------------------------------------------
+Project: hr-ascend-product
+  Project ID: 4c0c2b82-876f-4bee-958b-fc38c79d9552
+  Repositories:
+    - ascend_be
+      Repo ID: bbf02cbc-ef23-4459-b2d2-e088a73fab74
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-ascend-product/_git/ascend_be
+    - ascend_fe
+      Repo ID: 5b7f896a-6cf9-47e8-94ce-0b9ccc82b485
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/hr-ascend-product/_git/ascend_fe
+    - ascend_tf
+      Repo ID: a6f0b528-82ee-42cc-8060-69aae7ed6419
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/hr-ascend-product/_git/ascend_tf
+------------------------------------------------------------
+Project: zeb-airbnb-prod
+  Project ID: 34f28989-38ed-49b9-be91-31292b7a7982
+  Repositories:
+    - airbnb-auth-api
+      Repo ID: 9eaea4b5-43f8-46f9-b8d0-bfffc37da2d3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-airbnb-prod/_git/airbnb-auth-api
+    - zeb-airbnb-prod
+      Repo ID: dffe4f0f-1acf-4ca9-b7fc-0b8d39a77dc2
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-airbnb-prod/_git/zeb-airbnb-prod
+------------------------------------------------------------
+Project: zeb-sdi-substrate
+  Project ID: c8e5cf7f-96a9-4255-95a1-982efe394599
+  Repositories:
+    - SDI-FE-IPM
+      Repo ID: 4816a302-1032-4ca5-b25a-7f8560a84005
+      Default Branch: refs/heads/1Q2026-Regression
+      URL: https://dev.azure.com/zeb-ai/zeb-sdi-substrate/_git/SDI-FE-IPM
+    - SDI-Zeus2.0-WebAPI
+      Repo ID: d6feffec-0dcb-4e79-94ad-11e9fdbae43d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-sdi-substrate/_git/SDI-Zeus2.0-WebAPI
+    - SDI-Zeus2.0-WebAPP
+      Repo ID: a0f12b4f-b334-4827-bbad-36cad5ef499e
+      Default Branch: refs/heads/03/09-Release
+      URL: https://dev.azure.com/zeb-ai/zeb-sdi-substrate/_git/SDI-Zeus2.0-WebAPP
+    - zeb-sdi-substrate
+      Repo ID: e4af7ec1-11db-445e-bf62-1831a50068f3
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-sdi-substrate/_git/zeb-sdi-substrate
+------------------------------------------------------------
+Project: zeb-devsecops-testing
+  Project ID: 25518631-24b0-4167-b737-14b3e5a89eb5
+  Repositories:
+    - Cloud-internal-testing
+      Repo ID: ba27cdbb-5da9-466d-afe3-612440dab9b7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/Cloud-internal-testing
+    - devsecops-.net
+      Repo ID: b8fb0946-04b3-4481-9ad6-a93675347a4c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/devsecops-.net
+    - devsecops-AI-automation
+      Repo ID: 2f788879-7e38-45fc-8f24-39bb209ea636
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/devsecops-AI-automation
+    - devsecops-angular
+      Repo ID: e80bc851-5fc3-461b-9dbd-fcbaefda047f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/devsecops-angular
+    - devsecops-flutter
+      Repo ID: 3414c8bb-ec39-445a-b003-ac1f463d95f0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/devsecops-flutter
+    - devsecops-golang
+      Repo ID: 91705a27-7cdf-40a4-b3fa-1db8afdb4c83
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/devsecops-golang
+    - devsecops-python
+      Repo ID: e15f784f-53b8-42a6-bacf-93b2f8a5fb53
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/devsecops-python
+    - devsecops-react
+      Repo ID: d0854260-bf4d-4c8a-af27-06593bb400dc
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/devsecops-react
+    - devsecops-react-native
+      Repo ID: 6bf0f2f6-9dc4-48b9-878d-6e9acb8c9ab7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/devsecops-react-native
+    - devsecops-servicenow
+      Repo ID: 2bf9dafb-6047-4872-9c0b-7138fab5cfc0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/devsecops-servicenow
+    - devsecops-terraform-internal
+      Repo ID: 43387ac3-be6d-4ec4-a21e-d6455718bb40
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/devsecops-terraform-internal
+    - internal-testing-react
+      Repo ID: 8385123a-6fee-42ee-ad78-f8a7b7d35d2f
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/internal-testing-react
+    - Security-engine
+      Repo ID: 836807fb-7805-47b4-8649-d4e99823c5cb
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/Security-engine
+    - zeb-connect-cdk-python-test
+      Repo ID: ccd5f75b-a9cb-47da-8caf-b43f75e06b91
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/zeb-connect-cdk-python-test
+    - zeb-connect-lambda-python-test
+      Repo ID: a704607f-879f-49f9-9935-30c622020135
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/zeb-connect-lambda-python-test
+    - zeb-devsecops-testing
+      Repo ID: f0ab43bd-7af6-4a2c-97ca-fa432a8009c6
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/zeb-devsecops-testing
+    - zeb-dl-poc-testing
+      Repo ID: a38dda86-22ca-4138-bd10-35dc1c9afa4f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/zeb-dl-poc-testing
+    - zeb-ml-dl-test
+      Repo ID: 98330aa6-ef22-4444-9f95-add96bd2dfd9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/zeb-ml-dl-test
+    - zeb-outcome-prototype-demo
+      Repo ID: a3055ab4-bcbf-4802-8ba5-0c5b54fe07ef
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/zeb-outcome-prototype-demo
+    - zeb-outcome-prototype-test-demo
+      Repo ID: 0a1822c8-a1ae-4fc6-b4d8-dc4f294de19a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-testing/_git/zeb-outcome-prototype-test-demo
+------------------------------------------------------------
+Project: zeb-zeb-demo
+  Project ID: d9e73c25-36f7-4580-b40b-845d815169fe
+  Repositories:
+    - zeb-website
+      Repo ID: ccb0430f-f2c4-4237-aaf0-9eaebe00bae5
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zeb-demo/_git/zeb-website
+    - zeb-zeb-demo
+      Repo ID: ccd7c46f-d303-404a-92f0-5f634957979a
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-zeb-demo/_git/zeb-zeb-demo
+------------------------------------------------------------
+Project: zeb-infraclear-poc
+  Project ID: c9f91614-e2ef-4a6b-a423-6d339079dca3
+  Repositories:
+    - infraclear-mcp-agent
+      Repo ID: 88b0dde8-207f-42db-8530-74a129218f3b
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-infraclear-poc/_git/infraclear-mcp-agent
+    - infraclear-mcp-api
+      Repo ID: 4a59434b-6e34-447a-8e6b-2366391d4ecd
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-infraclear-poc/_git/infraclear-mcp-api
+    - infraclear-mcp-iac
+      Repo ID: e13e239b-a342-4275-b460-26f0caf76d07
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-infraclear-poc/_git/infraclear-mcp-iac
+    - zeb-infraclear-poc
+      Repo ID: 9bc2214a-bb29-4f8c-9ba8-85a55a7fc548
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-infraclear-poc/_git/zeb-infraclear-poc
+------------------------------------------------------------
+Project: zeb-lending-pad-poc
+  Project ID: 6721d6bf-a0a5-4a37-ad0b-0ed37054b050
+  Repositories:
+    - lp-ai-backend-repo
+      Repo ID: 365282bd-4e7a-4fc6-89a7-d8157aa48b60
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-lending-pad-poc/_git/lp-ai-backend-repo
+    - lp-ai-cloud-iac-repo
+      Repo ID: e9fb31b9-da49-4277-98c3-c59933bf1011
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-lending-pad-poc/_git/lp-ai-cloud-iac-repo
+    - zeb-lending-pad-poc
+      Repo ID: 0081b3bb-7f54-4a8f-9d99-5750758feb72
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-lending-pad-poc/_git/zeb-lending-pad-poc
+------------------------------------------------------------
+Project: zeb-devsecops-poc
+  Project ID: 6d40ab7b-59eb-451c-a66b-444f401da1d2
+  Repositories:
+    - zeb-devsecops-poc
+      Repo ID: 300a8a33-dccd-4d08-a50d-724746d9d42e
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-poc/_git/zeb-devsecops-poc
+    - zeb-devsecops-test
+      Repo ID: bda9dd95-d90f-46d0-ba93-6d5a8e0cbb8a
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-poc/_git/zeb-devsecops-test
+------------------------------------------------------------
+Project: zeb-acmeinsurance-demo
+  Project ID: 33531bce-5306-42fa-aff1-f85200ac3bba
+  Repositories:
+    - acmeinsurance-web-frontend
+      Repo ID: 7cb06873-5856-4c14-88a6-3ff2f7122c64
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-acmeinsurance-demo/_git/acmeinsurance-web-frontend
+    - zeb-acmeinsurance-demo
+      Repo ID: c7180e4f-cf8d-4bff-a69a-a8b47cd8dc29
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-acmeinsurance-demo/_git/zeb-acmeinsurance-demo
+------------------------------------------------------------
+Project: zeb-t3-agenticai-prod
+  Project ID: bb7b1846-aaef-4153-bb6e-afc21f028f48
+  Repositories:
+    - zeb-t3-agenticai-prod
+      Repo ID: 0511bd9d-19cc-496d-8f63-de3089216f31
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-t3-agenticai-prod/_git/zeb-t3-agenticai-prod
+    - zeb-t3-agenticai-repo
+      Repo ID: 26711335-4498-4ba0-8ecd-6fb65d1dbe34
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-t3-agenticai-prod/_git/zeb-t3-agenticai-repo
+------------------------------------------------------------
+Project: zeb-awstest-demo
+  Project ID: b723cd64-84cc-4a44-a873-47635ec7d803
+  Repositories:
+    - zeb-awstest-demo
+      Repo ID: f099bde8-0610-489a-9065-967461646c67
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-awstest-demo/_git/zeb-awstest-demo
+    - zeb-awstest-fe
+      Repo ID: 68a7c2e1-2e18-42a6-b91a-ba75b5b52d94
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-awstest-demo/_git/zeb-awstest-fe
+------------------------------------------------------------
+Project: sn-pricing-calculator
+  Project ID: 9929f0a6-d2f7-42dc-bfb6-bf60ae33cd6b
+  Repositories:
+    - sn-pricing-be
+      Repo ID: 8e1bbb97-0c01-49bb-82ee-d8a553015079
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/sn-pricing-calculator/_git/sn-pricing-be
+    - sn-pricing-calculator
+      Repo ID: 62a7d9d4-4ac2-4c0f-9b4a-14b39888a3a5
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/sn-pricing-calculator/_git/sn-pricing-calculator
+    - sn-pricing-fe
+      Repo ID: 8bfe120d-d465-4161-9e41-65c30e65a443
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/sn-pricing-calculator/_git/sn-pricing-fe
+    - sn-pricing-iac
+      Repo ID: f1826285-f645-4fb9-948a-c4901827849d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/sn-pricing-calculator/_git/sn-pricing-iac
+------------------------------------------------------------
+Project: zeb-test-poc
+  Project ID: 982d9a39-9ae2-4a27-8dd7-0ac6fd335d8c
+  Repositories:
+    - test-api
+      Repo ID: a749e8d1-9b1d-46b0-a8b7-a4175866ea47
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-test-poc/_git/test-api
+    - zeb-test-poc
+      Repo ID: 20874fe4-dbd5-4e4f-9617-cf2dd1eb4277
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-test-poc/_git/zeb-test-poc
+------------------------------------------------------------
+Project: zeb-dell-poc
+  Project ID: 04fbaeea-3ddc-4b2e-936c-e84c5c85b72e
+  Repositories:
+    - dell-frontend
+      Repo ID: c404fbfc-47de-462b-8ab9-545196ada54d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dell-poc/_git/dell-frontend
+    - zeb-dell-poc
+      Repo ID: 634d5450-99bf-4667-b16b-45d59d8cbeaa
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-dell-poc/_git/zeb-dell-poc
+------------------------------------------------------------
+Project: ds-dataops
+  Project ID: d646d4f4-8106-4df5-8868-06ce7c8739dd
+  Repositories:
+    - DAB-direct-migration
+      Repo ID: 8ece92d1-430f-4e90-a2e4-72000164623b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-dataops/_git/DAB-direct-migration
+    - Databricks Ops Dashboard Backend
+      Repo ID: ddcf7f30-5c83-4fc2-9400-705df3c3d4af
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-dataops/_git/Databricks%20Ops%20Dashboard%20Backend
+    - Databricks Ops Dashboard Frontend
+      Repo ID: 064a687c-2187-4659-beaf-d4ca7d4da680
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-dataops/_git/Databricks%20Ops%20Dashboard%20Frontend
+    - Databricks-Dashboard-Application
+      Repo ID: 2d4cf654-a50b-414a-97dd-499b1c6724d2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-dataops/_git/Databricks-Dashboard-Application
+    - Drivewealth-Data-Engineering
+      Repo ID: 4cf68133-534c-4b55-bde3-d56328e146ff
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-dataops/_git/Drivewealth-Data-Engineering
+    - ds-dataops
+      Repo ID: ea4588af-64f0-4530-801c-aae13fe3ab26
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-dataops/_git/ds-dataops
+    - PowerBI POC
+      Repo ID: c2a4c0ff-0941-4da8-a3fe-d0cc805df6fc
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-dataops/_git/PowerBI%20POC
+    - PowerBI POC Sabareesh
+      Repo ID: 83b5772f-791a-4ac6-8adf-6a4850dfa6a7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-dataops/_git/PowerBI%20POC%20Sabareesh
+------------------------------------------------------------
+Project: cloud-aws-arr-app
+  Project ID: fa514a61-a9f0-4c1d-b661-ec6999f2789f
+  Repositories:
+    - zeb-aws-arr-ai-backend
+      Repo ID: c1705cd9-9f23-47f2-aba1-8bac5b3a38de
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-aws-arr-app/_git/zeb-aws-arr-ai-backend
+    - zeb-aws-arr-auth-backend
+      Repo ID: 1449df78-34e1-4b9b-8ff5-88b7366e8bb2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-aws-arr-app/_git/zeb-aws-arr-auth-backend
+    - zeb-aws-arr-frontend
+      Repo ID: 8e1263f7-a6f7-44b5-9658-5646511c2eed
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-aws-arr-app/_git/zeb-aws-arr-frontend
+    - zeb-aws-arr-iac-repo
+      Repo ID: a34cd1a5-5833-44c0-b549-d4d8bef332a5
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/cloud-aws-arr-app/_git/zeb-aws-arr-iac-repo
+------------------------------------------------------------
+Project: zeb-servicenow-supporting-service
+  Project ID: f87a9bde-49e0-4acf-8f20-bc5b8766fb2a
+  Repositories:
+    - zeb-servicenow-supporting-service
+      Repo ID: a2bea939-194c-4605-9500-ac853f1fef77
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-servicenow-supporting-service/_git/zeb-servicenow-supporting-service
+------------------------------------------------------------
+Project: zeb-mccain-edp-app-prod
+  Project ID: 39babfd8-18de-4356-9b31-a7a063b13ce0
+  Repositories:
+    - mccain-customer-item-backend
+      Repo ID: d6f4a77e-197e-4ade-b5cc-a5979b569f84
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mccain-edp-app-prod/_git/mccain-customer-item-backend
+    - mccain-customer-item-frontend
+      Repo ID: c5ed76a8-96b9-49fd-b3bf-d6fb6c347f34
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mccain-edp-app-prod/_git/mccain-customer-item-frontend
+    - mccain-integration-exceptions-backend
+      Repo ID: 49180745-9486-49c1-8a1f-0c4c272c72bb
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mccain-edp-app-prod/_git/mccain-integration-exceptions-backend
+    - mccain-integration-exceptions-frontend
+      Repo ID: 39d04f23-2fff-4c58-915f-08d01c703f4d
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mccain-edp-app-prod/_git/mccain-integration-exceptions-frontend
+    - mccain-material-availability-backend
+      Repo ID: 4ac3be4f-caa5-4392-b96a-4a2c2ba6c14d
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mccain-edp-app-prod/_git/mccain-material-availability-backend
+    - mccain-material-availability-frontend
+      Repo ID: c08f9ee0-fda0-495b-b444-e2a2932dff6d
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mccain-edp-app-prod/_git/mccain-material-availability-frontend
+    - zeb-mccain-edp-app-prod
+      Repo ID: b59e775d-fc7e-4c75-9c63-dfe3d3c1b6de
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-mccain-edp-app-prod/_git/zeb-mccain-edp-app-prod
+------------------------------------------------------------
+Project: zeb-devsecops-internal-ai-legacy-demo
+  Project ID: fc0e0805-74ca-400d-8810-8b0023b71c30
+  Repositories:
+    - zeb-devsecops-internal-ai-legacy-demo
+      Repo ID: 7e04fb68-32d8-49a2-b397-e51e3c05f1cb
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-internal-ai-legacy-demo/_git/zeb-devsecops-internal-ai-legacy-demo
+    - zeb-web-frontend
+      Repo ID: 261ce735-73a6-4f96-83e8-9badc78ef9c8
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-devsecops-internal-ai-legacy-demo/_git/zeb-web-frontend
+------------------------------------------------------------
+Project: zeb-test1-demo
+  Project ID: 408cbe15-3255-4f87-ae20-82be2b131c18
+  Repositories:
+    - zeb-test1-demo
+      Repo ID: 88992eb4-1f98-4e91-8496-7a76db622eed
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-test1-demo/_git/zeb-test1-demo
+    - zeb-test1-fe
+      Repo ID: 8934dd5f-2a19-4f51-bfff-a21ad82bbc02
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-test1-demo/_git/zeb-test1-fe
+------------------------------------------------------------
+Project: zeb-powertest-demo
+  Project ID: ff9ea47a-a230-4a82-b5bd-d8695d95aace
+  Repositories:
+    - powertest-web-frontend
+      Repo ID: 3e3fa4e9-cf00-4fab-a162-0e0224ea9eac
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-powertest-demo/_git/powertest-web-frontend
+    - zeb-powertest-demo
+      Repo ID: e8bad565-1513-45ab-b41e-3a596824b500
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-powertest-demo/_git/zeb-powertest-demo
+------------------------------------------------------------
+Project: zeb-ai-airbnb
+  Project ID: b9fd5a2e-da74-4379-81e5-af5029bc3dec
+  Repositories:
+    - airbnb-adaptive-learning
+      Repo ID: 2f985334-5579-48bd-9099-6150a08cdf64
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/airbnb-adaptive-learning
+    - airbnb-cache-first-mt-adapter
+      Repo ID: caa310fa-550a-447a-a2f5-70366347526c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/airbnb-cache-first-mt-adapter
+    - airbnb-deploy-decoder-models
+      Repo ID: 893183cd-12b9-4fd8-a4b8-a283e3fd22e0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/airbnb-deploy-decoder-models
+    - airbnb-evaluation_service
+      Repo ID: 344b6a16-a27f-4a98-940f-24ae0ff06171
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/airbnb-evaluation_service
+    - airbnb-inference-test
+      Repo ID: 25d05ade-b375-4f7c-ac46-50255270f208
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/airbnb-inference-test
+    - airbnb-mt-opus-finetuning
+      Repo ID: 952b11f3-3b78-473e-b86e-6cb406aab5d0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/airbnb-mt-opus-finetuning
+    - airbnb-observability-dashboard
+      Repo ID: 35cf44d7-e38e-481b-b9ce-c5450a6ccbb0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/airbnb-observability-dashboard
+    - airbnb-traffic-orchestrator
+      Repo ID: 0af17d9d-d236-4d48-8a36-578bd0ab1886
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/airbnb-traffic-orchestrator
+    - airbnb-training-pipeline-prod
+      Repo ID: 40d3b880-f399-4d3d-bf9c-554139341db2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/airbnb-training-pipeline-prod
+    - airbnb-translate-gemma-deployment-prod
+      Repo ID: 639b6c1b-4631-4aad-a2ec-f590afee4c52
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/airbnb-translate-gemma-deployment-prod
+    - analytics-intel-aws-ses
+      Repo ID: 361871e9-555e-447e-bfbc-fd1304f39eeb
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/analytics-intel-aws-ses
+    - api-architecture-design
+      Repo ID: 25a09dcc-ede7-433c-b20a-ea7aa8bf320b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/api-architecture-design
+    - dspy-translation-optimizer
+      Repo ID: 08f63ada-1929-42c4-b2f4-7e2d7be6cac3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/dspy-translation-optimizer
+    - language-detection
+      Repo ID: 70208f32-7cf1-4872-b42f-a7ba0b3a2e93
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/language-detection
+    - machine-translation-service
+      Repo ID: 87afb82d-28f2-4acd-8746-ef273eedcdef
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/machine-translation-service
+    - model-translation-eks-service
+      Repo ID: 09827d26-2a25-49ca-aba6-80d32ad2faa3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/model-translation-eks-service
+    - nmt-gateway-service
+      Repo ID: 22257a94-2ff2-49f4-8979-22019fbc2929
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/nmt-gateway-service
+    - nmt-solution-analysis-docs
+      Repo ID: 8c2fbf49-eace-47ff-8130-ccdacf636e72
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/nmt-solution-analysis-docs
+    - poc-kubernetes
+      Repo ID: ff35123a-7b3e-44ea-9368-4e732655f751
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/poc-kubernetes
+    - queue-service
+      Repo ID: 4f80f981-8011-4830-8cc8-85db8b25b57c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/queue-service
+    - Substrate-Analystics-Intel-Phase-2
+      Repo ID: cbaae85f-b596-4d5e-a91f-d9043da0102f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/Substrate-Analystics-Intel-Phase-2
+    - Substrate-Analytics-Intel
+      Repo ID: 20b5c603-6d0a-41b1-b6f5-7b73c5bd558f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/Substrate-Analytics-Intel
+    - zeb-ai-airbnb
+      Repo ID: 36a60ace-e6d1-4d1f-bd81-4c9448ed2bad
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-ai-airbnb
+    - zeb-airbnb-embedding-model
+      Repo ID: 0faad520-da65-4e25-9f95-5d7d8547a935
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-airbnb-embedding-model
+    - zeb-airbnb-evaluation-framework
+      Repo ID: 1de51bad-4ca1-4521-9e6c-08040cb49b56
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-airbnb-evaluation-framework
+    - zeb-airbnb-kiwi-model
+      Repo ID: b7fd9f66-7a58-45c8-9e28-f38392a2c516
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-airbnb-kiwi-model
+    - zeb-airbnb-mt-finetuning
+      Repo ID: 33b9fd66-9774-4188-8e83-7e07dc718c82
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-airbnb-mt-finetuning
+    - zeb-airbnb-mt-finetuning.john.sathya
+      Repo ID: ff89c420-f792-4b46-8cc7-c955e5375bcb
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-airbnb-mt-finetuning.john.sathya
+    - zeb-airbnb-tlm-ingest-and-evaluate
+      Repo ID: 9c6f6aea-c306-4567-a385-e3680cfe540c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-airbnb-tlm-ingest-and-evaluate
+    - zeb-airbnb-tlm-prompt
+      Repo ID: d4e6c128-32bf-4e71-b9b6-1d1c6129f65c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-airbnb-tlm-prompt
+    - zeb-airbnb-tlm-train-start
+      Repo ID: d0f16962-52c9-430f-8790-ced65875811b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-airbnb-tlm-train-start
+    - zeb-airbnb-training
+      Repo ID: e7a9e6dc-7c6a-4a2c-8837-2edb04dfb1cf
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-airbnb-training
+    - zeb-fastapi-observability
+      Repo ID: 38a0bc4c-0451-4fda-a3af-cc596169e134
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-fastapi-observability
+    - zeb-gitops-airbnb
+      Repo ID: eb4e4a5b-082f-4bac-b0f9-53ee7fa3fade
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-gitops-airbnb
+    - zeb-iac-airbnb
+      Repo ID: 9df3444e-54fe-4b32-b86f-1bb004320f61
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-iac-airbnb
+    - zeb-s3-translation-registry
+      Repo ID: 6202a736-ed78-4cd9-bbb0-2f2b10218981
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-s3-translation-registry
+    - zeb-tlm-driven-translation
+      Repo ID: 0c904e20-0415-48e3-a96c-74a3fcd1685a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-tlm-driven-translation
+    - zeb-tlm-driven-translation-airbnb-prod
+      Repo ID: a6532ed9-84d3-4898-b42d-27b4b2a2e20a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ai-airbnb/_git/zeb-tlm-driven-translation-airbnb-prod
+------------------------------------------------------------
+Project: zeb-prototype
+  Project ID: 56f351f4-692f-4a8c-9269-8471602ff39b
+  Repositories:
+    - aws
+      Repo ID: d3a4f5c2-594f-4ea3-bf2f-6ac4f539af17
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-prototype/_git/aws
+    - zeb-prototype
+      Repo ID: 3c568e78-036a-47da-995b-5c8a0c6d4e2f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-prototype/_git/zeb-prototype
+    - zeb-prototype-Iac
+      Repo ID: 7eee5bd6-ef06-4bd1-b5bb-79eae56a298e
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-prototype/_git/zeb-prototype-Iac
+    - zeb-test
+      Repo ID: e3677598-1046-401b-93af-9205fda37f23
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-prototype/_git/zeb-test
+------------------------------------------------------------
+Project: zeb-lcnc-connect-internal
+  Project ID: a8509b62-df6a-4ad9-aeb0-d972273ec992
+  Repositories:
+    - amazon-connect-audio-manager
+      Repo ID: 33222e05-190a-4c45-a629-3169f1a9b7ac
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-lcnc-connect-internal/_git/amazon-connect-audio-manager
+    - connect-elevenlabs-custom-ai-calling
+      Repo ID: cfaaf73f-97f0-4815-92a3-6dca283a14bd
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-lcnc-connect-internal/_git/connect-elevenlabs-custom-ai-calling
+    - connect-novasonic-custom-ai-calling
+      Repo ID: 19efcf8b-c3a0-43ff-88da-5854db1071a7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-lcnc-connect-internal/_git/connect-novasonic-custom-ai-calling
+    - connect-nova-v2-tf-template
+      Repo ID: d1fd7563-b510-44e9-b45a-19f12e8572cd
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-lcnc-connect-internal/_git/connect-nova-v2-tf-template
+    - connect-observability-dashboard
+      Repo ID: 3c80233d-fdc4-4d31-886e-36fad85db7f9
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-lcnc-connect-internal/_git/connect-observability-dashboard
+    - connect-stt-llm-tts
+      Repo ID: 4334bac4-d596-426f-ae7b-660b5df2d8c3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-lcnc-connect-internal/_git/connect-stt-llm-tts
+    - v2-custom-deployment-package
+      Repo ID: af9bb42b-4947-42d4-885d-96c26444da13
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-lcnc-connect-internal/_git/v2-custom-deployment-package
+    - zeb-lcnc-connect-internal
+      Repo ID: 59c0bdda-7e47-4725-8c2b-315913bfbdf5
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-lcnc-connect-internal/_git/zeb-lcnc-connect-internal
+    - zeb-novasonic-v2-deployment-portal
+      Repo ID: 8ecec476-41cd-44c8-a66c-0139cd72b62b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-lcnc-connect-internal/_git/zeb-novasonic-v2-deployment-portal
+------------------------------------------------------------
+Project: zeb-january-prod
+  Project ID: eda34c1c-34c7-4a45-92c2-aa4f51047483
+  Repositories:
+    - january-auth-api
+      Repo ID: 76e81cb5-3fda-4206-b76f-b44c2aa3cc70
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-january-prod/_git/january-auth-api
+    - zeb-january-prod
+      Repo ID: 2b60d393-87d0-487f-9214-334527f2c76e
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-january-prod/_git/zeb-january-prod
+------------------------------------------------------------
+Project: zeb-zebai-demo
+  Project ID: 80737e3d-cb98-4b84-acb8-9f2002c43347
+  Repositories:
+    - website-frontend
+      Repo ID: 46a82dba-b122-4e40-8404-3eafddc8d7ae
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-zebai-demo/_git/website-frontend
+    - zeb-zebai-demo
+      Repo ID: 2e4c1108-2951-4280-8516-715b14b434fb
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-zebai-demo/_git/zeb-zebai-demo
+------------------------------------------------------------
+Project: ds-pfg
+  Project ID: 9831086f-ed73-4860-a4ac-c93c62e6e5b8
+  Repositories:
+    - azure-data-factory
+      Repo ID: 503c72b5-361b-4111-ae27-fac89984c51d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/azure-data-factory
+    - databricks-ecom-auto-scheduler
+      Repo ID: d5c6a0c1-45d5-440a-bb80-13e41029ac2c
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/databricks-ecom-auto-scheduler
+    - databricks-mi9
+      Repo ID: 6032cefe-1304-4f4c-8e27-beac56b4ab55
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/databricks-mi9
+    - databricks-price-override-insights
+      Repo ID: 15d851b2-8d93-4308-885e-1ecb7695873a
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/databricks-price-override-insights
+    - databricks-rbc
+      Repo ID: cb3e7b73-814c-4986-9319-73867ae91ce6
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/databricks-rbc
+    - databricks-retail-auto-scheduler
+      Repo ID: 092b32e4-6e18-4744-8878-3c50671568d6
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/databricks-retail-auto-scheduler
+    - databricks-sof-models-churn
+      Repo ID: a11d6e86-6c7d-4790-95f3-632a7ce8989f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/databricks-sof-models-churn
+    - databricks-tm-scheduler-source
+      Repo ID: b4f735ca-d7db-46de-8e8d-2372135dc2b0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/databricks-tm-scheduler-source
+    - databricks-vmao
+      Repo ID: 263b6d0a-f445-4ff0-9fec-149051866b1b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/databricks-vmao
+    - databricks-voice-of-customer-v2
+      Repo ID: f8346746-c4cd-4229-aa11-7f44351316f2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/databricks-voice-of-customer-v2
+    - databricks-wms-tms
+      Repo ID: 0c24ee50-c64f-4af7-953d-792a96adabb7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/databricks-wms-tms
+    - dna-dbx-customer-dashboard
+      Repo ID: b766b35f-1ee4-48b0-8d8b-3aab14be3e75
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/dna-dbx-customer-dashboard
+    - dna-dbx-retail-common
+      Repo ID: 714ca648-abb7-4e44-a2c1-85b0c42950ad
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/dna-dbx-retail-common
+    - ds-pfg
+      Repo ID: 02292390-3f3a-4033-b541-3ec9227736c8
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/ds-pfg/_git/ds-pfg
+------------------------------------------------------------
+Project: de-playbook
+  Project ID: f48f6c98-fdb8-4c54-bdf8-616551682d6a
+  Repositories:
+    - DatabricksSkillsTesting
+      Repo ID: 3f1ba48b-a3a9-4de1-8aaa-b466fa235ee7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/de-playbook/_git/DatabricksSkillsTesting
+    - hms-to-uc-migration
+      Repo ID: 89e4ab8a-35ca-4766-8a93-6ca1c419a522
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/de-playbook/_git/hms-to-uc-migration
+    - lift-and-shift-migration
+      Repo ID: 19eabae4-d033-49d4-856f-03bdb1aaafd2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/de-playbook/_git/lift-and-shift-migration
+------------------------------------------------------------
+Project: zeb-oldnationalbank-demo
+  Project ID: c989baaa-aef6-4bb8-95bc-7b2e93e83f00
+  Repositories:
+    - oldnationalbank-fe
+      Repo ID: 51a4e88f-4fa2-4e94-9fcd-984c1a9eae24
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-oldnationalbank-demo/_git/oldnationalbank-fe
+    - zeb-oldnationalbank-demo
+      Repo ID: 7d55815c-2c29-4c98-8c27-c3ff3a20122b
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-oldnationalbank-demo/_git/zeb-oldnationalbank-demo
+------------------------------------------------------------
+Project: zeb-usbank-demo
+  Project ID: 80b1f9f0-3c14-4ad6-b4c5-313b7a2416fe
+  Repositories:
+    - usbank-web-frontend
+      Repo ID: bbf83424-a4ef-4530-8f13-899b0afa7247
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-usbank-demo/_git/usbank-web-frontend
+    - zeb-usbank-demo
+      Repo ID: 9f75b51e-1f63-4e19-aba4-4003d222305e
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-usbank-demo/_git/zeb-usbank-demo
+------------------------------------------------------------
+Project: zeb-allocation-tracker-internal
+  Project ID: 07ec53a3-5fd2-4193-83a5-902bda4e83ec
+  Repositories:
+    - precisely-frontend-poc
+      Repo ID: d9716df7-f92f-46df-9465-f4cd36fc5c1c
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-allocation-tracker-internal/_git/precisely-frontend-poc
+    - zeb-allocation-tracker-internal
+      Repo ID: da96a0e3-a62c-4eeb-ba11-f4b79842f291
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-allocation-tracker-internal/_git/zeb-allocation-tracker-internal
+------------------------------------------------------------
+Project: datascience-hexion
+  Project ID: 01404b35-6b7b-4dde-ae25-2b397d7c1c76
+  Repositories:
+    - databricks
+      Repo ID: 50a23553-d5e2-4394-b3d9-4ad1388e1973
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/datascience-hexion/_git/databricks
+------------------------------------------------------------
+Project: zeb-react-customer-demo
+  Project ID: b20ba403-f669-42d4-bf62-423384147bb0
+  Repositories:
+    - react-sample-app
+      Repo ID: 6f25f0c8-eb57-43e9-9840-2d41a703cde1
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-react-customer-demo/_git/react-sample-app
+    - zeb-react-customer-demo
+      Repo ID: 3817154b-e053-4d1c-8312-324cadd9a7d4
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-react-customer-demo/_git/zeb-react-customer-demo
+------------------------------------------------------------
+Project: zeb-racpricing-prod
+  Project ID: 565a7a67-ea8a-452b-9ceb-a5706d0bba0f
+  Repositories:
+    - racpricing-pricing-api
+      Repo ID: ac4a127d-02c1-44f2-96ba-da0a7766f4ac
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racpricing-prod/_git/racpricing-pricing-api
+    - racpricing-racpadpricing-frontend
+      Repo ID: 30c77521-c825-4145-912e-16f9c868ba8f
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-racpricing-prod/_git/racpricing-racpadpricing-frontend
+    - zeb-racpricing-prod
+      Repo ID: 713728cb-50de-4a9a-9997-8866f80ac509
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-racpricing-prod/_git/zeb-racpricing-prod
+------------------------------------------------------------
+Project: zeb-xfinitycable-demo
+  Project ID: 95249f16-fd54-4749-8b16-d346e221835f
+  Repositories:
+    - xfinitycable-web
+      Repo ID: 7389387b-87c4-4f00-b6be-6044c16fb7fe
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-xfinitycable-demo/_git/xfinitycable-web
+    - zeb-xfinitycable-demo
+      Repo ID: de4fd441-fc8c-4cf9-b2c0-aac39c1f1cd0
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-xfinitycable-demo/_git/zeb-xfinitycable-demo
+------------------------------------------------------------
+Project: zeb-xinfinitycable-demo
+  Project ID: 05add5a2-f682-4e3b-be21-ab49ebfb8a87
+  Repositories:
+    - xinfinitycable-web
+      Repo ID: 2f744b4b-5c61-487e-8da0-527a96bbabf1
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-xinfinitycable-demo/_git/xinfinitycable-web
+    - zeb-xinfinitycable-demo
+      Repo ID: 56dddca6-16ba-4507-91d6-3f53655ff286
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-xinfinitycable-demo/_git/zeb-xinfinitycable-demo
+------------------------------------------------------------
+Project: zeb-dbx-fin-datawarehouse
+  Project ID: 01678ac7-0613-44cc-ac41-9bba6551c45b
+  Repositories:
+    - zeb-dbx-fin-datawarehouse
+      Repo ID: 535f797e-ec9e-41a1-aa9e-5ff964f093d2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-fin-datawarehouse/_git/zeb-dbx-fin-datawarehouse
+------------------------------------------------------------
+Project: ai-zeb-labs-platform
+  Project ID: 3372d92f-ebb1-4ad7-8c26-c17e709e7dd3
+  Repositories:
+    - ai-zeb-labs-iac-repo
+      Repo ID: d91b8e0a-1943-40bc-ace3-30c889d7604f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-labs-platform/_git/ai-zeb-labs-iac-repo
+    - ai-zeb-labs-platform-backend-analytics
+      Repo ID: 4f741b5e-f0d6-447c-a7e0-b939069bac4d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-labs-platform/_git/ai-zeb-labs-platform-backend-analytics
+    - ai-zeb-labs-platform-backend-main
+      Repo ID: 25f5e105-5901-4403-8f3f-3363e8cfbd9e
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-labs-platform/_git/ai-zeb-labs-platform-backend-main
+    - ai-zeb-labs-platform-frontend
+      Repo ID: 0c662045-9042-4209-868d-9363b69bf69b
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-labs-platform/_git/ai-zeb-labs-platform-frontend
+    - ai-zeb-labs-platform-frontend-main
+      Repo ID: 158fec6f-4740-42d1-be39-9a0995bc36ee
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-labs-platform/_git/ai-zeb-labs-platform-frontend-main
+    - ai-zeb-labs-platform-gitops-repo
+      Repo ID: dc56d309-07de-4cc5-8f23-2a36292a0d52
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-labs-platform/_git/ai-zeb-labs-platform-gitops-repo
+    - ai-zeb-labs-platform-zeb-draw
+      Repo ID: 87a8782c-a2e6-4a52-bd22-bb9196820bce
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-labs-platform/_git/ai-zeb-labs-platform-zeb-draw
+    - ai-zeb-labs-platform-zeb-notes
+      Repo ID: 4f32f4b5-d953-466f-a4ff-aef6e5e7664f
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-labs-platform/_git/ai-zeb-labs-platform-zeb-notes
+    - zeb-labs-dev-platform-iac-repo
+      Repo ID: 45e66a4b-50f0-4cb9-8282-0e725aef1411
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-zeb-labs-platform/_git/zeb-labs-dev-platform-iac-repo
+------------------------------------------------------------
+Project: zeb-racpad-rtb-prod
+  Project ID: 3e0bf1b0-05ca-4832-8f80-523652488258
+  Repositories:
+    - zeb-racpad-rtb-prod
+      Repo ID: a1290243-70cd-490b-aee8-5e71249cd53b
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-racpad-rtb-prod/_git/zeb-racpad-rtb-prod
+------------------------------------------------------------
+Project: zeb-usclaims-prod
+  Project ID: 32083842-f315-441b-9eb9-e61daad80c2f
+  Repositories:
+    - usclaims-api-drbe
+      Repo ID: b5c62ad6-6ae6-4b49-8cef-0f91cb34b361
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-usclaims-prod/_git/usclaims-api-drbe
+    - usclaims-api-leadbe
+      Repo ID: 295c2a73-774e-4c0b-bfc4-20c9ae9fc530
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-usclaims-prod/_git/usclaims-api-leadbe
+    - usclaims-chatbot-intbe
+      Repo ID: f256bdd7-6e4e-4eec-b9df-2d356a153456
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-usclaims-prod/_git/usclaims-chatbot-intbe
+    - zeb-usclaims-prod
+      Repo ID: adadae46-19fc-4466-906a-2a67c74727aa
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-usclaims-prod/_git/zeb-usclaims-prod
+------------------------------------------------------------
+Project: zeb-moshjd-prod
+  Project ID: 3525f89e-55e9-4a2e-98a4-89e40e044cec
+  Repositories:
+    - moshjd-agent-service
+      Repo ID: a0176b9f-db15-45da-9ae5-dea638beb872
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-moshjd-prod/_git/moshjd-agent-service
+    - moshjd-mcp-service
+      Repo ID: 6d7d474d-dfa3-417c-b3c7-115854a7eabc
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-moshjd-prod/_git/moshjd-mcp-service
+    - moshjd-workflow-service
+      Repo ID: ba26a5b3-b90c-471c-aeed-15538eea86be
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-moshjd-prod/_git/moshjd-workflow-service
+    - zeb-moshjd-prod
+      Repo ID: 660cca14-782d-4e7d-b18c-0e13e088deba
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-moshjd-prod/_git/zeb-moshjd-prod
+------------------------------------------------------------
+Project: zeb-legacy-service-provider-poc
+  Project ID: 6754368f-ba34-4bfd-984f-136dfc437d82
+  Repositories:
+    - lsp-extraction-be
+      Repo ID: 214c688e-2b7d-4dce-a7f8-98cb8e6431c7
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-legacy-service-provider-poc/_git/lsp-extraction-be
+    - lsp-fe
+      Repo ID: c40a007b-67a4-40c4-9f31-bd52b1131a32
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-legacy-service-provider-poc/_git/lsp-fe
+    - zeb-legacy-service-provider-poc
+      Repo ID: 212abc74-6ee4-425a-952d-a162e4d6ddeb
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-legacy-service-provider-poc/_git/zeb-legacy-service-provider-poc
+------------------------------------------------------------
+Project: zeb-mccain-prod
+  Project ID: 6877c494-2319-4a2a-90e7-27133755ca3a
+  Repositories:
+    - mccain-integration-exceptions-backend
+      Repo ID: ef749c9c-f39a-4625-9560-18bcee3d1c7a
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mccain-prod/_git/mccain-integration-exceptions-backend
+    - mccain-integration-exceptions-frontend
+      Repo ID: b6d6d2fb-a7c1-47c0-9159-bcd4e093ff6f
+      Default Branch: refs/heads/dev
+      URL: https://dev.azure.com/zeb-ai/zeb-mccain-prod/_git/mccain-integration-exceptions-frontend
+    - zeb-mccain-prod
+      Repo ID: 7f0fa563-4705-4b7c-a5c6-2a11ef2b6c34
+      Default Branch: N/A
+      URL: https://dev.azure.com/zeb-ai/zeb-mccain-prod/_git/zeb-mccain-prod
+------------------------------------------------------------
+Project: zeb-ea-connect-demo
+  Project ID: fbc97ce1-549b-4613-a414-eeb2f00242ae
+  Repositories:
+    - macbook
+      Repo ID: b453b034-9299-4f7f-8ad9-b1b1551fdc92
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-ea-connect-demo/_git/macbook
+    - zeb-ea-connect-demo
+      Repo ID: 4162f31b-8ba2-442a-9c93-5a95da5f9fa0
+      Default Branch: refs/heads/master
+      URL: https://dev.azure.com/zeb-ai/zeb-ea-connect-demo/_git/zeb-ea-connect-demo
+------------------------------------------------------------
+Project: zeb-dbx-hub
+  Project ID: ea19fd5a-7562-4143-beef-59d292458840
+  Repositories:
+    - zeb-adanipower-trading-app-prod
+      Repo ID: 220ebfbc-b17c-4068-8f1f-14d88d45f2c3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-adanipower-trading-app-prod
+    - zeb-dbx-hub
+      Repo ID: 52db4e43-99be-45f1-80b7-4e573450ea14
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-dbx-hub
+    - zeb-dbx-hub-app
+      Repo ID: 6be980ce-840a-478a-a5d8-8cd8ee6b6826
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-dbx-hub-app
+    - zeb-dbx-hub-iac
+      Repo ID: b2fdd513-2f83-45dc-8ab4-5115c98e1735
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-dbx-hub-iac
+    - zeb-outcome-hub-app
+      Repo ID: e67a3315-7ecc-4e98-9e09-b494cb409483
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-outcome-hub-app
+    - zeb-outcome-hub-iac
+      Repo ID: 88117534-3b63-47cb-8a14-bbe6eedfdbe0
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-outcome-hub-iac
+    - zeb-outcome-hub-prod-iac
+      Repo ID: f8ddf9c5-ea86-4f40-aab0-f069fe1c2d40
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-outcome-hub-prod-iac
+    - zeb-outcome-prototype-app
+      Repo ID: 1c239867-eebd-4545-a3c9-40e5cd266a39
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-outcome-prototype-app
+    - zeb-outcome-prototype-demo
+      Repo ID: 36fe3dc7-45c0-489d-96a9-78f53a0ff330
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-outcome-prototype-demo
+    - zeb-outcome-prototype-iac
+      Repo ID: 47732233-618e-4a06-b05c-1ab23ee0faf2
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-outcome-prototype-iac
+    - zeb-wins-site
+      Repo ID: c8201ffe-a47b-4bb7-9fd4-8d1276344278
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/zeb-dbx-hub/_git/zeb-wins-site
+------------------------------------------------------------
+Project: ai-jira-automation
+  Project ID: b6754085-2259-4a80-a9e5-76740941948b
+  Repositories:
+    - ai-jira-automation
+      Repo ID: 439e3cf8-90b1-4459-9d8b-f6ef0c7a89e7
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-jira-automation/_git/ai-jira-automation
+    - jira-zeb-backend-repo
+      Repo ID: 318303a1-0cd0-499b-afba-f5b57e51e6be
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-jira-automation/_git/jira-zeb-backend-repo
+    - jira-zeb-ed1-repo
+      Repo ID: 744f6a86-5cc4-4420-b7fa-5e9588eb4f61
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-jira-automation/_git/jira-zeb-ed1-repo
+    - jira-zeb-ed2-repo
+      Repo ID: 061bda88-c40e-4a0d-80c4-1c465842e652
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-jira-automation/_git/jira-zeb-ed2-repo
+    - jira-zeb-fe-repo
+      Repo ID: ab276007-9295-4ff2-9934-54f9036475fa
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-jira-automation/_git/jira-zeb-fe-repo
+    - jira-zeb-hygiene-dashboard-repo
+      Repo ID: 67fdd559-c72f-42e9-9465-a460f80350c3
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-jira-automation/_git/jira-zeb-hygiene-dashboard-repo
+    - jira-zeb-hygiene-sync-repo
+      Repo ID: 87454a00-ca0c-4592-8f8f-a54798bb487d
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-jira-automation/_git/jira-zeb-hygiene-sync-repo
+    - jira-zeb-iac-repo
+      Repo ID: 4dff27e0-7468-4f74-ace5-8018d92bfbd5
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-jira-automation/_git/jira-zeb-iac-repo
+    - jira-zeb-pma-notifications-repo
+      Repo ID: b2ee27c4-df99-423a-81c1-a1ab5b056267
+      Default Branch: refs/heads/main
+      URL: https://dev.azure.com/zeb-ai/ai-jira-automation/_git/jira-zeb-pma-notifications-repo
+
+================================================================================
+Done!

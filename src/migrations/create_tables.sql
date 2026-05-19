@@ -285,7 +285,6 @@ CREATE TABLE IF NOT EXISTS artifacts (
 -- =============================================
 CREATE TABLE IF NOT EXISTS cron_jobs (
     cron_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    specialization_id VARCHAR(255) NOT NULL,
     type VARCHAR(50) NOT NULL,
     sync_status VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

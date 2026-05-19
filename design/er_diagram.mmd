@@ -203,7 +203,6 @@ erDiagram
 
     cron_jobs {
         UUID cron_id PK
-        VARCHAR specialization_id "NOT NULL"
         VARCHAR type "NOT NULL, ENUM(azure, email)"
         VARCHAR sync_status "NOT NULL, ENUM(pending, success, fail)"
         DATETIME created_at

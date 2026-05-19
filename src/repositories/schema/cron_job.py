@@ -13,7 +13,6 @@ class CronJob(Base):
     __tablename__ = "cron_jobs"
 
     cron_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    specialization_id: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[str] = mapped_column(String(50), nullable=False)
     sync_status: Mapped[str] = mapped_column(String(50), nullable=False)
     created_at: Mapped[datetime | None] = mapped_column(default=func.current_timestamp())

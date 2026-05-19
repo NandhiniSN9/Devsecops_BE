@@ -40,11 +40,8 @@ class AdoSyncService:
         Raises:
             InvalidParameterError: If specialization_id format is invalid.
         """
-        spec_label = str(specialization_id) if specialization_id else "all"
-
         # Create cron job record
         cron_job = await self._repo.create_cron_job(
-            specialization_id=spec_label,
             created_by=SYNC_ADO_SERVICE_IDENTIFIER,
         )
         await self._repo.commit()

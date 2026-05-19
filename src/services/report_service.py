@@ -92,7 +92,6 @@ class ReportService:
         # Create cron job record
         cron_job = CronJob(
             cron_id=uuid.uuid4(),
-            specialization_id=str(spec_id),
             type="email",
             sync_status="pending",
             created_at=datetime.utcnow(),

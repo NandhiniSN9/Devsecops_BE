@@ -161,12 +161,12 @@ INSERT INTO artifacts (artifact_id, pipeline_run_id, artifact_name, size_bytes, 
 -- =============================================
 -- 17. cron_jobs
 -- =============================================
-INSERT INTO cron_jobs (cron_id, specialization_id, type, sync_status, created_by, is_active) VALUES
-('e0200000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'azure', 'success', 'seed_script', 1),
-('e0200000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000002', 'azure', 'success', 'seed_script', 1),
-('e0200000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000003', 'azure', 'fail', 'seed_script', 1),
-('e0200000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000001', 'email', 'success', 'seed_script', 1),
-('e0200000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000004', 'email', 'pending', 'seed_script', 1);
+INSERT INTO cron_jobs (cron_id, type, sync_status, created_by, is_active) VALUES
+('e0200000-0000-0000-0000-000000000001', 'azure', 'success', 'seed_script', 1),
+('e0200000-0000-0000-0000-000000000002', 'azure', 'success', 'seed_script', 1),
+('e0200000-0000-0000-0000-000000000003', 'azure', 'fail', 'seed_script', 1),
+('e0200000-0000-0000-0000-000000000004', 'email', 'success', 'seed_script', 1),
+('e0200000-0000-0000-0000-000000000005', 'email', 'pending', 'seed_script', 1);
 
 -- =============================================
 -- 18. kpi_history
