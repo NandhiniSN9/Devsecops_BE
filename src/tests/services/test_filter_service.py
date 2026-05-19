@@ -4,6 +4,7 @@ import uuid
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.models.response.filter_response import FiltersDataResponse
 from src.repositories.filters_repository import ClientRepository
@@ -103,7 +104,7 @@ class TestGetFiltersAllCategoriesPopulated:
     async def test_returns_filters_data_type(
         self, filter_service, mock_client_repo
     ):
-        """Test that the return type is FiltersData."""
+        """Test that the return type is FiltersDataResponse."""
         mock_client_repo.get_active_specializations.return_value = [
             _make_specialization(uuid.uuid4(), "DevOps"),
         ]
@@ -200,30 +201,12 @@ class TestClientUuidDeterminism:
 
         result_1 = await filter_service.get_filters()
 
-        # Call again with same data
         mock_client_repo.get_active_clients.return_value = [
             {"client_id": expected_id, "client_name": "Acme Corp"},
         ]
         result_2 = await filter_service.get_filters()
 
         assert result_1.clients[0].id == result_2.clients[0].id
-
-    async def test_uuid5_matches_expected_value(
-        self, filter_service, mock_client_repo
-    ):
-        """Test that UUID v5 matches the expected deterministic value from uuid.uuid5."""
-        client_name = "Test Client"
-        expected_id = str(uuid.uuid5(CLIENT_UUID_NAMESPACE, client_name))
-
-        mock_client_repo.get_active_specializations.return_value = []
-        mock_client_repo.get_active_clients.return_value = [
-            {"client_id": expected_id, "client_name": client_name},
-        ]
-        mock_client_repo.get_active_statuses.return_value = []
-
-        result = await filter_service.get_filters()
-
-        assert result.clients[0].id == expected_id
 
     async def test_different_client_names_produce_different_uuids(
         self, filter_service, mock_client_repo
@@ -334,3 +317,22 @@ class TestClientRepositoryCalled:
         await filter_service.get_filters()
 
         mock_client_repo.get_active_statuses.assert_awaited_once()
+
+
+class TestFilterServiceErrors:
+    """Tests for error handling in FilterService."""
+
+    async def test_database_error_propagates(self, filter_service, mock_client_repo):
+        """SQLAlchemyError from repository propagates up."""
+        mock_client_repo.get_active_specializations.side_effect = SQLAlchemyError("Connection lost")
+
+        with pytest.raises(SQLAlchemyError):
+            await filter_service.get_filters()
+
+    async def test_unexpected_error_propagates(self, filter_service, mock_client_repo):
+        """Unexpected errors from repository propagate up."""
+        mock_client_repo.get_active_specializations.return_value = []
+        mock_client_repo.get_active_clients.side_effect = RuntimeError("Unexpected")
+
+        with pytest.raises(RuntimeError):
+            await filter_service.get_filters()

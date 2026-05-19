@@ -4,6 +4,8 @@ Computes live project counts from the database and calculates
 trends by comparing current counts with historical snapshots.
 """
 
+import uuid
+
 from src.models.request.overview_request import PeriodEnum
 from src.models.response.overview_response import (
     KpiTileResponse,
@@ -14,7 +16,7 @@ from src.models.response.overview_response import (
     SyncDetailResponse,
 )
 from src.repositories.overview_repository import OverviewRepository
-from src.settings import PERIOD_DAYS_MAP
+from src.settings import MAX_SPECIALIZATION_FILTER_COUNT, PERIOD_DAYS_MAP
 from src.utils.exceptions.exceptions import InvalidParameterError
 from src.utils.logger import logger
 
@@ -30,11 +32,12 @@ class OverviewService:
         """Initialize with repository dependency."""
         self._overview_repo = overview_repo
 
-    async def get_overview(self, period: str | None) -> OverviewDataResponse:
+    async def get_overview(self, period: str | None, specialization: str | None = None) -> OverviewDataResponse:
         """Compute and return the full overview dashboard data.
 
         Args:
             period: Period filter value (last_week, last_month, last_3_months) or None.
+            specialization: Comma-separated specialization IDs to filter by, or None for all.
 
         Returns:
             OverviewDataResponse containing metrics and status distribution.
@@ -47,7 +50,10 @@ class OverviewService:
             validated_period = self._validate_period(period)
             period_days = PERIOD_DAYS_MAP[validated_period]
 
-            # Step 2: Get sync details
+            # Step 2: Parse specialization filter
+            specialization_ids = self._parse_specialization(specialization)
+
+            # Step 3: Get sync details
             last_synced_dt = await self._overview_repo.get_last_synced()
             last_synced = last_synced_dt.strftime("%d %b %Y, %H:%M") if last_synced_dt else None
             is_sync_in_progress = await self._overview_repo.is_sync_in_progress()
@@ -57,16 +63,16 @@ class OverviewService:
                 is_sync_in_progress=is_sync_in_progress,
             )
 
-            # Step 3: Get live counts from projects table
-            current_counts = await self._overview_repo.get_live_counts()
+            # Step 4: Get live counts from projects table
+            current_counts = await self._overview_repo.get_live_counts(specialization_ids)
 
-            # Step 4: Get historical counts for trend comparison
+            # Step 5: Get historical counts for trend comparison
             historical_counts = await self._overview_repo.get_historical_counts(period_days)
 
-            # Step 5: Build metrics with trends
+            # Step 6: Build metrics with trends
             metrics = self._build_metrics(current_counts, historical_counts)
 
-            # Step 6: Build status distribution
+            # Step 7: Build status distribution
             status_distribution = self._build_status_distribution(current_counts)
 
             return OverviewDataResponse(
@@ -105,6 +111,34 @@ class OverviewService:
             raise InvalidParameterError(f"Invalid value for parameter 'period'. Accepted values: {valid_values}")
 
         return period
+
+    def _parse_specialization(self, specialization: str | None) -> list[uuid.UUID] | None:
+        """Parse the specialization CSV parameter into a list of UUIDs.
+
+        Args:
+            specialization: Comma-separated specialization IDs or None.
+
+        Returns:
+            List of valid UUIDs, or None if no filter should be applied.
+        """
+        if specialization is None or specialization.strip() == "":
+            return None
+
+        raw_ids = specialization.split(",")
+        trimmed_ids = [id_str.strip() for id_str in raw_ids]
+        limited_ids = trimmed_ids[:MAX_SPECIALIZATION_FILTER_COUNT]
+
+        valid_uuids: list[uuid.UUID] = []
+        for id_str in limited_ids:
+            try:
+                valid_uuids.append(uuid.UUID(id_str))
+            except (ValueError, AttributeError):
+                continue
+
+        if not valid_uuids:
+            return None
+
+        return valid_uuids
 
     def _build_metrics(self, current: dict, historical: dict | None) -> OverviewMetricsResponse:
         """Build KPI metrics by comparing current vs historical counts.

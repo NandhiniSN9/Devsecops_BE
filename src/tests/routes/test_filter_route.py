@@ -14,6 +14,7 @@ from src.models.response.filter_response import FilterItemResponse, FiltersDataR
 from src.routes.filter_route import router
 from src.services.dependencies import get_filter_service
 from src.services.filter_service import FilterService
+from src.utils.exceptions.exception_handlers import register_exception_handlers
 
 
 @pytest.fixture
@@ -46,6 +47,7 @@ def sample_filters_data():
 def app(mock_filter_service):
     """Create a FastAPI test app with the filter router."""
     test_app = FastAPI()
+    register_exception_handlers(test_app)
     test_app.include_router(router, prefix="/api/v1")
     test_app.dependency_overrides[get_filter_service] = lambda: mock_filter_service
     return test_app
@@ -54,7 +56,7 @@ def app(mock_filter_service):
 @pytest.fixture
 def client(app):
     """Create a test client."""
-    return TestClient(app)
+    return TestClient(app, raise_server_exceptions=False)
 
 
 class TestGetFiltersRoute:
@@ -189,3 +191,11 @@ class TestGetFiltersRoute:
         client.get("/api/v1/filters")
 
         mock_filter_service.get_filters.assert_called_once()
+
+    def test_service_error_returns_500(self, client, mock_filter_service):
+        """Service error returns 500 with error status."""
+        mock_filter_service.get_filters.side_effect = RuntimeError("Database error")
+
+        response = client.get("/api/v1/filters")
+
+        assert response.status_code == 500

@@ -26,27 +26,39 @@ class OverviewRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_live_counts(self) -> dict:
+    async def get_live_counts(self, specialization_ids: list | None = None) -> dict:
         """Get current project counts directly from the projects table.
 
         Computes:
-        - total_projects: all active projects
+        - total_projects: all active projects (optionally filtered by specialization)
         - adopted: projects with is_devsecops_onboarded = true
         - completed/active/inactive/at_risk/not_applicable: by status name
+
+        Args:
+            specialization_ids: Optional list of specialization UUIDs to filter by.
 
         Returns:
             Dict with count keys: total_projects, adopted, completed, active,
             inactive, at_risk, not_applicable.
         """
         try:
+            # Base filter conditions
+            base_conditions = [Project.is_active == 1]
+            if specialization_ids:
+                base_conditions.append(Project.specialization_name.in_(
+                    select(Specialization.specialization_name)
+                    .where(Specialization.specialization_id.in_(specialization_ids))
+                    .scalar_subquery()
+                ))
+
             # Total active projects
-            total_stmt = select(func.count()).select_from(Project).where(Project.is_active == 1)
+            total_stmt = select(func.count()).select_from(Project).where(*base_conditions)
             total_result = await self._session.execute(total_stmt)
             total_projects = total_result.scalar_one()
 
             # Adopted (is_devsecops_onboarded = true)
             adopted_stmt = select(func.count()).select_from(Project).where(
-                Project.is_active == 1,
+                *base_conditions,
                 Project.is_devsecops_onboarded.is_(True),
             )
             adopted_result = await self._session.execute(adopted_stmt)
@@ -56,7 +68,7 @@ class OverviewRepository:
             status_counts_stmt = (
                 select(Status.status_name, func.count(Project.project_id))
                 .join(Project, Project.status_id == Status.status_id)
-                .where(Project.is_active == 1, Status.is_active == 1)
+                .where(*base_conditions, Status.is_active == 1)
                 .group_by(Status.status_name)
             )
             status_result = await self._session.execute(status_counts_stmt)
