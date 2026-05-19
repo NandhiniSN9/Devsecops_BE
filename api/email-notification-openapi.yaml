@@ -12,7 +12,7 @@ tags:
 
 paths:
   /api/v1/reports/generate:
-    post:
+    get:
       tags:
         - Reports
       summary: Generate and email reports
