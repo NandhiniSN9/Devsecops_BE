@@ -14,7 +14,6 @@ from src.repositories.schema.project import Project
 from src.repositories.schema.repository import Repository
 from src.repositories.schema.status import Status
 
-
 class ProjectsRepository:
     """Data access layer for projects queries and mutations."""
 
@@ -55,10 +54,11 @@ class ProjectsRepository:
                 Status, Project.status_id == Status.status_id, isouter=True
             ).where(Project.is_active == 1)
 
+
             # Period filter
             cutoff_date = datetime.utcnow().date() - timedelta(days=period_days)
             base_query = base_query.where(Project.onboarded_date >= cutoff_date)
-
+            
             # Search filter
             if search:
                 base_query = base_query.where(Project.project_name.ilike(f"%{search}%"))
