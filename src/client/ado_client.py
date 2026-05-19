@@ -14,70 +14,72 @@ _REQUEST_TIMEOUT = 30
 class AdoClient:
     """Async HTTP client for Azure DevOps REST API communication."""
 
-    def __init__(self, org_url: str, pat: str, project: str) -> None:
+    def __init__(self, org_url: str, pat: str) -> None:
         """Initialize with ADO credentials.
 
         Args:
             org_url: Azure DevOps organization URL (e.g., https://dev.azure.com/org).
             pat: Personal Access Token for authentication.
-            project: Default Azure DevOps project name.
         """
         self._org_url = org_url.rstrip("/")
-        self._project = project
         self._auth = httpx.BasicAuth(username="", password=pat)
 
-    async def get_pipeline_runs(self, repo_id: str, top: int = 5) -> list[dict]:
+    async def get_pipeline_runs(self, repo_id: str, project: str, top: int = 5) -> list[dict]:
         """Fetch the latest pipeline runs (builds) for a repository.
 
         Args:
             repo_id: Azure DevOps repository identifier.
+            project: ADO project name.
             top: Number of records to fetch.
 
         Returns:
             List of build dictionaries from ADO API.
         """
-        url = f"{self._org_url}/{self._project}/_apis/build/builds"
+        url = f"{self._org_url}/{project}/_apis/build/builds"
         params = {"repositoryId": repo_id, "repositoryType": "TfsGit", "$top": str(top), "api-version": _API_VERSION}
         return await self._get_list(url, params, "value")
 
-    async def get_commits(self, repo_id: str, top: int = 5) -> list[dict]:
+    async def get_commits(self, repo_id: str, project: str, top: int = 5) -> list[dict]:
         """Fetch the latest commits for a repository.
 
         Args:
             repo_id: Azure DevOps repository identifier.
+            project: ADO project name.
             top: Number of records to fetch.
 
         Returns:
             List of commit dictionaries from ADO API.
         """
-        url = f"{self._org_url}/{self._project}/_apis/git/repositories/{repo_id}/commits"
+        url = f"{self._org_url}/{project}/_apis/git/repositories/{repo_id}/commits"
         params = {"$top": str(top), "api-version": _API_VERSION}
         return await self._get_list(url, params, "value")
 
-    async def get_pull_requests(self, repo_id: str, top: int = 5) -> list[dict]:
+    async def get_pull_requests(self, repo_id: str, project: str, top: int = 5) -> list[dict]:
         """Fetch the latest pull requests for a repository.
 
         Args:
             repo_id: Azure DevOps repository identifier.
+            project: ADO project name.
             top: Number of records to fetch.
 
         Returns:
             List of pull request dictionaries from ADO API.
         """
-        url = f"{self._org_url}/{self._project}/_apis/git/repositories/{repo_id}/pullrequests"
+        url = f"{self._org_url}/{project}/_apis/git/repositories/{repo_id}/pullrequests"
         params = {"$top": str(top), "status": "all", "api-version": _API_VERSION}
         return await self._get_list(url, params, "value")
 
-    async def get_build_artifacts(self, build_id: int) -> list[dict]:
+    async def get_build_artifacts(self, build_id: int, project: str) -> list[dict]:
         """Fetch artifacts for a specific build.
 
         Args:
             build_id: The ADO build ID.
+            project: ADO project name.
 
         Returns:
             List of artifact dictionaries from ADO API.
         """
-        url = f"{self._org_url}/{self._project}/_apis/build/builds/{build_id}/artifacts"
+        url = f"{self._org_url}/{project}/_apis/build/builds/{build_id}/artifacts"
         params = {"api-version": _API_VERSION}
         return await self._get_list(url, params, "value")
 
@@ -94,6 +96,7 @@ class AdoClient:
         """
         try:
             async with httpx.AsyncClient(auth=self._auth, timeout=_REQUEST_TIMEOUT) as client:
+                logger.info( "_get_list", url=url, params=params)
                 response = await client.get(url, params=params)
                 response.raise_for_status()
                 data = response.json()

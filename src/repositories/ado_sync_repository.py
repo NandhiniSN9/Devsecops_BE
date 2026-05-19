@@ -17,7 +17,7 @@ from src.repositories.schema.pull_request import PullRequest
 from src.repositories.schema.repository import Repository
 from src.repositories.schema.security_scan import SecurityScan
 from src.repositories.schema.status import Status
-
+from src.utils.logger import logger
 
 class AdoSyncRepository:
     """Data access layer for ADO sync operations."""

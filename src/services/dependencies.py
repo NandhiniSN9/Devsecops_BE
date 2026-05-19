@@ -186,7 +186,6 @@ def get_ado_client() -> AdoClient:
     return AdoClient(
         org_url=settings.ADO_ORG_URL,
         pat=settings.ADO_PAT,
-        project=settings.ADO_PROJECT,
     )
 
 

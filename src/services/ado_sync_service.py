@@ -59,7 +59,7 @@ class AdoSyncService:
                         continue
 
                     try:
-                        await self._sync_repository(repository)
+                        await self._sync_repository(repository, project.project_name)
                     except Exception as exc:
                         has_errors = True
                         logger.error(
@@ -88,21 +88,22 @@ class AdoSyncService:
 
         return "Sync completed successfully"
 
-    async def _sync_repository(self, repository) -> None:
+    async def _sync_repository(self, repository, project_name: str) -> None:
         """Sync all data types for a single repository.
 
         Args:
             repository: Repository ORM object with ado_repo_id.
+            project_name: ADO project name from the database.
         """
         repo_id = repository.repository_id
         ado_repo_id = repository.ado_repo_id
 
-        logger.info("Syncing repository", repository_id=str(repo_id), ado_repo_id=ado_repo_id)
+        logger.info("Syncing repository", repository_id=str(repo_id), ado_repo_id=ado_repo_id, project=project_name)
 
         # Fetch data from ADO
-        ado_runs = await self._ado_client.get_pipeline_runs(ado_repo_id)
-        ado_commits = await self._ado_client.get_commits(ado_repo_id)
-        ado_prs = await self._ado_client.get_pull_requests(ado_repo_id)
+        ado_runs = await self._ado_client.get_pipeline_runs(ado_repo_id, project=project_name)
+        ado_commits = await self._ado_client.get_commits(ado_repo_id, project=project_name)
+        ado_prs = await self._ado_client.get_pull_requests(ado_repo_id, project=project_name)
 
         # Soft-delete existing records
         await self._repo.soft_delete_pipeline_runs(repo_id)
@@ -167,7 +168,7 @@ class AdoSyncService:
             most_recent_build = ado_runs[0]
             build_id = most_recent_build.get("id")
             if build_id:
-                ado_artifacts = await self._ado_client.get_build_artifacts(build_id)
+                ado_artifacts = await self._ado_client.get_build_artifacts(build_id, project=project_name)
                 artifact_records = []
                 for art in ado_artifacts:
                     resource = art.get("resource", {})
