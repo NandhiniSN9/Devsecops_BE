@@ -6,11 +6,11 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Virtual environments
-.venv/
-venv/
-env/
-.python-version
+# # Virtual environments
+# .venv/
+# venv/
+# env/
+# .python-version
 
 # Distribution / Packaging
 dist/
