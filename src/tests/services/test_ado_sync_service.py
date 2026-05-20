@@ -58,48 +58,69 @@ def _make_repository(**kwargs):
 
 
 class TestSyncAdoData:
-    """Tests for AdoSyncService.sync_ado_data."""
+    """Tests for AdoSyncService.initiate_sync and run_sync."""
 
     @pytest.mark.asyncio
-    async def test_creates_cron_job_and_completes(self, service, mock_repo, mock_ado_client):
-        """Should create a cron job and complete sync successfully."""
+    async def test_initiate_sync_returns_error_when_pending_exists(self, service, mock_repo):
+        """Should return error when a pending azure cron job exists."""
+        mock_repo.has_pending_azure_cron_job.return_value = True
+
+        result = await service.initiate_sync()
+
+        assert result["success"] is False
+        assert result["message"] == "An ADO sync is already running"
+        mock_repo.create_cron_job.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_initiate_sync_creates_cron_job_when_no_pending(self, service, mock_repo):
+        """Should create cron job and return success when no pending sync."""
         cron_job = _make_cron_job()
+        mock_repo.has_pending_azure_cron_job.return_value = False
         mock_repo.create_cron_job.return_value = cron_job
+
+        result = await service.initiate_sync()
+
+        assert result["success"] is True
+        assert result["message"] == "ADO sync initiated successfully"
+        assert result["cron_id"] == cron_job.cron_id
+        mock_repo.create_cron_job.assert_called_once()
+        mock_repo.commit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_run_sync_completes_successfully(self, service, mock_repo, mock_ado_client):
+        """Should complete sync and update cron job status to success."""
+        cron_id = uuid.uuid4()
         mock_repo.get_applicable_projects.return_value = []
 
-        result = await service.sync_ado_data()
+        await service.run_sync(cron_id)
 
-        assert result == "Sync completed successfully"
-        mock_repo.create_cron_job.assert_called_once()
         mock_repo.update_cron_job_status.assert_called_once_with(
-            cron_job.cron_id, "success", "sync_ado_service"
+            cron_id, "success", "sync_ado_service"
         )
 
     @pytest.mark.asyncio
-    async def test_skips_repos_without_ado_repo_id(self, service, mock_repo, mock_ado_client):
+    async def test_run_sync_skips_repos_without_ado_repo_id(self, service, mock_repo, mock_ado_client):
         """Should skip repositories without ado_repo_id."""
-        cron_job = _make_cron_job()
+        cron_id = uuid.uuid4()
         project = _make_project()
         repo_no_ado = _make_repository(ado_repo_id=None)
 
-        mock_repo.create_cron_job.return_value = cron_job
         mock_repo.get_applicable_projects.return_value = [project]
         mock_repo.get_repositories_for_project.return_value = [repo_no_ado]
         mock_repo.get_specialization_ids_for_project.return_value = []
 
-        await service.sync_ado_data()
+        await service.run_sync(cron_id)
 
         # ADO client should not be called
         mock_ado_client.get_pipeline_runs.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_syncs_repository_with_ado_data(self, service, mock_repo, mock_ado_client):
+    async def test_run_sync_syncs_repository_with_ado_data(self, service, mock_repo, mock_ado_client):
         """Should fetch and insert data for repositories with ado_repo_id."""
-        cron_job = _make_cron_job()
+        cron_id = uuid.uuid4()
         project = _make_project()
         repository = _make_repository(ado_repo_id="ado-456")
 
-        mock_repo.create_cron_job.return_value = cron_job
         mock_repo.get_applicable_projects.return_value = [project]
         mock_repo.get_repositories_for_project.return_value = [repository]
         mock_repo.get_specialization_ids_for_project.return_value = []
@@ -132,7 +153,7 @@ class TestSyncAdoData:
         ]
         mock_ado_client.get_build_artifacts.return_value = []
 
-        await service.sync_ado_data()
+        await service.run_sync(cron_id)
 
         mock_repo.soft_delete_pipeline_runs.assert_called_once()
         mock_repo.soft_delete_commits.assert_called_once()
@@ -143,14 +164,13 @@ class TestSyncAdoData:
         mock_repo.update_repository_metrics.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_handles_repo_sync_failure_gracefully(self, service, mock_repo, mock_ado_client):
+    async def test_run_sync_handles_repo_failure_gracefully(self, service, mock_repo, mock_ado_client):
         """Should continue sync when individual repository fails."""
-        cron_job = _make_cron_job()
+        cron_id = uuid.uuid4()
         project = _make_project()
         repo1 = _make_repository(ado_repo_id="ado-1")
         repo2 = _make_repository(ado_repo_id="ado-2")
 
-        mock_repo.create_cron_job.return_value = cron_job
         mock_repo.get_applicable_projects.return_value = [project]
         mock_repo.get_repositories_for_project.return_value = [repo1, repo2]
         mock_repo.get_specialization_ids_for_project.return_value = []
@@ -163,25 +183,12 @@ class TestSyncAdoData:
         mock_ado_client.get_commits.return_value = []
         mock_ado_client.get_pull_requests.return_value = []
 
-        await service.sync_ado_data()
+        await service.run_sync(cron_id)
 
         # Cron job should be marked as "fail" due to error
         mock_repo.update_cron_job_status.assert_called_once_with(
-            cron_job.cron_id, "fail", "sync_ado_service"
+            cron_id, "fail", "sync_ado_service"
         )
-
-    @pytest.mark.asyncio
-    async def test_filters_by_specialization_id(self, service, mock_repo, mock_ado_client):
-        """Should pass specialization_id to repository query."""
-        spec_id = uuid.uuid4()
-        cron_job = _make_cron_job()
-
-        mock_repo.create_cron_job.return_value = cron_job
-        mock_repo.get_applicable_projects.return_value = []
-
-        await service.sync_ado_data(specialization_id=spec_id)
-
-        mock_repo.get_applicable_projects.assert_called_once_with(spec_id)
 
 
 class TestMapBuildStatus:

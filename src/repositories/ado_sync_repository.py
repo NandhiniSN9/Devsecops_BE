@@ -25,6 +25,16 @@ class AdoSyncRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    async def has_pending_azure_cron_job(self) -> bool:
+        """Check if any cron job with type 'azure' is in 'pending' status."""
+        stmt = select(CronJob).where(
+            CronJob.type == "azure",
+            CronJob.sync_status == "pending",
+            CronJob.is_active == 1,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none() is not None
+
     async def create_cron_job(
         self, created_by: str
     ) -> CronJob:

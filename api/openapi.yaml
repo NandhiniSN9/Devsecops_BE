@@ -470,24 +470,12 @@ paths:
                 $ref: '#/components/schemas/CommonServerError'
 
   /api/v1/sync/ado:
-    post:
+    get:
       tags:
         - Sync
       summary: Sync Azure DevOps details
-      description: Triggers a sync of data from Azure DevOps. Provide a specialization_id to sync for a specific specialization, or omit it to sync all.
+      description: Triggers a sync of data from Azure DevOps for all applicable projects.
       operationId: syncADODetails
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                specialization_id:
-                  type: string
-                  format: uuid
-                  nullable: true
-                  description: UUID of the specialization to sync. Null or omitted syncs all.
       responses:
         '200':
           description: Sync initiated
@@ -495,6 +483,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SyncSuccessResponse'
+        '409':
+          description: ADO sync already in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
         '500':
           description: Server error
           content:

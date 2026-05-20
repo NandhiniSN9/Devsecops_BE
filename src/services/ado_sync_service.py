@@ -25,21 +25,42 @@ class AdoSyncService:
         self._repo = repo
         self._ado_client = ado_client
 
-    async def sync_ado_data(self) -> str:
-
-        logger.debug("Inside sync_ado_data")
-        """Trigger ADO sync for applicable projects.
+    async def initiate_sync(self) -> dict:
+        """Check for pending sync and create cron job record.
 
         Returns:
-            Success message string.
+            Dict with success flag, message, and cron_id if successful.
         """
+        logger.debug("Inside initiate_sync")
+
+        # Check if an ADO sync is already running
+        if await self._repo.has_pending_azure_cron_job():
+            logger.info("ADO sync already in progress, skipping")
+            return {
+                "success": False,
+                "message": "An ADO sync is already running",
+            }
+
         # Create cron job record
         cron_job = await self._repo.create_cron_job(
             created_by=SYNC_ADO_SERVICE_IDENTIFIER,
         )
         await self._repo.commit()
-        cron_id = cron_job.cron_id
         logger.debug("Committed the cron job record")
+
+        return {
+            "success": True,
+            "message": "ADO sync initiated successfully",
+            "cron_id": cron_job.cron_id,
+        }
+
+    async def run_sync(self, cron_id) -> None:
+        """Execute the ADO sync process in the background.
+
+        Args:
+            cron_id: UUID of the cron job record to track this sync.
+        """
+        logger.debug("Starting background ADO sync", cron_id=str(cron_id))
         has_errors = False
 
         try:
@@ -97,9 +118,7 @@ class AdoSyncService:
                 cron_id, "fail", SYNC_ADO_SERVICE_IDENTIFIER
             )
             await self._repo.commit()
-            raise exc
-
-        return "Sync completed successfully"
+            logger.error("ADO sync failed", cron_id=str(cron_id), error=str(exc))
 
     async def _sync_repository(self, repository, project_name: str) -> None:
         """Sync all data types for a single repository.
