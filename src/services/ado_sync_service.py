@@ -131,7 +131,7 @@ class AdoSyncService:
             pipeline_run_records.append(
                 PipelineRun(
                     repository_id=repo_id,
-                    run_number=run.get("buildNumber", 0),
+                    run_number=run.get("id", 0),
                     status=self._map_build_status(run.get("result", "")),
                     branch=self._strip_branch_prefix(run.get("sourceBranch", "")),
                     duration_seconds=self._compute_duration(run.get("startTime"), run.get("finishTime")),

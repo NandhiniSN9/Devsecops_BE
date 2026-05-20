@@ -60,7 +60,7 @@ class AdoSyncRepository:
         stmt = select(Project).where(
             Project.is_applicable == True,  # noqa: E712
             Project.is_active == 1,
-        ).limit(1)  # TODO: Remove limit after testing
+        ).limit(5)  # TODO: Remove limit after testing
 
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
