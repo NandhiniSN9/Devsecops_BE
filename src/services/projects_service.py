@@ -7,12 +7,12 @@ from src.client.jira_client import JiraClient
 from src.client.s3_client import S3Client
 from src.models.request.projects_request import (
     ProjectActionEnum,
-    ProjectPeriodEnum,
     ProjectSortByEnum,
     ProjectSortOrderEnum,
 )
 from src.models.response.base_response import BaseResponse
 from src.models.response.projects_response import (
+    NotApplicableDetailsResponse,
     PaginationResponse,
     ProjectItemResponse,
     ProjectsListDataResponse,
@@ -45,6 +45,7 @@ class ProjectsService:
         status: str | None,
         client: str | None,
         specialization: str | None,
+        min_overdue_days: int | None,
         offset: int,
         limit: int,
         sort_by: str | None,
@@ -58,6 +59,7 @@ class ProjectsService:
             status: Comma-separated status IDs.
             client: Comma-separated client IDs.
             specialization: Comma-separated specialization IDs.
+            min_overdue_days: Minimum overdue days filter.
             offset: Pagination offset.
             limit: Pagination limit.
             sort_by: Sort field.
@@ -76,7 +78,7 @@ class ProjectsService:
         self._validate_offset(offset)
         self._validate_limit(limit)
 
-        period_days = PROJECTS_PERIOD_DAYS_MAP[validated_period]
+        period_days = PROJECTS_PERIOD_DAYS_MAP.get(validated_period, 0)
 
         # Parse filter values
         status_ids = self._parse_uuid_csv(status)
@@ -90,6 +92,7 @@ class ProjectsService:
             status_ids=status_ids,
             client_ids=client_ids,
             specialization_ids=specialization_ids,
+            min_overdue_days=min_overdue_days,
             offset=offset,
             limit=limit,
             sort_by=validated_sort_by,
@@ -114,6 +117,17 @@ class ProjectsService:
 
             at_risk_overdue = self._calculate_at_risk_overdue(project, repo_items)
 
+            # Fetch not_applicable_details when status is "Not Applicable"
+            not_applicable_details = None
+            if status_name == "Not Applicable":
+                not_applicable_details_data = await self._projects_repo.get_not_applicable_details(
+                    project.project_id
+                )
+                if not_applicable_details_data:
+                    not_applicable_details = NotApplicableDetailsResponse(
+                        **not_applicable_details_data
+                    )
+
             project_items.append(
                 ProjectItemResponse(
                     id=project.project_id,
@@ -125,6 +139,7 @@ class ProjectsService:
                     status=status_name or "Unknown",
                     overdue_days=at_risk_overdue,
                     repositories=repo_items,
+                    not_applicable_details=not_applicable_details,
                 )
             )
 
@@ -402,11 +417,11 @@ class ProjectsService:
 
     @staticmethod
     def _validate_period(period: str | None) -> str:
-        """Validate period parameter."""
+        """Validate period parameter. Returns 'all' when period is None (no date filter)."""
         if period is None:
-            return ProjectPeriodEnum.LAST_WEEK.value
+            return "all"
 
-        valid_values = [e.value for e in ProjectPeriodEnum]
+        valid_values = list(PROJECTS_PERIOD_DAYS_MAP.keys())
         if period not in valid_values:
             raise InvalidParameterError(
                 f"Invalid query parameter: 'period' must be one of {valid_values}"

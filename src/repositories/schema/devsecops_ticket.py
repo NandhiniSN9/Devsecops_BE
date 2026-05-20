@@ -20,6 +20,7 @@ class DevsecopsTicket(Base):
 
     ticket_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     specialization_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("specializations.specialization_id"))
+    status_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("statuses.status_id"))
     project_id: Mapped[uuid.UUID | None] = mapped_column()
     sn_project_id: Mapped[str | None] = mapped_column(String(255))
     devsec_project_id: Mapped[str | None] = mapped_column(String(255))
@@ -29,6 +30,7 @@ class DevsecopsTicket(Base):
     approver: Mapped[str | None] = mapped_column(String(255))
     sync_method: Mapped[str | None] = mapped_column(String(255))
     requested_at: Mapped[datetime | None] = mapped_column()
+    at_risk_at: Mapped[datetime | None] = mapped_column()
     # Timezone-aware timestamp set when the associated project is marked complete
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(default=func.current_timestamp())
