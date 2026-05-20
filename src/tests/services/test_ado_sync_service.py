@@ -38,12 +38,13 @@ def _make_cron_job():
     return cron
 
 
-def _make_project(**kwargs):
-    """Helper to create a mock Project."""
-    project = MagicMock()
-    project.project_id = kwargs.get("project_id", uuid.uuid4())
-    project.project_name = kwargs.get("project_name", "Test Project")
-    return project
+def _make_ticket(**kwargs):
+    """Helper to create a mock DevsecopsTicket."""
+    ticket = MagicMock()
+    ticket.ticket_id = kwargs.get("ticket_id", uuid.uuid4())
+    ticket.project_name = kwargs.get("project_name", "Test Project")
+    ticket.specialization_id = kwargs.get("specialization_id", uuid.uuid4())
+    return ticket
 
 
 def _make_repository(**kwargs):
@@ -90,7 +91,7 @@ class TestSyncAdoData:
     async def test_run_sync_completes_successfully(self, service, mock_repo, mock_ado_client):
         """Should complete sync and update cron job status to success."""
         cron_id = uuid.uuid4()
-        mock_repo.get_applicable_projects.return_value = []
+        mock_repo.get_applicable_tickets.return_value = []
 
         await service.run_sync(cron_id)
 
@@ -102,12 +103,11 @@ class TestSyncAdoData:
     async def test_run_sync_skips_repos_without_ado_repo_id(self, service, mock_repo, mock_ado_client):
         """Should skip repositories without ado_repo_id."""
         cron_id = uuid.uuid4()
-        project = _make_project()
+        ticket = _make_ticket()
         repo_no_ado = _make_repository(ado_repo_id=None)
 
-        mock_repo.get_applicable_projects.return_value = [project]
-        mock_repo.get_repositories_for_project.return_value = [repo_no_ado]
-        mock_repo.get_specialization_ids_for_project.return_value = []
+        mock_repo.get_applicable_tickets.return_value = [ticket]
+        mock_repo.get_repositories_for_ticket.return_value = [repo_no_ado]
 
         await service.run_sync(cron_id)
 
@@ -118,12 +118,11 @@ class TestSyncAdoData:
     async def test_run_sync_syncs_repository_with_ado_data(self, service, mock_repo, mock_ado_client):
         """Should fetch and insert data for repositories with ado_repo_id."""
         cron_id = uuid.uuid4()
-        project = _make_project()
+        ticket = _make_ticket()
         repository = _make_repository(ado_repo_id="ado-456")
 
-        mock_repo.get_applicable_projects.return_value = [project]
-        mock_repo.get_repositories_for_project.return_value = [repository]
-        mock_repo.get_specialization_ids_for_project.return_value = []
+        mock_repo.get_applicable_tickets.return_value = [ticket]
+        mock_repo.get_repositories_for_ticket.return_value = [repository]
 
         mock_ado_client.get_pipeline_runs.return_value = [
             {
@@ -167,13 +166,12 @@ class TestSyncAdoData:
     async def test_run_sync_handles_repo_failure_gracefully(self, service, mock_repo, mock_ado_client):
         """Should continue sync when individual repository fails."""
         cron_id = uuid.uuid4()
-        project = _make_project()
+        ticket = _make_ticket()
         repo1 = _make_repository(ado_repo_id="ado-1")
         repo2 = _make_repository(ado_repo_id="ado-2")
 
-        mock_repo.get_applicable_projects.return_value = [project]
-        mock_repo.get_repositories_for_project.return_value = [repo1, repo2]
-        mock_repo.get_specialization_ids_for_project.return_value = []
+        mock_repo.get_applicable_tickets.return_value = [ticket]
+        mock_repo.get_repositories_for_ticket.return_value = [repo1, repo2]
 
         # First repo fails, second succeeds
         mock_ado_client.get_pipeline_runs.side_effect = [

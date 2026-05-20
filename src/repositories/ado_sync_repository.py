@@ -31,9 +31,9 @@ class AdoSyncRepository:
             CronJob.type == "azure",
             CronJob.sync_status == "pending",
             CronJob.is_active == 1,
-        )
+        ).limit(1)
         result = await self._session.execute(stmt)
-        return result.scalar_one_or_none() is not None
+        return result.scalars().first() is not None
 
     async def create_cron_job(
         self, created_by: str
@@ -63,26 +63,21 @@ class AdoSyncRepository:
         )
         await self._session.execute(stmt)
 
-    async def get_applicable_projects(self) -> list[Project]:
-        """Get applicable active projects."""
-
-        logger.debug("Inside get_applicable_projects function")
-        stmt = select(Project).where(
-            Project.is_applicable == True,  # noqa: E712
-            Project.is_active == 1,
-        ).limit(5)  # TODO: Remove limit after testing
-
+    async def get_applicable_tickets(self) -> list[DevsecopsTicket]:
+        """Get active devsecops tickets for ADO sync."""
+        logger.debug("Inside get_applicable_tickets function")
+        stmt = select(DevsecopsTicket).where(
+            DevsecopsTicket.is_active == 1,
+        )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_repositories_for_project(self, project_id: uuid.UUID) -> list[Repository]:
-        """Get active repositories linked to a project through devsecops_tickets."""
+    async def get_repositories_for_ticket(self, ticket_id: uuid.UUID) -> list[Repository]:
+        """Get active repositories linked to a devsecops ticket."""
         stmt = (
             select(Repository)
-            .join(DevsecopsTicket, Repository.ticket_id == DevsecopsTicket.ticket_id)
             .where(
-                DevsecopsTicket.project_id == project_id,
-                DevsecopsTicket.is_active == 1,
+                Repository.ticket_id == ticket_id,
                 Repository.is_active == 1,
             )
         )

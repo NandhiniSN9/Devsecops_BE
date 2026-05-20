@@ -64,16 +64,16 @@ class AdoSyncService:
         has_errors = False
 
         try:
-            projects = await self._repo.get_applicable_projects()
+            tickets = await self._repo.get_applicable_tickets()
 
-            # Pre-extract project info to avoid lazy loading after rollback
-            project_info_list = [
-                (project.project_id, project.project_name)
-                for project in projects
+            # Pre-extract ticket info to avoid lazy loading after rollback
+            ticket_info_list = [
+                (ticket.ticket_id, ticket.project_name, ticket.specialization_id)
+                for ticket in tickets
             ]
 
-            for project_id, project_name in project_info_list:
-                repositories = await self._repo.get_repositories_for_project(project_id)
+            for ticket_id, project_name, _ in ticket_info_list:
+                repositories = await self._repo.get_repositories_for_ticket(ticket_id)
 
                 # Pre-extract attributes to avoid lazy loading after rollback
                 repo_info_list = [
@@ -103,7 +103,12 @@ class AdoSyncService:
 
             # Update KPI history only if all syncs passed
             if not has_errors:
-                await self._update_kpi_histories(project_info_list)
+                spec_ids: set[uuid.UUID] = {
+                    spec_id
+                    for _, _, spec_id in ticket_info_list
+                    if spec_id is not None
+                }
+                await self._update_kpi_histories(spec_ids)
 
             # Update cron job status
             final_status = "fail" if has_errors else "success"
@@ -237,19 +242,13 @@ class AdoSyncService:
         logger.info("Repository sync completed", repository_id=str(repo_id))
 
     async def _update_kpi_histories(
-        self, project_info_list: list[tuple[uuid.UUID, str]]
+        self, spec_ids: set[uuid.UUID]
     ) -> None:
         """Update KPI history for affected specializations.
 
         Args:
-            project_info_list: List of (project_id, project_name) tuples.
+            spec_ids: Set of specialization UUIDs to update.
         """
-        spec_ids: set[uuid.UUID] = set()
-
-        for project_id, _ in project_info_list:
-            project_spec_ids = await self._repo.get_specialization_ids_for_project(project_id)
-            spec_ids.update(project_spec_ids)
-
         for spec_id in spec_ids:
             try:
                 await self._create_kpi_snapshot(spec_id)
