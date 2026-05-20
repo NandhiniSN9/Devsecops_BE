@@ -53,27 +53,14 @@ class AdoSyncRepository:
         )
         await self._session.execute(stmt)
 
-    async def get_applicable_projects(
-        self, specialization_id: uuid.UUID | None = None
-    ) -> list[Project]:
-        """Get applicable active projects, optionally filtered by specialization."""
+    async def get_applicable_projects(self) -> list[Project]:
+        """Get applicable active projects."""
 
         logger.debug("Inside get_applicable_projects function")
         stmt = select(Project).where(
             Project.is_applicable == True,  # noqa: E712
             Project.is_active == 1,
-        )
-
-        if specialization_id:
-            stmt = stmt.where(
-                Project.project_id.in_(
-                    select(DevsecopsTicket.project_id).where(
-                        DevsecopsTicket.specialization_id == specialization_id,
-                        DevsecopsTicket.is_active == 1,
-                        DevsecopsTicket.project_id.isnot(None),
-                    )
-                )
-            )
+        ).limit(1)  # TODO: Remove limit after testing
 
         result = await self._session.execute(stmt)
         return list(result.scalars().all())

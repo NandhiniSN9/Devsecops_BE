@@ -11,7 +11,6 @@ from src.repositories.schema.kpi_history import KpiHistory
 from src.repositories.schema.pipeline_run import PipelineRun
 from src.repositories.schema.pull_request import PullRequest
 from src.repositories.schema.security_scan import SecurityScan
-from src.utils.exceptions import InvalidParameterError
 from src.utils.logger import logger
 
 # Service identifier
@@ -26,30 +25,25 @@ class AdoSyncService:
         self._repo = repo
         self._ado_client = ado_client
 
-    async def sync_ado_data(self, specialization_id: uuid.UUID | None = None) -> str:
+    async def sync_ado_data(self) -> str:
 
         logger.debug("Inside sync_ado_data")
         """Trigger ADO sync for applicable projects.
 
-        Args:
-            specialization_id: Optional UUID to filter by specialization.
-
         Returns:
             Success message string.
-
-        Raises:
-            InvalidParameterError: If specialization_id format is invalid.
         """
         # Create cron job record
         cron_job = await self._repo.create_cron_job(
             created_by=SYNC_ADO_SERVICE_IDENTIFIER,
         )
         await self._repo.commit()
+        cron_id = cron_job.cron_id
         logger.debug("Committed the cron job record")
         has_errors = False
 
         try:
-            projects = await self._repo.get_applicable_projects(specialization_id)
+            projects = await self._repo.get_applicable_projects()
 
             for project in projects:
                 repositories = await self._repo.get_repositories_for_project(project.project_id)
@@ -58,30 +52,35 @@ class AdoSyncService:
                     if not repository.ado_repo_id:
                         continue
 
+                    repo_id_str = str(repository.repository_id)
+                    ado_repo_id = repository.ado_repo_id
+
                     try:
                         await self._sync_repository(repository, project.project_name)
                     except Exception as exc:
                         has_errors = True
+                        await self._repo.rollback()
                         logger.error(
                             "Failed to sync repository",
-                            repository_id=str(repository.repository_id),
-                            ado_repo_id=repository.ado_repo_id,
+                            repository_id=repo_id_str,
+                            ado_repo_id=ado_repo_id,
                             error=str(exc),
                         )
 
             # Update KPI history for affected specializations
-            await self._update_kpi_histories(projects, specialization_id)
+            await self._update_kpi_histories(projects)
 
             # Update cron job status
             final_status = "fail" if has_errors else "success"
             await self._repo.update_cron_job_status(
-                cron_job.cron_id, final_status, SYNC_ADO_SERVICE_IDENTIFIER
+                cron_id, final_status, SYNC_ADO_SERVICE_IDENTIFIER
             )
             await self._repo.commit()
 
         except Exception as exc:
+            await self._repo.rollback()
             await self._repo.update_cron_job_status(
-                cron_job.cron_id, "fail", SYNC_ADO_SERVICE_IDENTIFIER
+                cron_id, "fail", SYNC_ADO_SERVICE_IDENTIFIER
             )
             await self._repo.commit()
             raise exc
@@ -205,17 +204,14 @@ class AdoSyncService:
         logger.info("Repository sync completed", repository_id=str(repo_id))
 
     async def _update_kpi_histories(
-        self, projects: list, specialization_id: uuid.UUID | None
+        self, projects: list
     ) -> None:
         """Update KPI history for affected specializations."""
         spec_ids: set[uuid.UUID] = set()
 
-        if specialization_id:
-            spec_ids.add(specialization_id)
-        else:
-            for project in projects:
-                project_spec_ids = await self._repo.get_specialization_ids_for_project(project.project_id)
-                spec_ids.update(project_spec_ids)
+        for project in projects:
+            project_spec_ids = await self._repo.get_specialization_ids_for_project(project.project_id)
+            spec_ids.update(project_spec_ids)
 
         for spec_id in spec_ids:
             try:
