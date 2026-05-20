@@ -26,6 +26,7 @@ class Project(Base):
     is_applicable: Mapped[bool | None] = mapped_column(Boolean, default=True)
     is_devsecops_onboarded: Mapped[bool | None] = mapped_column(Boolean, default=False)
     client: Mapped[str | None] = mapped_column(String(255))
+    # Deprecated: completed_at now lives on devsecops_tickets. Kept for backward compatibility.
     completed_at: Mapped[datetime | None] = mapped_column()
     created_at: Mapped[datetime | None] = mapped_column(default=func.current_timestamp())
     created_by: Mapped[str | None] = mapped_column(String(255))

@@ -51,6 +51,7 @@ PROJECTS_SERVICE_IDENTIFIER: str = "projects_service"
 
 # Period filter mapping for projects endpoint: enum value → number of days
 PROJECTS_PERIOD_DAYS_MAP: dict[str, int] = {
+    "all": 0,
     "last_week": 7,
     "last_month": 30,
     "last_3_months": 90,

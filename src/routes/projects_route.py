@@ -17,6 +17,7 @@ async def get_projects(
     status: str | None = Query(default=None),
     client: str | None = Query(default=None),
     specialization: str | None = Query(default=None),
+    min_overdue_days: int | None = Query(default=None),
     offset: int = Query(default=0),
     limit: int = Query(default=10),
     sort_by: str | None = Query(default=None),
@@ -26,11 +27,12 @@ async def get_projects(
     """Retrieve paginated list of projects with filtering and sorting.
 
     Args:
-        period: Time period filter (last_week, last_month, last_3_months, last_6_months, last_year).
+        period: Time period filter (all, last_week, last_month, last_3_months, last_6_months, last_year).
         search: Free text search on project name.
         status: Comma-separated status IDs to filter by.
         client: Comma-separated client IDs to filter by.
         specialization: Comma-separated specialization IDs to filter by.
+        min_overdue_days: Minimum overdue days filter — only return projects with overdue_days >= this value.
         offset: Number of items to skip for pagination.
         limit: Number of items per page (1-100).
         sort_by: Field to sort by (project, onboarded_date).
@@ -46,6 +48,7 @@ async def get_projects(
         status=status,
         client=client,
         specialization=specialization,
+        min_overdue_days=min_overdue_days,
         offset=offset,
         limit=limit,
         sort_by=sort_by,

@@ -6,14 +6,17 @@ and project action operations (mark not applicable, mark complete).
 
 import uuid
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import func, select, update
+
+from sqlalchemy import func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.repositories.schema.devsecops_ticket import DevsecopsTicket
 from src.repositories.schema.jira_ticket import JiraTicket
 from src.repositories.schema.project import Project
 from src.repositories.schema.repository import Repository
 from src.repositories.schema.status import Status
 from src.utils.logger import logger
+
 
 class ProjectsRepository:
     """Data access layer for projects queries and mutations."""
@@ -28,6 +31,7 @@ class ProjectsRepository:
         status_ids: list[uuid.UUID] | None,
         client_ids: list[str] | None,
         specialization_ids: list[uuid.UUID] | None,
+        min_overdue_days: int | None,
         offset: int,
         limit: int,
         sort_by: str,
@@ -36,11 +40,12 @@ class ProjectsRepository:
         """Get paginated projects with filters applied.
 
         Args:
-            period_days: Number of days to look back for onboarded_date filter.
+            period_days: Number of days to look back for onboarded_date filter. 0 means no filter.
             search: Free text search on project name (case-insensitive).
             status_ids: List of status UUIDs to filter by.
             client_ids: List of client identifiers to filter by.
             specialization_ids: List of specialization UUIDs to filter by.
+            min_overdue_days: Minimum overdue days — only return projects where overdue >= this value.
             offset: Number of items to skip.
             limit: Number of items per page.
             sort_by: Field to sort by (project_name or onboarded_date).
@@ -49,17 +54,17 @@ class ProjectsRepository:
         Returns:
             Tuple of (list of Project objects, total count).
         """
-        try:              
-            # Base query: active projects only
+        try:
+            # Base query: ALL active projects (ServiceNow + DevSecOps)
             base_query = select(Project).join(
                 Status, Project.status_id == Status.status_id, isouter=True
             ).where(Project.is_active == 1)
 
+            # Period filter — only apply when period_days > 0
+            if period_days > 0:
+                cutoff_date = datetime.utcnow().date() - timedelta(days=period_days)
+                base_query = base_query.where(Project.onboarded_date >= cutoff_date)
 
-            # Period filter
-            cutoff_date = datetime.utcnow().date() - timedelta(days=period_days)
-            base_query = base_query.where(Project.onboarded_date >= cutoff_date)
-            
             # Search filter
             if search:
                 base_query = base_query.where(Project.project_name.ilike(f"%{search}%"))
@@ -83,6 +88,12 @@ class ProjectsRepository:
                             DevsecopsTicket.project_id.isnot(None),
                         )
                     )
+                )
+
+            # Minimum overdue days filter
+            if min_overdue_days is not None and min_overdue_days > 0:
+                base_query = base_query.where(
+                    text(f"(CURRENT_DATE - projects.onboarded_date) >= {min_overdue_days}")
                 )
 
             # Count total items before pagination
@@ -233,8 +244,8 @@ class ProjectsRepository:
     ) -> None:
         """Update project to Completed status and stamp completed_at on devsecops_tickets.
 
-        Sets ``completed_at`` (timezone-aware UTC) on both the ``projects`` row
-        and every active ``devsecops_tickets`` row linked to the project.
+        Sets ``completed_at`` (timezone-aware UTC) on every active
+        ``devsecops_tickets`` row linked to the project.
 
         Args:
             project_id: The project UUID.
@@ -243,15 +254,14 @@ class ProjectsRepository:
         """
         try:
             now_utc = datetime.now(timezone.utc)
-            now_naive = now_utc.replace(tzinfo=None)  # projects.completed_at is TIMESTAMP WITHOUT TIME ZONE
+            now_naive = now_utc.replace(tzinfo=None)
 
-            # Update projects table (naive timestamp — column is TIMESTAMP WITHOUT TIME ZONE)
+            # Update projects table — status and modified fields only (completed_at lives on tickets)
             stmt = (
                 update(Project)
                 .where(Project.project_id == project_id)
                 .values(
                     status_id=status_id,
-                    completed_at=now_naive,
                     modified_at=now_naive,
                     modified_by=modified_by,
                 )
@@ -342,14 +352,35 @@ class ProjectsRepository:
     async def get_status_name_for_project(self, project: Project) -> str | None:
         """Get the status name for a project.
 
+        For devsecops-onboarded projects, first check the linked devsecops_ticket.status_id.
+        Falls back to project.status_id if no ticket status is found.
+
         Args:
             project: The project object.
 
         Returns:
             Status name string or None.
         """
-        
-        try: 
+
+        try:
+            # For devsecops-onboarded projects, try to get status from linked ticket first
+            if project.is_devsecops_onboarded:
+                ticket_status_stmt = (
+                    select(Status.status_name)
+                    .join(DevsecopsTicket, DevsecopsTicket.status_id == Status.status_id)
+                    .where(
+                        DevsecopsTicket.project_id == project.project_id,
+                        DevsecopsTicket.is_active == 1,
+                        DevsecopsTicket.status_id.isnot(None),
+                    )
+                    .limit(1)
+                )
+                ticket_result = await self._session.execute(ticket_status_stmt)
+                ticket_status_name = ticket_result.scalar_one_or_none()
+                if ticket_status_name:
+                    return ticket_status_name
+
+            # Fall back to project.status_id
             if project.status_id is None:
                 return None
             stmt = select(Status.status_name).where(Status.status_id == project.status_id)
@@ -360,5 +391,40 @@ class ProjectsRepository:
             logger.exception(
                 "Failed to fetch status name for project",
                 extra={"project_id": str(project.project_id), "error": str(e)},
+            )
+            raise
+
+    async def get_not_applicable_details(self, project_id: uuid.UUID) -> dict | None:
+        """Get jira ticket details for a Not Applicable project.
+
+        Args:
+            project_id: The project UUID.
+
+        Returns:
+            Dictionary with jira ticket details or None if not found.
+        """
+        try:
+            stmt = select(JiraTicket).where(
+                JiraTicket.project_id == project_id,
+                JiraTicket.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            jira_ticket = result.scalar_one_or_none()
+            if not jira_ticket:
+                return None
+            return {
+                "reason_category": jira_ticket.reason_category,
+                "comments": jira_ticket.comments,
+                "evidence_url": jira_ticket.evidence_url,
+                "type": jira_ticket.type,
+                "priority": jira_ticket.priority,
+                "assignee": jira_ticket.assignee,
+                "jira_status": jira_ticket.status,
+            }
+
+        except Exception as e:
+            logger.exception(
+                "Failed to fetch not_applicable_details",
+                extra={"project_id": str(project_id), "error": str(e)},
             )
             raise
