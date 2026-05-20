@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from src.client.ado_client import AdoClient
 from src.client.graph_client import GraphClient
+from src.client.jira_client import JiraClient
 from src.client.s3_client import S3Client
 from src.repositories.ado_sync_repository import AdoSyncRepository
 from src.repositories.filters_repository import ClientRepository
@@ -169,14 +170,21 @@ def get_projects_repository(
     return ProjectsRepository(session)
 
 
+def get_jira_client() -> JiraClient:
+    """Factory for JiraClient (uses settings for credentials)."""
+    return JiraClient()
+
+
 def get_projects_service(
     projects_repo: ProjectsRepository = Depends(get_projects_repository),
     s3_client: S3Client = Depends(get_s3_client),
+    jira_client: JiraClient = Depends(get_jira_client),
 ) -> ProjectsService:
     """Factory for ProjectsService with injected dependencies."""
     return ProjectsService(
         projects_repo=projects_repo,
         s3_client=s3_client,
+        jira_client=jira_client,
     )
 
 

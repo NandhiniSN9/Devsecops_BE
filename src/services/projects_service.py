@@ -1,8 +1,11 @@
 """Projects service for listing projects and performing project actions."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+
 from fastapi import UploadFile
+
+from src.client.jira_client import JiraClient
 from src.client.s3_client import S3Client
 from src.models.request.projects_request import (
     ProjectActionEnum,
@@ -20,6 +23,7 @@ from src.models.response.projects_response import (
 from src.repositories.projects_repository import ProjectsRepository
 from src.settings import PROJECTS_PERIOD_DAYS_MAP
 from src.utils.exceptions import InvalidParameterError, NotFoundError
+from src.utils.logger import logger
 
 
 class ProjectsService:
@@ -29,10 +33,12 @@ class ProjectsService:
         self,
         projects_repo: ProjectsRepository,
         s3_client: S3Client,
+        jira_client: JiraClient,
     ) -> None:
-        """Initialize with repository and S3 client dependencies."""
+        """Initialize with repository, S3 client, and Jira client dependencies."""
         self._projects_repo = projects_repo
         self._s3_client = s3_client
+        self._jira_client = jira_client
 
     async def get_projects(
         self,
@@ -153,14 +159,15 @@ class ProjectsService:
 
         Args:
             project_id: UUID string of the project.
-            action: Action to perform.
+            action: Action to perform (mark_not_applicable | mark_complete).
             reason_category: Reason category (required for mark_not_applicable).
             comments: Comments (required for mark_not_applicable).
-            evidence_file: Optional evidence file upload.
+            evidence_file: Optional evidence file upload (mark_not_applicable only).
             user_id: Authenticated user identifier.
 
         Returns:
-            BaseResponse with success message.
+            BaseResponse with project_id, project_name, and (for
+            mark_not_applicable) the S3 presigned URL of the uploaded evidence.
 
         Raises:
             InvalidParameterError: If validation fails.
@@ -177,39 +184,73 @@ class ProjectsService:
         if project is None:
             raise NotFoundError("Project not found")
 
+        project_name: str = project.project_name
+        response_data: dict = {
+            "project_id": str(parsed_project_id),
+            "project_name": project_name,
+        }
+
         if action == ProjectActionEnum.MARK_NOT_APPLICABLE:
-            await self._mark_not_applicable(
-                parsed_project_id, reason_category, comments, evidence_file, user_id
+            evidence_url = await self._mark_not_applicable(
+                parsed_project_id,
+                project_name,
+                reason_category,
+                comments,
+                evidence_file,
+                user_id,
             )
+            # Include the S3 presigned URL in the response when a file was uploaded
+            if evidence_url:
+                response_data["evidence_url"] = evidence_url
+
         elif action == ProjectActionEnum.MARK_COMPLETE:
-            await self._mark_complete(parsed_project_id, user_id)
+            await self._mark_complete(parsed_project_id, project_name, user_id)
 
         return BaseResponse(
             status_code=200,
             status="success",
             message="Action performed successfully",
-            data=None,
+            data=response_data,
         )
+
+    # ------------------------------------------------------------------
+    # Private action handlers
+    # ------------------------------------------------------------------
 
     async def _mark_not_applicable(
         self,
         project_id: uuid.UUID,
+        project_name: str,
         reason_category: str | None,
         comments: str | None,
         evidence_file: UploadFile | None,
         user_id: str,
-    ) -> None:
-        """Handle mark_not_applicable action logic.
+    ) -> str | None:
+        """Handle mark_not_applicable action.
+
+        Steps:
+        1. Validate required fields.
+        2. Look up "Not Applicable" status.
+        3. Upload evidence file to S3 (optional) — returns presigned URL.
+        4. Create a Bug in Jira Labs Hub (SBT project) with evidence URL.
+        5. Update project.is_applicable = False in DB.
+        6. Persist local jira_tickets record with the real Jira key + evidence URL.
+        7. Commit or rollback.
 
         Args:
             project_id: The project UUID.
+            project_name: Human-readable project name.
             reason_category: Required reason category.
             comments: Required comments.
-            evidence_file: Optional evidence file.
+            evidence_file: Optional evidence file (any type; stored in S3).
             user_id: Authenticated user identifier.
 
+        Returns:
+            The S3 presigned URL of the uploaded evidence file, or None if no
+            file was provided.
+
         Raises:
-            InvalidParameterError: If required fields are missing.
+            InvalidParameterError: If required fields are missing or status not found.
         """
         if not reason_category:
             raise InvalidParameterError(
@@ -225,24 +266,34 @@ class ProjectsService:
         if status is None:
             raise InvalidParameterError("Status 'Not Applicable' not found in system")
 
-        # Upload evidence file if provided
+        # Upload evidence file to S3 if provided; get back the presigned URL
         evidence_url: str | None = None
         if evidence_file and evidence_file.filename:
             evidence_url = await self._upload_evidence(evidence_file, project_id)
 
+        # Create bug in Jira Labs Hub (SBT) — do this before DB writes so that
+        # a Jira failure does not leave the project in a partially-updated state.
+        jira_result = await self._jira_client.create_bug(
+            project_id=str(project_id),
+            project_name=project_name,
+            reason_category=reason_category,
+            comments=comments,
+            evidence_url=evidence_url,
+            reporter_email=user_id,
+        )
+
         try:
-            # Update project
+            # Update project: is_applicable = False, status = Not Applicable
             await self._projects_repo.update_project_not_applicable(
                 project_id=project_id,
                 status_id=status.status_id,
                 modified_by=user_id,
             )
 
-            # Create Jira ticket record
-            jira_id = f"ZDAD-NA-{int(datetime.utcnow().timestamp())}"
+            # Persist local jira_tickets record with the real Jira issue key
             await self._projects_repo.create_jira_ticket(
                 project_id=project_id,
-                jira_id=jira_id,
+                jira_id=jira_result.jira_id,
                 reason_category=reason_category,
                 comments=comments,
                 evidence_url=evidence_url,
@@ -250,20 +301,38 @@ class ProjectsService:
             )
 
             await self._projects_repo.commit()
+
         except Exception:
             await self._projects_repo.rollback()
+            logger.exception(
+                "DB update failed after Jira bug creation; rolled back",
+                extra={
+                    "project_id": str(project_id),
+                    "jira_id": jira_result.jira_id,
+                },
+            )
             raise
+
+        return evidence_url
 
     async def _mark_complete(
         self,
         project_id: uuid.UUID,
+        project_name: str,
         user_id: str,
     ) -> None:
-        """Handle mark_complete action logic.
+        """Handle mark_complete action.
+
+        Sets project status to "Completed" and stamps completed_at (UTC with
+        timezone) on both the projects row and linked devsecops_tickets rows.
 
         Args:
             project_id: The project UUID.
+            project_name: Human-readable project name (used for logging).
             user_id: Authenticated user identifier.
+
+        Raises:
+            InvalidParameterError: If "Completed" status is not found in DB.
         """
         # Look up Completed status
         status = await self._projects_repo.get_status_by_name("Completed")
@@ -277,26 +346,61 @@ class ProjectsService:
                 modified_by=user_id,
             )
             await self._projects_repo.commit()
+
+            logger.info(
+                "Project marked as complete",
+                extra={"project_id": str(project_id), "project_name": project_name},
+            )
+
         except Exception:
             await self._projects_repo.rollback()
+            logger.exception(
+                "Failed to mark project complete",
+                extra={"project_id": str(project_id)},
+            )
             raise
 
     async def _upload_evidence(self, file: UploadFile, project_id: uuid.UUID) -> str:
-        """Upload evidence file to S3.
+        """Upload an evidence file to S3 and return a pre-signed download URL.
+
+        The S3 key is structured as:
+        ``evidence/{project_id}/{utc_timestamp}_{original_filename}``
+
+        Content type is inferred from the file's declared content type or
+        falls back to ``application/octet-stream`` for unknown types.
 
         Args:
-            file: The uploaded file.
-            project_id: The project UUID for key generation.
+            file: The uploaded file from the multipart form.
+            project_id: The project UUID used to namespace the S3 key.
 
         Returns:
-            The S3 URL of the uploaded file.
+            A time-limited pre-signed S3 URL for downloading the evidence file.
         """
-        timestamp = int(datetime.utcnow().timestamp())
-        s3_key = f"evidence/{project_id}/{timestamp}_{file.filename}"
+        timestamp = int(datetime.now(timezone.utc).timestamp())
+        safe_filename = file.filename or "evidence"
+        s3_key = f"evidence/{project_id}/{timestamp}_{safe_filename}"
+
+        # Use the declared content type; fall back to octet-stream
+        content_type = file.content_type or "application/octet-stream"
+
         file_bytes = await file.read()
-        await self._s3_client.upload_pdf(file_bytes, s3_key)
+        await self._s3_client.upload_file(file_bytes, s3_key, content_type=content_type)
         presigned_url = await self._s3_client.generate_presigned_url(s3_key)
+
+        logger.info(
+            "Evidence file uploaded to S3",
+            extra={
+                "project_id": str(project_id),
+                "s3_key": s3_key,
+                "content_type": content_type,
+                "size_bytes": len(file_bytes),
+            },
+        )
         return presigned_url
+
+    # ------------------------------------------------------------------
+    # Static validators
+    # ------------------------------------------------------------------
 
     @staticmethod
     def _validate_period(period: str | None) -> str:
@@ -438,5 +542,5 @@ class ProjectsService:
         """
         if repo_items:
             return 0
-        days_since_onboarding = (datetime.utcnow().date() - project.onboarded_date).days
+        days_since_onboarding = (datetime.now(timezone.utc).date() - project.onboarded_date).days
         return max(days_since_onboarding, 0)

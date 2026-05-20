@@ -5,7 +5,7 @@ and project action operations (mark not applicable, mark complete).
 """
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.repositories.schema.devsecops_ticket import DevsecopsTicket
@@ -13,6 +13,7 @@ from src.repositories.schema.jira_ticket import JiraTicket
 from src.repositories.schema.project import Project
 from src.repositories.schema.repository import Repository
 from src.repositories.schema.status import Status
+from src.utils.logger import logger
 
 class ProjectsRepository:
     """Data access layer for projects queries and mutations."""
@@ -109,9 +110,8 @@ class ProjectsRepository:
             return projects, total_items
 
         except Exception as e:
-            logger.error("project_repository.py","get_projects()")
+            logger.exception("Failed to fetch projects", extra={"error": str(e)})
             raise
-            
 
     async def get_repositories_for_project(self, project_id: uuid.UUID) -> list[Repository]:
         """Get repositories linked to a project through devsecops_tickets.
@@ -136,7 +136,10 @@ class ProjectsRepository:
             return list(result.scalars().all())
 
         except Exception as e:
-            logger.error("project_repository.py","get_projects()")
+            logger.exception(
+                "Failed to fetch repositories for project",
+                extra={"project_id": str(project_id), "error": str(e)},
+            )
             raise
 
 
@@ -158,7 +161,10 @@ class ProjectsRepository:
             return result.scalar_one_or_none()
 
         except Exception as e:
-            logger.error("project_repository.py","get_project_by_id()")
+            logger.exception(
+                "Failed to fetch project by id",
+                extra={"project_id": str(project_id), "error": str(e)},
+            )
             raise
 
     async def get_status_by_name(self, status_name: str) -> Status | None:
@@ -179,7 +185,10 @@ class ProjectsRepository:
             return result.scalar_one_or_none()
 
         except Exception as e:
-            logger.error("project_repository.py","get_status_by_name()")
+            logger.exception(
+                "Failed to fetch status by name",
+                extra={"status_name": status_name, "error": str(e)},
+            )
             raise
 
     async def update_project_not_applicable(
@@ -188,14 +197,14 @@ class ProjectsRepository:
         status_id: uuid.UUID,
         modified_by: str,
     ) -> None:
-        """Update project to Not Applicable status.
+        """Update project to Not Applicable status (sets is_applicable = False).
 
         Args:
             project_id: The project UUID.
             status_id: The Not Applicable status UUID.
             modified_by: The user performing the action.
         """
-        try:    
+        try:
             stmt = (
                 update(Project)
                 .where(Project.project_id == project_id)
@@ -208,8 +217,11 @@ class ProjectsRepository:
             )
             await self._session.execute(stmt)
 
-        except Exception as e:
-            logger.error("project_repository.py","update_project_not_applicable()")
+        except Exception:
+            logger.exception(
+                "Failed to update project to not-applicable",
+                extra={"project_id": str(project_id)},
+            )
             raise
 
 
@@ -219,28 +231,53 @@ class ProjectsRepository:
         status_id: uuid.UUID,
         modified_by: str,
     ) -> None:
-        """Update project to Completed status.
+        """Update project to Completed status and stamp completed_at on devsecops_tickets.
+
+        Sets ``completed_at`` (timezone-aware UTC) on both the ``projects`` row
+        and every active ``devsecops_tickets`` row linked to the project.
 
         Args:
             project_id: The project UUID.
             status_id: The Completed status UUID.
             modified_by: The user performing the action.
         """
-        try:               
+        try:
+            now_utc = datetime.now(timezone.utc)
+            now_naive = now_utc.replace(tzinfo=None)  # projects.completed_at is TIMESTAMP WITHOUT TIME ZONE
+
+            # Update projects table (naive timestamp — column is TIMESTAMP WITHOUT TIME ZONE)
             stmt = (
                 update(Project)
                 .where(Project.project_id == project_id)
                 .values(
                     status_id=status_id,
-                    completed_at=func.current_timestamp(),
-                    modified_at=func.current_timestamp(),
+                    completed_at=now_naive,
+                    modified_at=now_naive,
                     modified_by=modified_by,
                 )
             )
             await self._session.execute(stmt)
 
-        except Exception as e:
-            logger.error("project_repository.py","update_project_complete()")
+            # Stamp completed_at on all linked devsecops_tickets rows (TIMESTAMPTZ — timezone-aware)
+            ticket_stmt = (
+                update(DevsecopsTicket)
+                .where(
+                    DevsecopsTicket.project_id == project_id,
+                    DevsecopsTicket.is_active == 1,
+                )
+                .values(
+                    completed_at=now_utc,
+                    modified_at=now_naive,
+                    modified_by=modified_by,
+                )
+            )
+            await self._session.execute(ticket_stmt)
+
+        except Exception:
+            logger.exception(
+                "Failed to update project to complete",
+                extra={"project_id": str(project_id)},
+            )
             raise
 
 
@@ -253,17 +290,17 @@ class ProjectsRepository:
         evidence_url: str | None,
         created_by: str,
     ) -> None:
-        """Create a Jira ticket record for Not Applicable action.
+        """Create a local jira_tickets record after the Jira bug has been created.
 
         Args:
             project_id: The project UUID.
-            jira_id: Generated Jira identifier.
+            jira_id: The Jira issue key returned by the Jira API (e.g. SBT-42).
             reason_category: Reason category for not applicable.
             comments: Detailed comments.
             evidence_url: URL of uploaded evidence file or None.
             created_by: The user performing the action.
         """
-        try:              
+        try:
             jira_ticket = JiraTicket(
                 project_id=project_id,
                 jira_id=jira_id,
@@ -278,8 +315,11 @@ class ProjectsRepository:
             jira_ticket.created_by = created_by
             self._session.add(jira_ticket)
 
-        except Exception as e:
-            logger.error("project_repository.py","update_project_complete()")
+        except Exception:
+            logger.exception(
+                "Failed to create local jira_ticket record",
+                extra={"project_id": str(project_id), "jira_id": jira_id},
+            )
             raise
 
     async def commit(self) -> None:
@@ -287,7 +327,7 @@ class ProjectsRepository:
         try:
             await self._session.commit()
         except Exception as e:
-            logger.error("project_repository.py","commit()")
+            logger.exception("Failed to commit transaction", extra={"error": str(e)})
             raise
 
     async def rollback(self) -> None:
@@ -296,7 +336,7 @@ class ProjectsRepository:
             await self._session.rollback()
 
         except Exception as e:
-            logger.error("project_repository.py","rollback()")
+            logger.exception("Failed to rollback transaction", extra={"error": str(e)})
             raise
 
     async def get_status_name_for_project(self, project: Project) -> str | None:
@@ -317,5 +357,8 @@ class ProjectsRepository:
             return result.scalar_one_or_none()
 
         except Exception as e:
-            logger.error("project_repository.py","get_status_name_for_project()")
+            logger.exception(
+                "Failed to fetch status name for project",
+                extra={"project_id": str(project.project_id), "error": str(e)},
+            )
             raise

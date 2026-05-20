@@ -39,22 +39,50 @@ class S3Client:
         Raises:
             RuntimeError: If the upload fails.
         """
+        return await self.upload_file(pdf_bytes, s3_key, content_type="application/pdf")
+
+    async def upload_file(
+        self,
+        file_bytes: bytes,
+        s3_key: str,
+        content_type: str = "application/octet-stream",
+    ) -> str:
+        """Upload any file to S3 with an explicit content type.
+
+        Args:
+            file_bytes: Raw file content as bytes.
+            s3_key: The S3 object key (path within the bucket).
+            content_type: MIME type of the file (e.g. ``application/pdf``,
+                ``image/png``). Defaults to ``application/octet-stream``.
+
+        Returns:
+            The S3 URI in format ``s3://bucket/key``.
+
+        Raises:
+            RuntimeError: If the upload fails.
+        """
         try:
             session = aioboto3.Session()
             async with session.client("s3", region_name=self._region) as s3:
                 await s3.put_object(
                     Bucket=self._bucket_name,
                     Key=s3_key,
-                    Body=pdf_bytes,
-                    ContentType="application/pdf",
+                    Body=file_bytes,
+                    ContentType=content_type,
                 )
 
             s3_uri = f"s3://{self._bucket_name}/{s3_key}"
-            logger.info("PDF uploaded to S3", s3_key=s3_key, bucket=self._bucket_name)
+            logger.info(
+                "File uploaded to S3",
+                extra={"s3_key": s3_key, "bucket": self._bucket_name, "content_type": content_type},
+            )
             return s3_uri
 
         except Exception as exc:
-            logger.error("Failed to upload PDF to S3", s3_key=s3_key, error=str(exc))
+            logger.error(
+                "Failed to upload file to S3",
+                extra={"s3_key": s3_key, "error": str(exc)},
+            )
             raise RuntimeError(f"S3 upload failed: {exc}") from exc
 
     async def generate_presigned_url(self, s3_key: str) -> str:
@@ -77,9 +105,12 @@ class S3Client:
                     Params={"Bucket": self._bucket_name, "Key": s3_key},
                     ExpiresIn=self._url_expiry_seconds,
                 )
-            logger.info("Pre-signed URL generated", s3_key=s3_key)
+            logger.info("Pre-signed URL generated", extra={"s3_key": s3_key})
             return presigned_url
-            
+
         except Exception as exc:
-            logger.error("Failed to generate pre-signed URL", s3_key=s3_key, error=str(exc))
+            logger.error(
+                "Failed to generate pre-signed URL",
+                extra={"s3_key": s3_key, "error": str(exc)},
+            )
             raise RuntimeError(f"Pre-signed URL generation failed: {exc}") from exc

@@ -78,7 +78,7 @@ async def perform_project_action(
         BaseResponse with success message.
     """
     # Extract user identifier from request state (set by auth middleware)
-    user_id = getattr(request.state, "user_id", "system")
+    user_id = getattr(request.state, "user_id", None) or getattr(request.state, "email", "system")
 
     return await projects_service.perform_action(
         project_id=project_id,

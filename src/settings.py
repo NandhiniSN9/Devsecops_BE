@@ -61,6 +61,10 @@ PROJECTS_PERIOD_DAYS_MAP: dict[str, int] = {
 # Fixed UUID namespace for deterministic client ID generation (UUID v5)
 CLIENT_UUID_NAMESPACE: uuid.UUID = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
 
+# Jira Labs Hub project space for Not Applicable bug creation
+JIRA_LABS_HUB_PROJECT_KEY: str = "SBT"
+JIRA_LABS_HUB_PROJECT_ID: str = "12432"
+
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
@@ -85,6 +89,9 @@ class Settings(BaseSettings):
     # Azure DevOps API
     ADO_ORG_URL: str = ""
     ADO_PAT: str = ""
+
+    # Jira Labs Hub service account for bug creation
+    JIRA_SERVICE_ACCOUNT_EMAIL: str = "svc_jira.tools@zeb.co"
 
     model_config = ConfigDict(env_file=".env", extra="ignore")
 

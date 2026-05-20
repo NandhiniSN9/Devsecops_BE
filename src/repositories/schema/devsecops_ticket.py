@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Integer, String, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.repositories.schema.base import Base
@@ -29,6 +29,8 @@ class DevsecopsTicket(Base):
     approver: Mapped[str | None] = mapped_column(String(255))
     sync_method: Mapped[str | None] = mapped_column(String(255))
     requested_at: Mapped[datetime | None] = mapped_column()
+    # Timezone-aware timestamp set when the associated project is marked complete
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(default=func.current_timestamp())
     created_by: Mapped[str | None] = mapped_column(String(255))
     modified_at: Mapped[datetime | None] = mapped_column()
