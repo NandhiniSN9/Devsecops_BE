@@ -1,5 +1,6 @@
 """Service for synchronizing pipeline data from Azure DevOps."""
 
+import asyncio
 import uuid
 from datetime import datetime
 
@@ -11,6 +12,7 @@ from src.repositories.schema.kpi_history import KpiHistory
 from src.repositories.schema.pipeline_run import PipelineRun
 from src.repositories.schema.pull_request import PullRequest
 from src.repositories.schema.security_scan import SecurityScan
+from src.settings import get_settings
 from src.utils.logger import logger
 
 # Service identifier
@@ -18,12 +20,17 @@ SYNC_ADO_SERVICE_IDENTIFIER = "sync_ado_service"
 
 
 class AdoSyncService:
-    """Service for ADO data synchronization operations."""
+    """Service for ADO data synchronization operations.
+
+    Supports parallel repository syncing with configurable concurrency
+    controlled by ADO_SYNC_CONCURRENCY env var (default: 5).
+    """
 
     def __init__(self, repo: AdoSyncRepository, ado_client: AdoClient) -> None:
         """Initialize with repository and ADO client dependencies."""
         self._repo = repo
         self._ado_client = ado_client
+        self._concurrency = get_settings().ADO_SYNC_CONCURRENCY
 
     async def initiate_sync(self) -> dict:
         """Check for pending sync and create cron job record.
@@ -55,13 +62,22 @@ class AdoSyncService:
         }
 
     async def run_sync(self, cron_id) -> None:
-        """Execute the ADO sync process in the background.
+        """Execute the ADO sync process with parallel repository processing.
+
+        Uses asyncio.Semaphore to limit concurrency to ADO_SYNC_CONCURRENCY
+        (default: 5 parallel syncs). Each repository sync is independent —
+        failures in one don't block others.
 
         Args:
             cron_id: UUID of the cron job record to track this sync.
         """
-        logger.debug("Starting background ADO sync", cron_id=str(cron_id))
+        logger.info(
+            "Starting background ADO sync",
+            cron_id=str(cron_id),
+            concurrency=self._concurrency,
+        )
         has_errors = False
+        semaphore = asyncio.Semaphore(self._concurrency)
 
         try:
             tickets = await self._repo.get_applicable_tickets()
@@ -72,34 +88,42 @@ class AdoSyncService:
                 for ticket in tickets
             ]
 
+            # Collect all (repo_id, ado_repo_id, project_name) tuples
+            sync_tasks_data: list[tuple[uuid.UUID, str, str]] = []
             for ticket_id, project_name, _ in ticket_info_list:
                 repositories = await self._repo.get_repositories_for_ticket(ticket_id)
+                for repo in repositories:
+                    if repo.ado_repo_id:
+                        sync_tasks_data.append((repo.repository_id, repo.ado_repo_id, project_name))
 
-                # Pre-extract attributes to avoid lazy loading after rollback
-                repo_info_list = [
-                    (repo.repository_id, repo.ado_repo_id)
-                    for repo in repositories
-                ]
+            logger.info(
+                "Repositories to sync",
+                total=len(sync_tasks_data),
+                concurrency=self._concurrency,
+            )
 
-                for repo_id, ado_repo_id in repo_info_list:
-                    if not ado_repo_id:
-                        continue
+            # Run repository syncs in parallel with semaphore-limited concurrency
+            results = await asyncio.gather(
+                *[
+                    self._sync_repository_with_semaphore(semaphore, repo_id, ado_repo_id, project_name)
+                    for repo_id, ado_repo_id, project_name in sync_tasks_data
+                ],
+                return_exceptions=True,
+            )
 
-                    try:
-                        # Re-fetch the repository object in a clean session state
-                        repository = await self._repo.get_repository_by_id(repo_id)
-                        if not repository:
-                            continue
-                        await self._sync_repository(repository, project_name)
-                    except Exception as exc:
-                        has_errors = True
-                        await self._repo.rollback()
-                        logger.error(
-                            "Failed to sync repository",
-                            repository_id=str(repo_id),
-                            ado_repo_id=ado_repo_id,
-                            error=str(exc),
-                        )
+            # Check results for failures
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    has_errors = True
+                    repo_id, ado_repo_id, _ = sync_tasks_data[i]
+                    logger.error(
+                        "Repository sync failed",
+                        repository_id=str(repo_id),
+                        ado_repo_id=ado_repo_id,
+                        error=str(result),
+                    )
+                elif result is False:
+                    has_errors = True
 
             # Update KPI history only if all syncs passed
             if not has_errors:
@@ -117,6 +141,14 @@ class AdoSyncService:
             )
             await self._repo.commit()
 
+            logger.info(
+                "ADO sync completed",
+                cron_id=str(cron_id),
+                status=final_status,
+                total_repos=len(sync_tasks_data),
+                failed=sum(1 for r in results if isinstance(r, Exception) or r is False),
+            )
+
         except Exception as exc:
             await self._repo.rollback()
             await self._repo.update_cron_job_status(
@@ -124,6 +156,41 @@ class AdoSyncService:
             )
             await self._repo.commit()
             logger.error("ADO sync failed", cron_id=str(cron_id), error=str(exc))
+
+    async def _sync_repository_with_semaphore(
+        self,
+        semaphore: asyncio.Semaphore,
+        repo_id: uuid.UUID,
+        ado_repo_id: str,
+        project_name: str,
+    ) -> bool:
+        """Sync a single repository with semaphore-controlled concurrency.
+
+        Args:
+            semaphore: Asyncio semaphore limiting parallel executions.
+            repo_id: Internal repository UUID.
+            ado_repo_id: Azure DevOps repository identifier.
+            project_name: ADO project name.
+
+        Returns:
+            True if sync succeeded, False if failed.
+        """
+        async with semaphore:
+            try:
+                repository = await self._repo.get_repository_by_id(repo_id)
+                if not repository:
+                    return True  # Skip silently, not a failure
+                await self._sync_repository(repository, project_name)
+                return True
+            except Exception as exc:
+                await self._repo.rollback()
+                logger.error(
+                    "Failed to sync repository",
+                    repository_id=str(repo_id),
+                    ado_repo_id=ado_repo_id,
+                    error=str(exc),
+                )
+                return False
 
     async def _sync_repository(self, repository, project_name: str) -> None:
         """Sync all data types for a single repository.
@@ -244,13 +311,18 @@ class AdoSyncService:
     async def _update_kpi_histories(
         self, spec_ids: set[uuid.UUID]
     ) -> None:
-        """Update KPI history for affected specializations.
+        """Update ticket timestamps and KPI history for affected specializations.
+
+        For each specialization:
+        1. Evaluate and update completed_at / at_risk_at on devsecops_tickets
+        2. Create a new KPI history snapshot
 
         Args:
             spec_ids: Set of specialization UUIDs to update.
         """
         for spec_id in spec_ids:
             try:
+                await self._update_ticket_timestamps(spec_id)
                 await self._create_kpi_snapshot(spec_id)
             except Exception as exc:
                 logger.error(
@@ -258,6 +330,58 @@ class AdoSyncService:
                     specialization_id=str(spec_id),
                     error=str(exc),
                 )
+
+    async def _update_ticket_timestamps(self, specialization_id: uuid.UUID) -> None:
+        """Evaluate and update completed_at and at_risk_at on devsecops_tickets.
+
+        Logic:
+        - completed_at: Set when project status is "Completed" and ticket has no completed_at yet.
+                        Cleared (NULL) if project is no longer Completed.
+        - at_risk_at:   Set when project exceeds at_risk_threshold days since onboarding
+                        without pipeline activity, and ticket has no at_risk_at yet.
+                        Cleared (NULL) if project is no longer at risk.
+
+        Args:
+            specialization_id: The specialization to evaluate.
+        """
+        tickets = await self._repo.get_tickets_for_specialization(specialization_id)
+        settings = await self._repo.get_settings_for_specialization(specialization_id)
+        at_risk_threshold = settings.at_risk_threshold if settings else 10
+
+        now = datetime.utcnow()
+
+        for ticket in tickets:
+            project = await self._repo.get_project_by_id(ticket.project_id) if ticket.project_id else None
+            if not project:
+                continue
+
+            status_name = await self._repo.get_status_name(project.status_id) if project.status_id else None
+
+            # --- completed_at logic ---
+            if status_name == "Completed":
+                if ticket.completed_at is None:
+                    ticket.completed_at = now
+                    ticket.modified_at = now
+                    ticket.modified_by = SYNC_ADO_SERVICE_IDENTIFIER
+            else:
+                if ticket.completed_at is not None:
+                    ticket.completed_at = None
+                    ticket.modified_at = now
+                    ticket.modified_by = SYNC_ADO_SERVICE_IDENTIFIER
+
+            # --- at_risk_at logic ---
+            if status_name == "At Risk":
+                if ticket.at_risk_at is None:
+                    ticket.at_risk_at = now
+                    ticket.modified_at = now
+                    ticket.modified_by = SYNC_ADO_SERVICE_IDENTIFIER
+            else:
+                if ticket.at_risk_at is not None:
+                    ticket.at_risk_at = None
+                    ticket.modified_at = now
+                    ticket.modified_by = SYNC_ADO_SERVICE_IDENTIFIER
+
+        await self._repo.commit()
 
     async def _create_kpi_snapshot(self, specialization_id: uuid.UUID) -> None:
         """Create a new KPI history snapshot for a specialization."""

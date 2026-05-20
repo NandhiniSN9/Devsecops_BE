@@ -1,0 +1,1776 @@
+openapi: 3.0.3
+info:
+  title: DevSecOps Jira Dashboard API
+  description: API for the DevSecOps Jira Dashboard - Overview, Projects, and Settings modules
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Development server
+tags:
+  - name: Overview
+    description: Endpoints for the Overview dashboard metrics
+  - name: Projects
+    description: Endpoints for the Projects module
+  - name: Repositories
+    description: Endpoints for repository detail information
+  - name: Filters
+    description: Endpoints for filter dropdown options
+  - name: Settings
+    description: Settings CRUD per specialization (includes email recipients)
+  - name: Sync
+    description: Endpoints for syncing data between ServiceNow/Azure DevOps and the database
+  - name: Reports
+    description: Report generation and email delivery
+paths:
+  /api/v1/overview:
+    get:
+      tags:
+        - Overview
+      summary: Get overview dashboard metrics
+      description: Returns all KPI metrics, status distribution, and project counts for the overview dashboard. Supports filtering by period and specialization.
+      parameters:
+        - name: period
+          in: query
+          required: false
+          description: Time period filter for the dashboard metrics
+          schema:
+            type: string
+            enum:
+              - last_week
+              - last_month
+              - last_3_months
+              - last_6_months
+              - last_year
+            default: last_month
+        - name: specialization
+          in: query
+          required: false
+          description: Comma-separated list of specialization IDs to filter by. Empty means all.
+          schema:
+            type: string
+            example: "devsecops,devops"
+      responses:
+        '200':
+          description: Overview metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverviewSuccessResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '401':
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/filters:
+    get:
+      tags:
+        - Filters
+      summary: Get all filter options
+      description: Returns all filter dropdown options (specializations, clients, statuses) in a single response. Cacheable with TTL of 1 hour.
+      operationId: getFilters
+      responses:
+        '200':
+          description: Filter options retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiltersSuccessResponse'
+        '401':
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/projects:
+    get:
+      tags:
+        - Projects
+      summary: Get projects list
+      description: Returns the paginated list of projects with filters. Each project includes its repositories when expanded.
+      parameters:
+        - name: period
+          in: query
+          required: false
+          description: Time period filter for the projects list
+          schema:
+            type: string
+            enum:
+              - last_week
+              - last_month
+              - last_3_months
+              - last_6_months
+              - last_year
+            default: last_month
+        - name: search
+          in: query
+          required: false
+          description: Free text search on project name
+          schema:
+            type: string
+            example: "Xenon"
+        - name: status
+          in: query
+          required: false
+          description: Comma-separated list of status IDs to filter by. Empty means all.
+          schema:
+            type: string
+            example: "active,at_risk"
+        - name: client
+          in: query
+          required: false
+          description: Comma-separated list of client IDs to filter by. Empty means all.
+          schema:
+            type: string
+            example: "abn_amro,barclays"
+        - name: specialization
+          in: query
+          required: false
+          description: Comma-separated list of specialization IDs to filter by. Empty means all.
+          schema:
+            type: string
+            example: "devsecops,devops"
+        - name: offset
+          in: query
+          required: false
+          description: Number of items to skip for pagination
+          schema:
+            type: integer
+            default: 0
+            example: 0
+        - name: limit
+          in: query
+          required: false
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 10
+            example: 10
+        - name: sort_by
+          in: query
+          required: false
+          description: Field to sort by
+          schema:
+            type: string
+            enum:
+              - project
+              - onboarded_date
+            default: project
+        - name: sort_order
+          in: query
+          required: false
+          description: Sort direction
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+      responses:
+        '200':
+          description: Projects retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectsListSuccessResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '401':
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/projects/action:
+    post:
+      tags:
+        - Projects
+      summary: Perform action on a project
+      description: Performs an action on a project based on the action field. Supports "mark_not_applicable" (raises Jira ticket) and "mark_complete" (updates status to Completed).
+      operationId: performProjectAction
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProjectActionRequest'
+      responses:
+        '200':
+          description: Action performed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectActionSuccessResponse'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '401':
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/repositories/{repository_id}:
+    get:
+      tags:
+        - Repositories
+      summary: Get repository detail
+      description: Returns comprehensive detail information for a specific repository including header metadata, pipeline metrics, adoption timeline, pipeline activity, commits, pull requests, security scan findings, and build artifacts.
+      operationId: getRepositoryDetail
+      parameters:
+        - name: repository_id
+          in: path
+          required: true
+          description: UUID of the repository
+          schema:
+            type: string
+            format: uuid
+            example: "880e8400-e29b-41d4-a716-446655440030"
+      responses:
+        '200':
+          description: Repository detail retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepositoryDetailSuccessResponse'
+        '400':
+          description: Invalid query parameters or invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '401':
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/sync/servicenow/projects:
+    post:
+      tags:
+        - Sync
+      summary: Sync projects from ServiceNow
+      description: Receives project data from ServiceNow and creates or updates project records in the database. Each request contains a single project with its associated repositories and metadata.
+      operationId: syncServiceNowProjects
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncProjectRequest'
+      responses:
+        '200':
+          description: Project sync completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncSuccessResponse'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '401':
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '409':
+          description: Sync already in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConflictError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/sync/servicenow/devsecops-tickets:
+    post:
+      tags:
+        - Sync
+      summary: Sync DevSecOps tickets from ServiceNow
+      description: Receives DevSecOps ticket data from ServiceNow and inserts or updates records in the devsecops_tickets table. Each request can contain one or more tickets associated with a specialization.
+      operationId: syncServiceNowDevSecOpsTickets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncDevSecOpsTicketsRequest'
+      responses:
+        '200':
+          description: DevSecOps tickets sync completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncSuccessResponse'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '401':
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '409':
+          description: Sync already in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConflictError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/settings/{specializationId}:
+    get:
+      tags:
+        - Settings
+      summary: Get settings for a specialization
+      description: Returns the settings record for the given specialization, including specialization name and email recipients.
+      operationId: getSettings
+      parameters:
+        - name: specializationId
+          in: path
+          required: true
+          description: UUID of the specialization
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Settings data with email recipients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsSuccessResponse'
+        '404':
+          description: Specialization not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/settings/manage:
+    put:
+      tags:
+        - Settings
+      summary: Update settings for a specialization
+      description: Partially updates the settings record. Only send the fields that changed. Email recipients are managed via action-based approach (add/remove).
+      operationId: updateSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettingsUpdateRequest'
+      responses:
+        '200':
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsSuccessResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '404':
+          description: Specialization not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/sync/ado:
+    post:
+      tags:
+        - Sync
+      summary: Sync Azure DevOps details
+      description: Triggers a sync of data from Azure DevOps. Provide a specialization_id to sync for a specific specialization, or omit it to sync all.
+      operationId: syncADODetails
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                specialization_id:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  description: UUID of the specialization to sync. Null or omitted syncs all.
+      responses:
+        '200':
+          description: Sync initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncSuccessResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+  /api/v1/reports/generate:
+    post:
+      tags:
+        - Reports
+      summary: Generate and email a report
+      description: Generates a report of the specified type for the given specialization and sends it via email to configured recipients.
+      operationId: generateReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateReportRequest'
+      responses:
+        '200':
+          description: Report generated and sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncSuccessResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidParameterError'
+        '404':
+          description: Specialization not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Base Response Schema
+    BaseResponse:
+      type: object
+      required:
+        - status_code
+        - status
+        - message
+        - data
+      properties:
+        status_code:
+          type: integer
+          description: HTTP status code
+        status:
+          type: string
+          enum: [success, failed, error]
+          description: Response status indicator
+        message:
+          type: string
+          description: Response message
+        data:
+          description: Response data payload
+
+    # Common Server Error Response
+    CommonServerError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              type: integer
+              example: 500
+            status:
+              type: string
+              example: "error"
+            message:
+              type: string
+              example: "An unexpected error occurred. Please try again later"
+            data:
+              type: array
+              items:
+                type: object
+              example: []
+
+    # Unauthorized Error Response
+    UnauthorizedError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              type: integer
+              example: 401
+            status:
+              type: string
+              example: "failed"
+            message:
+              type: string
+              example: "Authentication token is missing or expired"
+            data:
+              type: array
+              items:
+                type: object
+              example: []
+
+    # Invalid Parameter Error Response
+    InvalidParameterError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              type: integer
+              example: 400
+            status:
+              type: string
+              example: "failed"
+            message:
+              type: string
+              example: "Invalid query parameter: 'period' must be one of [last_week, last_month, last_3_months, last_6_months, last_year]"
+            data:
+              type: array
+              items:
+                type: object
+              example: []
+
+    # ===========================
+    # Overview Response Schemas
+    # ===========================
+    OverviewSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              type: integer
+              example: 200
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Overview metrics retrieved successfully"
+            data:
+              type: object
+              properties:
+                sync_detail:
+                  $ref: '#/components/schemas/SyncDetail'
+                metrics:
+                  $ref: '#/components/schemas/OverviewMetrics'
+                status_distribution:
+                  $ref: '#/components/schemas/StatusDistribution'
+
+    SyncDetail:
+      type: object
+      properties:
+        last_sync_datetime:
+          type: string
+          nullable: true
+          description: Most recent sync timestamp in "DD Mon YYYY, HH:MM" format, or null if never synced
+          example: "10 May 2024, 00:00"
+        is_sync_in_progress:
+          type: boolean
+          description: Whether an ADO sync operation is currently in progress
+          example: false
+
+    OverviewMetrics:
+      type: object
+      properties:
+        total_projects:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Total number of projects
+              example: 44
+            new_this_month:
+              type: string
+              description: Trend direction (increase/decrease/null)
+              example: "increase"
+            change:
+              type: integer
+              description: Number of new projects this month
+              example: 3
+        completed:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of fully onboarded/completed projects
+              example: 11
+            trend:
+              type: string
+              description: Trend direction (increase/decrease/null)
+              example: "increase"
+            change:
+              type: integer
+              description: Change value compared to previous period
+              example: 2
+        active:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of active projects
+              example: 19
+            trend:
+              type: string
+              description: Trend direction (increase/decrease/null)
+              example: "increase"
+            change:
+              type: integer
+              description: Change value compared to previous period
+              example: 2
+        inactive:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of inactive projects
+              example: 7
+            trend:
+              type: string
+              nullable: true
+              description: Trend direction (increase/decrease/flat/null)
+              example: "flat"
+            change:
+              type: integer
+              description: Change value compared to previous period
+              example: 0
+        atRisk:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of at-risk projects
+              example: 6
+            trend:
+              type: string
+              description: Trend direction (increase/decrease/null)
+              example: "decrease"
+            change:
+              type: integer
+              description: Change value compared to previous period
+              example: 1
+        notApplicable:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of not-applicable projects
+              example: 1
+            trend:
+              type: string
+              nullable: true
+              description: Trend direction (increase/decrease/flat/null)
+              example: "flat"
+            change:
+              type: integer
+              description: Change value compared to previous period
+              example: 0
+
+    StatusDistribution:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of projects
+          example: 44
+        breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Status name
+                example: "Active"
+              count:
+                type: integer
+                description: Number of projects with this status
+                example: 19
+              percentage:
+                type: number
+                format: float
+                description: Percentage of total projects
+                example: 43.2
+          example:
+            - status: "Completed"
+              count: 11
+              percentage: 25.0
+            - status: "Active"
+              count: 19
+              percentage: 43.2
+            - status: "Inactive"
+              count: 7
+              percentage: 15.9
+            - status: "At Risk"
+              count: 6
+              percentage: 13.6
+            - status: "Not Applicable"
+              count: 1
+              percentage: 2.3
+
+    # ===========================
+    # Filter Response Schemas
+    # ===========================
+    FiltersSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              type: integer
+              example: 200
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Filters retrieved successfully"
+            data:
+              type: object
+              properties:
+                specializations:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: Unique identifier for the specialization
+                        example: "550e8400-e29b-41d4-a716-446655440001"
+                      name:
+                        type: string
+                        description: Display name of the specialization
+                        example: "DevSecOps"
+                  example:
+                    - id: "550e8400-e29b-41d4-a716-446655440001"
+                      name: "Specialization Head"
+                    - id: "550e8400-e29b-41d4-a716-446655440002"
+                      name: "DevOps"
+                    - id: "550e8400-e29b-41d4-a716-446655440003"
+                      name: "DevSecOps"
+                    - id: "550e8400-e29b-41d4-a716-446655440004"
+                      name: "Cloud Security"
+                    - id: "550e8400-e29b-41d4-a716-446655440005"
+                      name: "Platform Engineering"
+                    - id: "550e8400-e29b-41d4-a716-446655440006"
+                      name: "Site Reliability"
+                    - id: "550e8400-e29b-41d4-a716-446655440007"
+                      name: "Security Operations"
+                clients:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: Unique identifier for the client
+                        example: "660e8400-e29b-41d4-a716-446655440001"
+                      name:
+                        type: string
+                        description: Display name of the client
+                        example: "ABN AMRO"
+                  example:
+                    - id: "660e8400-e29b-41d4-a716-446655440001"
+                      name: "ABN AMRO"
+                    - id: "660e8400-e29b-41d4-a716-446655440002"
+                      name: "ANZ Bank"
+                    - id: "660e8400-e29b-41d4-a716-446655440003"
+                      name: "BNP Paribas"
+                    - id: "660e8400-e29b-41d4-a716-446655440004"
+                      name: "Barclays"
+                    - id: "660e8400-e29b-41d4-a716-446655440005"
+                      name: "Citibank"
+                    - id: "660e8400-e29b-41d4-a716-446655440006"
+                      name: "Commerzbank"
+                    - id: "660e8400-e29b-41d4-a716-446655440007"
+                      name: "Commonwealth Bank"
+                statuses:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: Unique identifier for the status
+                        example: "770e8400-e29b-41d4-a716-446655440001"
+                      name:
+                        type: string
+                        description: Display name of the status
+                        example: "Active"
+                  example:
+                    - id: "770e8400-e29b-41d4-a716-446655440001"
+                      name: "Active"
+                    - id: "770e8400-e29b-41d4-a716-446655440002"
+                      name: "Inactive"
+                    - id: "770e8400-e29b-41d4-a716-446655440003"
+                      name: "At Risk"
+                    - id: "770e8400-e29b-41d4-a716-446655440004"
+                      name: "Completed"
+                    - id: "770e8400-e29b-41d4-a716-446655440005"
+                      name: "Not Applicable"
+
+    # ===========================
+    # Projects Response Schemas
+    # ===========================
+    ProjectsListSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              type: integer
+              example: 200
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Projects retrieved successfully"
+            data:
+              type: object
+              properties:
+                projects:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ProjectItem'
+                pagination:
+                  $ref: '#/components/schemas/Pagination'
+
+    ProjectItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the project
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        name:
+          type: string
+          description: Name of the project
+          example: "Project Xenon"
+        onboarded_date:
+          type: string
+          format: date
+          description: Date when the project was onboarded
+          example: "2026-02-20"
+        repository_count:
+          type: integer
+          description: Number of repositories under this project
+          example: 3
+        status:
+          type: string
+          description: Current status of the project
+          example: "COMPLETED"
+        repositories:
+          type: array
+          description: List of repositories under this project
+          items:
+            $ref: '#/components/schemas/RepositoryItem'
+        not_applicable_details:
+          nullable: true
+          description: Details from the Jira ticket when the project status is "Not Applicable". Null when the project has any other status.
+          allOf:
+            - $ref: '#/components/schemas/NotApplicableDetails'
+
+    NotApplicableDetails:
+      type: object
+      description: Jira ticket details associated with a project marked as Not Applicable. Retrieved from the jira_tickets table by project ID.
+      properties:
+        reason_category:
+          type: string
+          nullable: true
+          description: Category of the reason for marking the project as not applicable
+          example: "Client Restriction"
+        comments:
+          type: string
+          nullable: true
+          description: Comments explaining why the project was marked as not applicable
+          example: "Project Wavefront has been marked as not applicable due to client restrictions."
+        evidence_url:
+          type: string
+          nullable: true
+          description: URL to the evidence file uploaded when marking the project as not applicable
+          example: "https://s3.amazonaws.com/bucket/evidence/file.pdf"
+        type:
+          type: string
+          nullable: true
+          description: Type of the Jira ticket
+          example: "Not Applicable"
+        priority:
+          type: string
+          nullable: true
+          description: Priority level of the Jira ticket
+          example: "Medium"
+        assignee:
+          type: string
+          nullable: true
+          description: Person assigned to the Jira ticket
+          example: "john.doe@example.com"
+        jira_status:
+          type: string
+          nullable: true
+          description: Current status of the Jira ticket
+          example: "Done"
+
+    RepositoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the repository
+          example: "880e8400-e29b-41d4-a716-446655440030"
+        name:
+          type: string
+          description: Name of the repository
+          example: "xenon-infra-core"
+        onboarded_date:
+          type: string
+          format: date
+          description: Date when the repository was onboarded
+          example: "2026-02-27"
+        status:
+          type: string
+          description: Current status of the repository
+          example: "PASSED"
+
+    Pagination:
+      type: object
+      properties:
+        offset:
+          type: integer
+          description: Number of items skipped
+          example: 0
+        limit:
+          type: integer
+          description: Items per page
+          example: 10
+        total_items:
+          type: integer
+          description: Total number of items
+          example: 44
+
+    # Project Action Request
+    ProjectActionRequest:
+      type: object
+      required:
+        - project_id
+        - action
+      properties:
+        project_id:
+          type: string
+          format: uuid
+          description: UUID of the project to perform the action on
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        action:
+          type: string
+          enum:
+            - mark_not_applicable
+            - mark_complete
+          description: Action to perform on the project
+          example: "mark_not_applicable"
+        reason_category:
+          type: string
+          description: Reason category (required for mark_not_applicable)
+          example: "Client Restriction"
+        comments:
+          type: string
+          description: Comments explaining the reason (required for mark_not_applicable)
+          example: "Project Wavefront has been marked as not applicable due to client restrictions."
+        evidence_file:
+          type: string
+          format: binary
+          description: Evidence file attachment (optional, for mark_not_applicable)
+
+    # Project Action Success Response
+    ProjectActionSuccessResponse:
+      type: object
+      required:
+        - status_code
+        - status
+        - message
+      properties:
+        status_code:
+          type: integer
+          example: 200
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Action performed successfully"
+
+    # Not Found Error Response
+    NotFoundError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              type: integer
+              example: 404
+            status:
+              type: string
+              example: "failed"
+            message:
+              type: string
+              example: "Project not found"
+            data:
+              type: array
+              items:
+                type: object
+              example: []
+
+    # ===========================
+    # Repository Detail Schemas
+    # ===========================
+    RepositoryDetailSuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              type: integer
+              example: 200
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Repository detail retrieved successfully"
+            data:
+              $ref: '#/components/schemas/RepositoryDetailData'
+
+    RepositoryDetailData:
+      type: object
+      required:
+        - header
+        - pipeline_metrics
+        - adoption_timeline
+        - pipeline_activity
+        - commits
+        - pull_requests
+        - security_scans
+        - artifacts
+      properties:
+        header:
+          $ref: '#/components/schemas/RepositoryHeader'
+        pipeline_metrics:
+          $ref: '#/components/schemas/PipelineMetrics'
+        adoption_timeline:
+          $ref: '#/components/schemas/AdoptionTimeline'
+        pipeline_activity:
+          $ref: '#/components/schemas/PipelineActivitySection'
+        commits:
+          $ref: '#/components/schemas/CommitsSection'
+        pull_requests:
+          $ref: '#/components/schemas/PullRequestsSection'
+        security_scans:
+          $ref: '#/components/schemas/SecurityScansSection'
+        artifacts:
+          $ref: '#/components/schemas/ArtifactsSection'
+
+    RepositoryHeader:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the repository
+          example: "880e8400-e29b-41d4-a716-446655440030"
+        name:
+          type: string
+          description: Name of the repository
+          example: "xenon-infra-core"
+        overdue:
+          type: integer
+          nullable: true
+          description: Number of days the repository is overdue, null if not overdue
+          example: 3
+        client:
+          type: string
+          description: Client name associated with the repository
+          example: "Internal"
+        onboarding_date:
+          type: string
+          format: date
+          description: Date when the repository was onboarded (ISO 8601)
+          example: "2026-02-27"
+        closed_by:
+          type: string
+          format: date
+          nullable: true
+          description: Expected completion date or null if not set (ISO 8601)
+          example: "2026-04-13"
+        project_type:
+          type: string
+          description: Specialization and category label
+          example: "Internal · Infrastructure"
+        project:
+          type: object
+          description: Parent project reference
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Parent project UUID
+              example: "550e8400-e29b-41d4-a716-446655440001"
+            name:
+              type: string
+              description: Parent project name
+              example: "Project Xenon"
+
+    PipelineMetrics:
+      type: object
+      properties:
+        total_runs:
+          type: integer
+          description: Total pipeline runs since first connection
+          example: 142
+        success_rate:
+          type: number
+          description: Success rate percentage from the last 30 pipeline runs
+          example: 85.5
+        last_pipeline_run:
+          type: integer
+          nullable: true
+          description: Number of days since the last pipeline run
+          example: 5
+        last_pipeline_run_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: ISO 8601 timestamp of the last pipeline run
+          example: "2026-05-07T10:30:00Z"
+
+    AdoptionTimeline:
+      type: array
+      description: Ordered list of adoption timeline steps
+      items:
+        $ref: '#/components/schemas/AdoptionTimelineStep'
+      example:
+        - step: "kicked_off"
+          label: "Kicked Off"
+          status: "completed"
+          completed_at: "2026-02-20"
+        - step: "pipeline_detected"
+          label: "Pipeline Detected"
+          status: "completed"
+          completed_at: "2026-03-10"
+        - step: "first_run"
+          label: "First Run"
+          status: "in_progress"
+          completed_at: null
+        - step: "adopted"
+          label: "Adopted"
+          status: "pending"
+          completed_at: null
+
+    AdoptionTimelineStep:
+      type: object
+      properties:
+        step:
+          type: string
+          enum:
+            - kicked_off
+            - pipeline_detected
+            - first_run
+            - adopted
+          description: Step identifier
+          example: "kicked_off"
+        label:
+          type: string
+          description: Human-readable label for the step
+          example: "Kicked Off"
+        status:
+          type: string
+          enum:
+            - completed
+            - in_progress
+            - pending
+          description: Current status of the timeline step
+          example: "completed"
+        completed_at:
+          type: string
+          format: date
+          nullable: true
+          description: Completion date (ISO 8601) or null if not completed
+          example: "2026-02-20"
+
+    # Pipeline Activity Tab
+    PipelineActivitySection:
+      type: object
+      properties:
+        runs:
+          type: array
+          items:
+            $ref: '#/components/schemas/PipelineRun'
+
+    PipelineRun:
+      type: object
+      properties:
+        run_number:
+          type: integer
+          description: Pipeline run number
+          example: 142
+        status:
+          type: string
+          enum:
+            - passed
+            - failed
+            - running
+            - cancelled
+          description: Status of the pipeline run
+          example: "passed"
+        branch:
+          type: string
+          description: Branch name the pipeline ran on
+          example: "main"
+        duration:
+          type: string
+          description: Human-readable duration of the run
+          example: "2m 14s"
+        triggered_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the pipeline run was triggered
+          example: "2026-05-07T10:30:00Z"
+
+    # Commits Tab
+    CommitsSection:
+      type: object
+      properties:
+        commit_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommitItem'
+
+    CommitItem:
+      type: object
+      properties:
+        hash:
+          type: string
+          description: Abbreviated commit hash
+          example: "478b98"
+        message:
+          type: string
+          description: Full commit message
+          example: "feat: update pipeline configuration"
+        author:
+          type: string
+          description: Author name
+          example: "Tom Walsh"
+        committed_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of the commit
+          example: "2026-05-07T09:15:00Z"
+
+    # Pull Requests Tab
+    PullRequestsSection:
+      type: object
+      properties:
+        summary:
+          type: object
+          description: Pull request counts grouped by status
+          properties:
+            open:
+              type: integer
+              description: Number of open pull requests
+              example: 5
+            merged:
+              type: integer
+              description: Number of merged pull requests
+              example: 12
+            declined:
+              type: integer
+              description: Number of declined pull requests
+              example: 1
+        pull_requests_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/PullRequestItem'
+
+    PullRequestItem:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Pull request title
+          example: "Add DevSecOps pipeline template"
+        author:
+          type: string
+          description: Author name
+          example: "Tom Walsh"
+        status:
+          type: string
+          enum:
+            - open
+            - merged
+            - declined
+          description: Current status of the pull request
+          example: "open"
+        updated_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of the last update
+          example: "2026-05-11T14:20:00Z"
+
+    # Security Scans Tab
+    SecurityScansSection:
+      type: object
+      properties:
+        total_findings:
+          type: integer
+          description: Total findings across all scan types
+          example: 21
+        sca:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of SCA (dependency vulnerability) findings
+              example: 12
+        sast:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of SAST (static analysis) findings
+              example: 6
+        dast:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of DAST (dynamic scan) findings
+              example: 3
+
+    # Artifacts Tab
+    ArtifactsSection:
+      type: object
+      properties:
+        artifacts_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactItem'
+
+    ArtifactItem:
+      type: object
+      properties:
+        filename:
+          type: string
+          description: Name of the artifact file
+          example: "build-output.zip"
+        size_bytes:
+          type: integer
+          description: File size in bytes
+          example: 4404019
+        size_label:
+          type: string
+          description: Human-readable file size
+          example: "4.2 MB"
+        build_number:
+          type: integer
+          description: Associated pipeline build number
+          example: 142
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the artifact was created
+          example: "2026-05-07T10:32:00Z"
+        download_url:
+          type: string
+          format: uri
+          description: Pre-signed URL to download the artifact
+          example: "https://storage.zeb.co/artifacts/880e8400/build-output.zip"
+
+    # ===========================
+    # Sync Schemas
+    # ===========================
+
+    # --- Project Sync from ServiceNow ---
+    SyncProjectRequest:
+      type: object
+      required:
+        - sn_project_id
+        - project_name
+        - onboarded_date
+        - project_type
+      properties:
+        sn_project_id:
+          type: string
+          description: ServiceNow project identifier (stored in projects.sn_project_id)
+          example: "SN-PRJ-00456"
+        project_name:
+          type: string
+          description: Name of the project
+          example: "Payments Platform"
+        onboarded_date:
+          type: string
+          format: date
+          description: Date when the project was onboarded
+          example: "2026-03-15"
+        project_type:
+          type: string
+          description: Type/category of the project
+          example: "Infrastructure"
+        is_applicable:
+          type: boolean
+          description: Whether the project is applicable for DevSecOps onboarding
+          default: true
+          example: true
+        client:
+          type: string
+          description: Client name associated with the project
+          example: "ABN AMRO"
+        approver:
+          type: string
+          description: Name or email of the approver for the project
+          example: "barath.uthamasathish@zeb.co"
+
+    # --- DevSecOps Tickets Sync from ServiceNow ---
+    SyncDevSecOpsTicketsRequest:
+      type: object
+      required:
+        - tickets
+      properties:
+        tickets:
+          type: array
+          description: List of DevSecOps tickets to sync from ServiceNow
+          items:
+            $ref: '#/components/schemas/SyncDevSecOpsTicketItem'
+
+    SyncDevSecOpsTicketItem:
+      type: object
+      required:
+        - sn_project_id
+        - project_name
+        - specialization_name
+      properties:
+        sn_project_id:
+          type: string
+          description: ServiceNow project identifier (FK referencing projects.sn_project_id)
+          example: "SN-PRJ-00456"
+        project_name:
+          type: string
+          description: Name of the project the ticket belongs to
+          example: "Payments Platform"
+        client:
+          type: string
+          description: Client name associated with the ticket
+          example: "ABN AMRO"
+        specialization_name:
+          type: string
+          description: Specialization name (must match an existing specialization)
+          example: "DevSecOps"
+        repositories:
+          type: array
+          description: List of repositories associated with the ticket
+          items:
+            type: object
+            required:
+              - repo_name
+            properties:
+              repo_name:
+                type: string
+                description: Repository name
+                example: "payments-api"
+              ado_repo_id:
+                type: string
+                description: Azure DevOps repository identifier
+                example: "ado-repo-001"
+        requested_by:
+          type: string
+          description: Name or email of the person who raised the request
+          example: "tom.walsh@zeb.co"
+        approver:
+          type: string
+          description: Name or email of the approver for the ticket
+          example: "barath.uthamasathish@zeb.co"
+        requested_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the ticket was requested in ServiceNow
+          example: "2026-04-15T09:00:00Z"
+
+    SyncSuccessResponse:
+      type: object
+      required:
+        - status_code
+        - status
+        - message
+      properties:
+        status_code:
+          type: integer
+          example: 200
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Sync completed successfully"
+
+    SyncConflictError:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status_code:
+              type: integer
+              example: 409
+            status:
+              type: string
+              example: "failed"
+            message:
+              type: string
+              example: "A sync operation is already in progress. Please try again later."
+            data:
+              type: array
+              items:
+                type: object
+              example: []
+
+    # ===========================
+    # Settings Schemas
+    # ===========================
+    SettingsSuccessResponse:
+      type: object
+      required:
+        - status_code
+        - status
+        - message
+        - data
+      properties:
+        status_code:
+          type: integer
+          example: 200
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+          example: "Settings retrieved successfully"
+        data:
+          $ref: '#/components/schemas/SettingsData'
+
+    SettingsData:
+      type: object
+      properties:
+        setting_id:
+          type: string
+          format: uuid
+        specialization_id:
+          type: string
+          format: uuid
+        specialization_name:
+          type: string
+          example: "Cloud Engineering"
+        at_risk_threshold:
+          type: integer
+          example: 10
+        email_digest:
+          type: string
+          description: Email digest schedule value
+          example: "weekly"
+        at_risk_alert:
+          type: string
+          description: Frequency for at-risk alert reports (daily, weekly, bi-weekly, monthly, not_required)
+          example: "weekly"
+        last_synced:
+          type: string
+          description: Timestamp of the last sync operation
+          example: "2026-05-10T14:30:00Z"
+        email_recipients:
+          type: array
+          description: List of recipient email addresses
+          items:
+            $ref: '#/components/schemas/EmailRecipientItem'
+
+    EmailRecipientItem:
+      type: object
+      properties:
+        email_recipient_id:
+          type: string
+          format: uuid
+        alert_recipient:
+          type: string
+          format: email
+          example: "manager@org.com"
+
+    SettingsUpdateRequest:
+      type: object
+      required:
+        - specialization_id
+      properties:
+        specialization_id:
+          type: string
+          format: uuid
+          description: UUID of the specialization to update settings for
+        at_risk_threshold:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: Days since onboarding without repo before project is at-risk
+          example: 10
+        email_digest:
+          type: string
+          nullable: true
+          description: Email digest schedule value
+          example: "weekly"
+        at_risk_alert:
+          type: string
+          nullable: true
+          description: Frequency for at-risk alert reports (daily, weekly, bi-weekly, monthly, not_required)
+          example: "weekly"
+        email_recipients:
+          type: array
+          nullable: true
+          description: List of recipient email addresses to set
+          items:
+            $ref: '#/components/schemas/EmailRecipientAction'
+    
+    EmailRecipientAction:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [add, remove]
+          description: Whether to add or remove a recipient
+        alert_recipient:
+          type: string
+          format: email
+          description: Email address to add (required when action is "add")
+          example: "newuser@org.com"
+        email_recipient_id:
+          type: string
+          format: uuid
+          description: ID of the recipient to remove (required when action is "remove")
+
+    # ===========================
+    # Reports Schemas
+    # ===========================
+    GenerateReportRequest:
+      type: object
+      required:
+        - type
+        - specialization_id
+      properties:
+        type:
+          type: string
+          enum: [At-risk, Summary report]
+          description: Type of report to generate
+          example: "At-risk"
+        specialization_id:
+          type: string
+          format: uuid
+          description: UUID of the specialization to generate the report for
+
+security:
+  - BearerAuth: []

@@ -90,6 +90,7 @@ class Settings(BaseSettings):
     # Azure DevOps API
     ADO_ORG_URL: str = ""
     ADO_PAT: str = ""
+    ADO_SYNC_CONCURRENCY: int = 5  # Max parallel repository syncs
 
     # Jira Labs Hub service account for bug creation
     JIRA_SERVICE_ACCOUNT_EMAIL: str = "svc_jira.tools@zeb.co"

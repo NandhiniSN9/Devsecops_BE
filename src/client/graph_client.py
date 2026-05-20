@@ -1,10 +1,12 @@
 """Microsoft Graph API client for sending emails.
 
-Uses client credentials flow (app-only) to acquire an access token
-and sends emails via the /users/{sender}/sendMail endpoint.
+Uses client credentials flow (app-only) to acquire a fresh access token
+before every API call and sends emails via the /users/{sender}/sendMail endpoint.
+No token caching — each operation gets a fresh token to guarantee validity.
 """
 
 import httpx
+
 from src.utils.logger import logger
 
 # Microsoft Graph API constants
@@ -19,8 +21,8 @@ GRAPH_API_TIMEOUT = 30
 class GraphClient:
     """Client for Microsoft Graph API email operations.
 
-    Acquires an OAuth2 token via client credentials flow and sends
-    emails using the sendMail endpoint.
+    Acquires a fresh OAuth2 token via client credentials flow before
+    every API call. No caching — guarantees token is always valid.
     """
 
     def __init__(
@@ -42,10 +44,11 @@ class GraphClient:
         self._client_id = client_id
         self._client_secret = client_secret
         self._sender_email = sender_email
-        self._access_token: str | None = None
-
     async def _acquire_token(self) -> str:
-        """Acquire an access token via client credentials flow.
+        """Acquire a fresh access token via client credentials flow.
+
+        Called before every Graph API operation — no caching.
+        This ensures the token is always valid regardless of elapsed time.
 
         Returns:
             The access token string.
@@ -74,9 +77,9 @@ class GraphClient:
                     raise RuntimeError(f"Graph API token acquisition failed: HTTP {response.status_code}")
 
                 token_data = response.json()
-                self._access_token = token_data["access_token"]
+                access_token = token_data["access_token"]
                 logger.info("Graph API access token acquired successfully")
-                return self._access_token
+                return access_token
         except RuntimeError:
             raise
         except httpx.TimeoutException as exc:
@@ -84,22 +87,6 @@ class GraphClient:
             raise RuntimeError(f"Graph API token acquisition timed out: {exc}") from exc
         except Exception as exc:
             logger.error("Unexpected error in _acquire_token", error=str(exc))
-            raise
-
-    async def get_token(self) -> str:
-        """Get a valid access token, acquiring one if needed.
-
-        Returns:
-            The access token string.
-        """
-        try:
-            if not self._access_token:
-                return await self._acquire_token()
-            return self._access_token
-        except RuntimeError:
-            raise
-        except Exception as exc:
-            logger.error("Unexpected error in get_token", error=str(exc))
             raise
 
     async def send_email(
@@ -119,7 +106,7 @@ class GraphClient:
             True if the email was sent successfully, False otherwise.
         """
         try:
-            token = await self.get_token()
+            token = await self._acquire_token()
             headers = {
                 "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json",

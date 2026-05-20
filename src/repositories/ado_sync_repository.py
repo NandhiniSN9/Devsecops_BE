@@ -268,3 +268,38 @@ class AdoSyncRepository:
     async def rollback(self) -> None:
         """Rollback the current transaction."""
         await self._session.rollback()
+
+    async def get_tickets_for_specialization(self, specialization_id: uuid.UUID) -> list[DevsecopsTicket]:
+        """Get all active tickets for a specialization."""
+        stmt = select(DevsecopsTicket).where(
+            DevsecopsTicket.specialization_id == specialization_id,
+            DevsecopsTicket.is_active == 1,
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_settings_for_specialization(self, specialization_id: uuid.UUID):
+        """Get settings record for a specialization."""
+        from src.repositories.schema.setting import Setting
+
+        stmt = select(Setting).where(
+            Setting.specialization_id == specialization_id,
+            Setting.is_active == 1,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_project_by_id(self, project_id: uuid.UUID) -> Project | None:
+        """Get a project by its UUID."""
+        stmt = select(Project).where(
+            Project.project_id == project_id,
+            Project.is_active == 1,
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_status_name(self, status_id: uuid.UUID) -> str | None:
+        """Get the status name for a given status_id."""
+        stmt = select(Status.status_name).where(Status.status_id == status_id)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
