@@ -1,8 +1,8 @@
 """Projects route for listing projects and performing project actions."""
 
-from fastapi import APIRouter, Depends, Form, Query, Request, UploadFile
-from fastapi.params import File
+from fastapi import APIRouter, Depends, Query, Request
 
+from src.models.request.projects_request import ProjectActionRequest
 from src.models.response.base_response import BaseResponse
 from src.services.dependencies import get_projects_service
 from src.services.projects_service import ProjectsService
@@ -13,7 +13,7 @@ router = APIRouter(prefix="")
 @router.get("/projects")
 async def get_projects(
     period: str | None = Query(default=None),
-    search: str | None = Query(default=None), #This is to project name alone. Case insensitive and partial search allowed.
+    search: str | None = Query(default=None),  # Project name only. Case insensitive and partial search allowed.
     status: str | None = Query(default=None),
     client: str | None = Query(default=None),
     specialization: str | None = Query(default=None),
@@ -56,35 +56,31 @@ async def get_projects(
 @router.post("/projects/action")
 async def perform_project_action(
     request: Request,
-    project_id: str = Form(...),
-    action: str = Form(...),
-    reason_category: str | None = Form(default=None),
-    comments: str | None = Form(default=None),
-    evidence_file: UploadFile | None = File(default=None),
+    body: ProjectActionRequest,
     projects_service: ProjectsService = Depends(get_projects_service),
 ) -> BaseResponse:
     """Perform an action on a project (mark_not_applicable or mark_complete).
 
+    Accepts a JSON body with project_id, project_name, action, and optional
+    reason_category, comments, and evidence_url fields.
+
     Args:
         request: The incoming request (for extracting user context).
-        project_id: UUID of the project.
-        action: Action to perform (mark_not_applicable, mark_complete).
-        reason_category: Reason category (required for mark_not_applicable).
-        comments: Comments (required for mark_not_applicable).
-        evidence_file: Optional evidence file attachment.
+        body: JSON request body with action details.
         projects_service: Injected ProjectsService instance.
 
     Returns:
-        BaseResponse with success message.
+        BaseResponse with project_id, project_name, and optional evidence_url.
     """
     # Extract user identifier from request state (set by auth middleware)
     user_id = getattr(request.state, "user_id", None) or getattr(request.state, "email", "system")
 
     return await projects_service.perform_action(
-        project_id=project_id,
-        action=action,
-        reason_category=reason_category,
-        comments=comments,
-        evidence_file=evidence_file,
+        project_id=body.project_id,
+        project_name=body.project_name,
+        action=body.action,
+        reason_category=body.reason_category,
+        comments=body.comments,
+        evidence_file=None,
         user_id=user_id,
     )

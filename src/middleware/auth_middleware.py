@@ -80,8 +80,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
 
+        except AuthenticationError:
+            # Re-raise so the registered exception handler returns 401
+            raise
+
         except Exception as e:
-            logger.warning("auth_middleware.py","dispatch()")
+            logger.warning("auth_middleware.py", "dispatch()")
 
     def _decrypt_and_extract_payload(self, token: str, trace_id: str) -> dict | None:
         """Decrypt the token and extract the full payload dict.

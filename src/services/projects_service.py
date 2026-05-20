@@ -3,8 +3,6 @@
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import UploadFile
-
 from src.client.jira_client import JiraClient
 from src.client.s3_client import S3Client
 from src.models.request.projects_request import (
@@ -149,16 +147,18 @@ class ProjectsService:
     async def perform_action(
         self,
         project_id: str,
+        project_name: str,
         action: str,
         reason_category: str | None,
         comments: str | None,
-        evidence_file: UploadFile | None,
+        evidence_file: None,
         user_id: str,
     ) -> BaseResponse:
         """Perform an action on a project (mark not applicable or mark complete).
 
         Args:
             project_id: UUID string of the project.
+            project_name: Name of the project (provided by caller).
             action: Action to perform (mark_not_applicable | mark_complete).
             reason_category: Reason category (required for mark_not_applicable).
             comments: Comments (required for mark_not_applicable).
@@ -184,7 +184,6 @@ class ProjectsService:
         if project is None:
             raise NotFoundError("Project not found")
 
-        project_name: str = project.project_name
         response_data: dict = {
             "project_id": str(parsed_project_id),
             "project_name": project_name,
@@ -199,7 +198,6 @@ class ProjectsService:
                 evidence_file,
                 user_id,
             )
-            # Include the S3 presigned URL in the response when a file was uploaded
             if evidence_url:
                 response_data["evidence_url"] = evidence_url
 
@@ -223,7 +221,7 @@ class ProjectsService:
         project_name: str,
         reason_category: str | None,
         comments: str | None,
-        evidence_file: UploadFile | None,
+        evidence_file: None,
         user_id: str,
     ) -> str | None:
         """Handle mark_not_applicable action.
@@ -360,7 +358,7 @@ class ProjectsService:
             )
             raise
 
-    async def _upload_evidence(self, file: UploadFile, project_id: uuid.UUID) -> str:
+    async def _upload_evidence(self, file: object, project_id: uuid.UUID) -> str:
         """Upload an evidence file to S3 and return a pre-signed download URL.
 
         The S3 key is structured as:
