@@ -1,74 +1,20 @@
-# Git
-.git/
-.gitignore
-
-# Python cache
-__pycache__/
-*.py[cod]
-*$py.class
-*.pyo
-*.pyd
-
-# Virtual environments
-.venv/
-venv/
-env/
-
-# Testing (not needed in production image)
-src/tests/
-.pytest_cache/
-.hypothesis/
+.git
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.hypothesis
+htmlcov
 .coverage
 coverage.xml
-htmlcov/
-junit.xml
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Environment files (secrets injected at runtime)
+*.egg-info
 .env
-.env.*
-
-# Linting / Type Checking
-.ruff_cache/
-.mypy_cache/
-
-# Distribution / Build artifacts
-dist/
-build/
-*.egg-info/
-
-# Documentation / Design (not needed in runtime)
+token.txt
+Devsecops_BE_deploy.zip
+DevSecOps_BE_Unit_Test_Cases.xlsx
+scripts/
 design/
 diagram/
 requirements/
-api/
-.kiro/
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Docker
-Dockerfile
-docker-compose*.yml
-.dockerignore
-
-# Logs
-*.log
-logs/
-
-# Generated reports / Excel
-*.xlsx
-*.pdf
-
-# Scripts (dev-only)
-scripts/
-
-# Makefile (build-only)
-Makefile
-template.md
+src/tests/
+update_*.py
