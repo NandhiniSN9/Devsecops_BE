@@ -160,23 +160,26 @@ class SettingsService:
                             "alert_recipient is required when action is 'add'"
                         )
 
-                    existing = await self._settings_repo.check_duplicate_recipient(
-                        specialization_id, action_item.alert_recipient
-                    )
-                    if existing and existing.is_active == 1:
-                        raise InvalidParameterError("Recipient already exists")
+                    for email in action_item.alert_recipient:
+                        existing = await self._settings_repo.check_duplicate_recipient(
+                            specialization_id, email
+                        )
+                        if existing and existing.is_active == 1:
+                            raise InvalidParameterError(
+                                f"Recipient '{email}' already exists"
+                            )
 
-                    if existing and existing.is_active == 0:
-                        await self._settings_repo.reactivate_recipient(
-                            existing, SETTINGS_SERVICE_IDENTIFIER
-                        )
-                    else:
-                        await self._settings_repo.add_email_recipient(
-                            setting_id=setting_id,
-                            specialization_id=specialization_id,
-                            alert_recipient=action_item.alert_recipient,
-                            created_by=SETTINGS_SERVICE_IDENTIFIER,
-                        )
+                        if existing and existing.is_active == 0:
+                            await self._settings_repo.reactivate_recipient(
+                                existing, SETTINGS_SERVICE_IDENTIFIER
+                            )
+                        else:
+                            await self._settings_repo.add_email_recipient(
+                                setting_id=setting_id,
+                                specialization_id=specialization_id,
+                                alert_recipient=email,
+                                created_by=SETTINGS_SERVICE_IDENTIFIER,
+                            )
 
                 elif action_item.action == "remove":
                     if not action_item.email_recipient_id:
@@ -184,15 +187,18 @@ class SettingsService:
                             "email_recipient_id is required when action is 'remove'"
                         )
 
-                    recipient = await self._settings_repo.get_recipient_by_id(
-                        action_item.email_recipient_id
-                    )
-                    if not recipient:
-                        raise InvalidParameterError("Recipient not found or already removed")
+                    for recipient_id in action_item.email_recipient_id:
+                        recipient = await self._settings_repo.get_recipient_by_id(
+                            recipient_id
+                        )
+                        if not recipient:
+                            raise InvalidParameterError(
+                                f"Recipient '{recipient_id}' not found or already removed"
+                            )
 
-                    await self._settings_repo.soft_delete_recipient(
-                        recipient, SETTINGS_SERVICE_IDENTIFIER
-                    )
+                        await self._settings_repo.soft_delete_recipient(
+                            recipient, SETTINGS_SERVICE_IDENTIFIER
+                        )
         except InvalidParameterError:
             raise
         except SQLAlchemyError as db_exc:

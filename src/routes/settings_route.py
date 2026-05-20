@@ -24,6 +24,7 @@ async def get_settings(
         BaseResponse with settings data and email recipients.
     """
     try:
+        logger.info("get_settings API started")
         settings_data = await settings_service.get_settings(specialization_id)
 
         return BaseResponse(
@@ -52,13 +53,13 @@ async def update_settings(
         BaseResponse with the updated settings data.
     """
     try:
-        updated_data = await settings_service.update_settings(request)
+        await settings_service.update_settings(request)
 
         return BaseResponse(
             status_code=200,
             status="success",
             message="Settings updated successfully",
-            data=updated_data.model_dump(),
+            data=None,
         )
     except Exception as exc:
         logger.error("Error in update_settings endpoint", error=str(exc))
