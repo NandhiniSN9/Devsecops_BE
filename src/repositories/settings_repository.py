@@ -181,29 +181,49 @@ class SettingsRepository:
 
     async def check_duplicate_recipient(
         self, specialization_id: uuid.UUID, alert_recipient: str
-    ) -> bool:
-        """Check if an email recipient already exists for a specialization.
+    ) -> EmailRecipient | None:
+        """Find an email recipient by specialization and email, regardless of is_active.
 
         Args:
             specialization_id: UUID of the specialization.
             alert_recipient: Email address to check.
 
         Returns:
-            True if a duplicate active recipient exists.
+            EmailRecipient record or None if not found.
         """
         try:
             stmt = select(EmailRecipient).where(
                 EmailRecipient.specialization_id == specialization_id,
                 EmailRecipient.alert_recipient == alert_recipient,
-                EmailRecipient.is_active == 1,
             )
             result = await self._session.execute(stmt)
-            return result.scalar_one_or_none() is not None
+            return result.scalar_one_or_none()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in check_duplicate_recipient", error=str(db_exc))
             raise
         except Exception as exc:
             logger.error("Unexpected error in check_duplicate_recipient", error=str(exc))
+            raise
+
+    async def reactivate_recipient(
+        self, recipient: EmailRecipient, modified_by: str
+    ) -> None:
+        """Reactivate a soft-deleted email recipient by setting is_active = 1.
+
+        Args:
+            recipient: The EmailRecipient ORM instance to reactivate.
+            modified_by: Identifier of who made the change.
+        """
+        try:
+            recipient.is_active = 1
+            recipient.modified_at = datetime.utcnow()
+            recipient.modified_by = modified_by
+            await self._session.flush()
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in reactivate_recipient", error=str(db_exc))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in reactivate_recipient", error=str(exc))
             raise
 
     async def soft_delete_recipient(

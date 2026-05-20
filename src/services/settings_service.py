@@ -160,18 +160,23 @@ class SettingsService:
                             "alert_recipient is required when action is 'add'"
                         )
 
-                    is_duplicate = await self._settings_repo.check_duplicate_recipient(
+                    existing = await self._settings_repo.check_duplicate_recipient(
                         specialization_id, action_item.alert_recipient
                     )
-                    if is_duplicate:
+                    if existing and existing.is_active == 1:
                         raise InvalidParameterError("Recipient already exists")
 
-                    await self._settings_repo.add_email_recipient(
-                        setting_id=setting_id,
-                        specialization_id=specialization_id,
-                        alert_recipient=action_item.alert_recipient,
-                        created_by=SETTINGS_SERVICE_IDENTIFIER,
-                    )
+                    if existing and existing.is_active == 0:
+                        await self._settings_repo.reactivate_recipient(
+                            existing, SETTINGS_SERVICE_IDENTIFIER
+                        )
+                    else:
+                        await self._settings_repo.add_email_recipient(
+                            setting_id=setting_id,
+                            specialization_id=specialization_id,
+                            alert_recipient=action_item.alert_recipient,
+                            created_by=SETTINGS_SERVICE_IDENTIFIER,
+                        )
 
                 elif action_item.action == "remove":
                     if not action_item.email_recipient_id:
