@@ -37,7 +37,9 @@ class AdoClient:
         """
         url = f"{self._org_url}/{project}/_apis/build/builds"
         params = {"repositoryId": repo_id, "repositoryType": "TfsGit", "$top": str(top), "api-version": _API_VERSION}
-        return await self._get_list(url, params, "value")
+        data = await self._get_list(url, params, "value")
+        logger.info("ADO pipeline_runs response", repo_id=repo_id, count=len(data), data=data)
+        return data
 
     async def get_commits(self, repo_id: str, project: str, top: int = 5) -> list[dict]:
         """Fetch the latest commits for a repository.
@@ -52,7 +54,9 @@ class AdoClient:
         """
         url = f"{self._org_url}/{project}/_apis/git/repositories/{repo_id}/commits"
         params = {"$top": str(top), "api-version": _API_VERSION}
-        return await self._get_list(url, params, "value")
+        data = await self._get_list(url, params, "value")
+        logger.info("ADO commits response", repo_id=repo_id, count=len(data), data=data)
+        return data
 
     async def get_pull_requests(self, repo_id: str, project: str, top: int = 5) -> list[dict]:
         """Fetch the latest pull requests for a repository.
@@ -67,7 +71,9 @@ class AdoClient:
         """
         url = f"{self._org_url}/{project}/_apis/git/repositories/{repo_id}/pullrequests"
         params = {"$top": str(top), "status": "all", "api-version": _API_VERSION}
-        return await self._get_list(url, params, "value")
+        data = await self._get_list(url, params, "value")
+        logger.info("ADO pull_requests response", repo_id=repo_id, count=len(data), data=data)
+        return data
 
     async def get_build_artifacts(self, build_id: int, project: str) -> list[dict]:
         """Fetch artifacts for a specific build.
@@ -81,7 +87,9 @@ class AdoClient:
         """
         url = f"{self._org_url}/{project}/_apis/build/builds/{build_id}/artifacts"
         params = {"api-version": _API_VERSION}
-        return await self._get_list(url, params, "value")
+        data = await self._get_list(url, params, "value")
+        logger.info("ADO build_artifacts response", build_id=build_id, count=len(data), data=data)
+        return data
 
     async def _get_list(self, url: str, params: dict, list_key: str) -> list[dict]:
         """Execute a GET request and extract the list from the response.

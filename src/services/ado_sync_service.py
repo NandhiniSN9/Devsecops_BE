@@ -45,30 +45,44 @@ class AdoSyncService:
         try:
             projects = await self._repo.get_applicable_projects()
 
-            for project in projects:
-                repositories = await self._repo.get_repositories_for_project(project.project_id)
+            # Pre-extract project info to avoid lazy loading after rollback
+            project_info_list = [
+                (project.project_id, project.project_name)
+                for project in projects
+            ]
 
-                for repository in repositories:
-                    if not repository.ado_repo_id:
+            for project_id, project_name in project_info_list:
+                repositories = await self._repo.get_repositories_for_project(project_id)
+
+                # Pre-extract attributes to avoid lazy loading after rollback
+                repo_info_list = [
+                    (repo.repository_id, repo.ado_repo_id)
+                    for repo in repositories
+                ]
+
+                for repo_id, ado_repo_id in repo_info_list:
+                    if not ado_repo_id:
                         continue
 
-                    repo_id_str = str(repository.repository_id)
-                    ado_repo_id = repository.ado_repo_id
-
                     try:
-                        await self._sync_repository(repository, project.project_name)
+                        # Re-fetch the repository object in a clean session state
+                        repository = await self._repo.get_repository_by_id(repo_id)
+                        if not repository:
+                            continue
+                        await self._sync_repository(repository, project_name)
                     except Exception as exc:
                         has_errors = True
                         await self._repo.rollback()
                         logger.error(
                             "Failed to sync repository",
-                            repository_id=repo_id_str,
+                            repository_id=str(repo_id),
                             ado_repo_id=ado_repo_id,
                             error=str(exc),
                         )
 
-            # Update KPI history for affected specializations
-            await self._update_kpi_histories(projects)
+            # Update KPI history only if all syncs passed
+            if not has_errors:
+                await self._update_kpi_histories(project_info_list)
 
             # Update cron job status
             final_status = "fail" if has_errors else "success"
@@ -204,13 +218,17 @@ class AdoSyncService:
         logger.info("Repository sync completed", repository_id=str(repo_id))
 
     async def _update_kpi_histories(
-        self, projects: list
+        self, project_info_list: list[tuple[uuid.UUID, str]]
     ) -> None:
-        """Update KPI history for affected specializations."""
+        """Update KPI history for affected specializations.
+
+        Args:
+            project_info_list: List of (project_id, project_name) tuples.
+        """
         spec_ids: set[uuid.UUID] = set()
 
-        for project in projects:
-            project_spec_ids = await self._repo.get_specialization_ids_for_project(project.project_id)
+        for project_id, _ in project_info_list:
+            project_spec_ids = await self._repo.get_specialization_ids_for_project(project_id)
             spec_ids.update(project_spec_ids)
 
         for spec_id in spec_ids:
@@ -305,10 +323,12 @@ class AdoSyncService:
 
     @staticmethod
     def _parse_datetime(value: str | None) -> datetime | None:
-        """Parse an ISO 8601 datetime string."""
+        """Parse an ISO 8601 datetime string, returning a naive UTC datetime."""
         if not value:
             return None
         try:
-            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            # Strip timezone info for naive TIMESTAMP columns
+            return dt.replace(tzinfo=None)
         except (ValueError, TypeError):
             return None

@@ -79,6 +79,12 @@ class AdoSyncRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
+    async def get_repository_by_id(self, repository_id: uuid.UUID) -> Repository | None:
+        """Get a single repository by its ID."""
+        stmt = select(Repository).where(Repository.repository_id == repository_id)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def soft_delete_pipeline_runs(self, repository_id: uuid.UUID) -> None:
         """Soft-delete all active pipeline runs for a repository."""
         stmt = (
