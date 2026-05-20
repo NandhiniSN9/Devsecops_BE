@@ -302,7 +302,7 @@ class ProjectsService:
     def _validate_period(period: str | None) -> str:
         """Validate period parameter."""
         if period is None:
-            return ProjectPeriodEnum.LAST_MONTH.value
+            return ProjectPeriodEnum.LAST_WEEK.value
 
         valid_values = [e.value for e in ProjectPeriodEnum]
         if period not in valid_values:

@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 class ProjectPeriodEnum(StrEnum):
     """Valid period filter values for projects endpoint."""
-
+    
     LAST_WEEK = "last_week"
     LAST_MONTH = "last_month"
     LAST_3_MONTHS = "last_3_months"
