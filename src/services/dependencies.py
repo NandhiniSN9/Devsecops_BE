@@ -10,12 +10,13 @@ and services into route handlers.
 from collections.abc import AsyncGenerator
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.client.ado_client import AdoClient
 from src.client.graph_client import GraphClient
 from src.client.jira_client import JiraClient
 from src.client.s3_client import S3Client
+from src.repositories.database import _async_session_factory
 from src.repositories.ado_sync_repository import AdoSyncRepository
 from src.repositories.filters_repository import ClientRepository
 from src.repositories.overview_repository import OverviewRepository
@@ -33,20 +34,6 @@ from src.services.repository_detail_service import RepositoryDetailService
 from src.services.servicenow_service import ServiceNowService
 from src.services.settings_service import SettingsService
 from src.settings import get_settings
-
-# Create async engine and session factory at module level
-_settings = get_settings()
-_engine = create_async_engine(
-    _settings.DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-)
-_async_session_factory = async_sessionmaker(
-    bind=_engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:

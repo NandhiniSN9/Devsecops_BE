@@ -14,7 +14,6 @@ def client():
     return AdoClient(
         org_url="https://dev.azure.com/testorg",
         pat="test-pat-token",
-        project="TestProject",
     )
 
 
@@ -32,13 +31,13 @@ class TestGetPipelineRuns:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("httpx.AsyncClient") as mock_client_cls:
+        with patch("src.client.ado_client.httpx.AsyncClient") as mock_client_cls:
             mock_client_instance = AsyncMock()
             mock_client_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client_instance)
             mock_client_cls.return_value.__aexit__ = AsyncMock(return_value=False)
             mock_client_instance.get.return_value = mock_response
 
-            result = await client.get_pipeline_runs("repo-123")
+            result = await client.get_pipeline_runs("repo-123", "TestProject")
 
         assert len(result) == 1
         assert result[0]["buildNumber"] == 1
@@ -46,7 +45,7 @@ class TestGetPipelineRuns:
     @pytest.mark.asyncio
     async def test_returns_empty_on_http_error(self, client):
         """Should return empty list on HTTP error."""
-        with patch("httpx.AsyncClient") as mock_client_cls:
+        with patch("src.client.ado_client.httpx.AsyncClient") as mock_client_cls:
             mock_client_instance = AsyncMock()
             mock_client_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client_instance)
             mock_client_cls.return_value.__aexit__ = AsyncMock(return_value=False)
@@ -58,20 +57,20 @@ class TestGetPipelineRuns:
                 "Not Found", request=MagicMock(), response=error_response
             )
 
-            result = await client.get_pipeline_runs("repo-123")
+            result = await client.get_pipeline_runs("repo-123", "TestProject")
 
         assert result == []
 
     @pytest.mark.asyncio
     async def test_returns_empty_on_request_error(self, client):
         """Should return empty list on connection error."""
-        with patch("httpx.AsyncClient") as mock_client_cls:
+        with patch("src.client.ado_client.httpx.AsyncClient") as mock_client_cls:
             mock_client_instance = AsyncMock()
             mock_client_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client_instance)
             mock_client_cls.return_value.__aexit__ = AsyncMock(return_value=False)
             mock_client_instance.get.side_effect = httpx.RequestError("Connection failed")
 
-            result = await client.get_pipeline_runs("repo-123")
+            result = await client.get_pipeline_runs("repo-123", "TestProject")
 
         assert result == []
 
@@ -88,13 +87,13 @@ class TestGetCommits:
         }
         mock_response.raise_for_status = MagicMock()
 
-        with patch("httpx.AsyncClient") as mock_client_cls:
+        with patch("src.client.ado_client.httpx.AsyncClient") as mock_client_cls:
             mock_client_instance = AsyncMock()
             mock_client_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client_instance)
             mock_client_cls.return_value.__aexit__ = AsyncMock(return_value=False)
             mock_client_instance.get.return_value = mock_response
 
-            result = await client.get_commits("repo-123")
+            result = await client.get_commits("repo-123", "TestProject")
 
         assert len(result) == 1
         assert result[0]["commitId"] == "abc123"

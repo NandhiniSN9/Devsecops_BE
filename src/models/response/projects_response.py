@@ -111,3 +111,7 @@ class ProjectsListDataResponse(BaseModel):
 
     pagination: PaginationResponse
     """Pagination metadata."""
+
+
+# Alias for backward compatibility
+ProjectsDataResponse = ProjectsListDataResponse

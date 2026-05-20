@@ -73,6 +73,21 @@ class SyncDetailResponse(BaseModel):
     """Whether an ADO sync operation is currently in progress."""
 
 
+class AttentionBannerResponse(BaseModel):
+    """Attention banner alert for at-risk projects."""
+
+    model_config = ConfigDict(strict=False)
+
+    message: str = Field(max_length=200)
+    """Alert message describing the at-risk situation (max 200 characters)."""
+
+    at_risk_count: int = Field(ge=0)
+    """Number of projects currently at risk (non-negative)."""
+
+    severity: Literal["critical", "warning", "info"]
+    """Severity level: critical (>5), warning (1-5), or info (0)."""
+
+
 class OverviewDataResponse(BaseModel):
     """Combined overview response payload."""
 

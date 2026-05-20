@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends
 from src.models.response.base_response import BaseResponse
 from src.services.dependencies import get_report_service
 from src.services.report_service import ReportService
+from src.utils.helpers import log_error_to_db
 from src.utils.logger import logger
 
 router = APIRouter(prefix="/reports")

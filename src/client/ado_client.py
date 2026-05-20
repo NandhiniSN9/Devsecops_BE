@@ -5,6 +5,7 @@ import traceback
 
 import httpx
 
+from src.utils.helpers import log_error_to_db
 from src.utils.logger import logger
 
 # ADO API version

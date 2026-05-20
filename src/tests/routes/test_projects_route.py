@@ -44,7 +44,7 @@ def sample_projects_response():
         message="Projects retrieved successfully",
         data=ProjectsDataResponse(
             projects=[],
-            pagination={"total": 0, "offset": 0, "limit": 10},
+            pagination={"total_items": 0, "offset": 0, "limit": 10},
         ),
     )
 

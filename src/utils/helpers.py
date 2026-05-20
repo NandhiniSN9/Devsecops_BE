@@ -1,7 +1,7 @@
 """Utility helper functions for the DevSecOps Dashboard API."""
 
+from src.repositories.database import _async_session_factory
 from src.repositories.error_log_repository import ErrorLogRepository
-from src.services.dependencies import _async_session_factory
 from src.utils.logger import logger
 from src.utils.text import normalize_project_name
 

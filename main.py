@@ -17,7 +17,7 @@ from src.routes import (
     servicenow_route,
     settings_route,
 )
-from src.services.dependencies import _engine
+from src.repositories.database import _engine
 from src.settings import validate_settings_at_startup
 from src.utils.exceptions.exception_handlers import register_exception_handlers
 from src.utils.logger import logger
@@ -30,9 +30,12 @@ async def lifespan(app: FastAPI):
     validate_settings_at_startup()
     logger.info("Settings validated successfully")
 
-    async with _engine.begin() as conn:
-        await conn.run_sync(run_migration)
-    logger.info("Database migration check completed")
+    try:
+        async with _engine.begin() as conn:
+            await conn.run_sync(run_migration)
+        logger.info("Database migration check completed")
+    except Exception as exc:
+        logger.warning("Database migration skipped (DB not reachable)", error=str(exc))
 
     yield
 
