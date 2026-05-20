@@ -56,19 +56,22 @@ class RepositoryItemRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    repo_name: str = Field(min_length=1)
-    """Repository name."""
+    ado_repo_name: str = Field(min_length=1)
+    """Azure DevOps repository name."""
 
     ado_repo_id: str | None = None
     """Azure DevOps repository identifier."""
 
-    lead_approvers: list[str] | None = None
-    """List of lead approver email addresses for the repository."""
+    specialization: list[str] | None = None
+    """List of specialization names this repository belongs to."""
 
-    @field_validator("repo_name", mode="before")
+    l1_approvers: list[str] | None = None
+    """List of L1 approver email addresses for the repository."""
+
+    @field_validator("ado_repo_name", mode="before")
     @classmethod
     def strip_repo_name(cls, v: str) -> str:
-        """Strip leading/trailing whitespace from repo_name."""
+        """Strip leading/trailing whitespace from ado_repo_name."""
         if isinstance(v, str):
             return v.strip()
         return v
@@ -82,17 +85,17 @@ class SyncDevSecOpsTicketItemRequest(BaseModel):
     sn_project_id: str = Field(min_length=1)
     """ServiceNow project identifier (used for project resolution)."""
 
-    devsec_project_id: str | None = Field(default=None, alias="devSec_project_id")
+    ado_project_id: str | None = None
     """Azure DevOps project identifier."""
 
-    project_name: str = Field(min_length=1)
-    """Name of the project the ticket belongs to."""
+    ado_project_name: str = Field(min_length=1)
+    """Name of the ADO project the ticket belongs to."""
+
+    project_type: str | None = None
+    """Type of the project (client/internal)."""
 
     client: str | None = None
     """Client name."""
-
-    specialization_name: str = Field(min_length=1)
-    """Specialization name (must match an existing active specialization)."""
 
     repositories: list[RepositoryItemRequest] | None = None
     """Repositories associated with the ticket."""
@@ -100,13 +103,10 @@ class SyncDevSecOpsTicketItemRequest(BaseModel):
     requested_by: str | None = None
     """Name or email of the person who raised the request."""
 
-    approver: str | None = None
-    """Name or email of the approver for the ticket."""
-
     requested_at: datetime | None = None
     """Timestamp when the ticket was requested in ServiceNow."""
 
-    @field_validator("sn_project_id", "project_name", "specialization_name", mode="before")
+    @field_validator("sn_project_id", "ado_project_name", mode="before")
     @classmethod
     def strip_whitespace(cls, v: str) -> str:
         """Strip leading/trailing whitespace from string fields."""

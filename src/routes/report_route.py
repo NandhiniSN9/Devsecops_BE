@@ -7,6 +7,9 @@ No authentication required — triggered by external cron.
 No request body required.
 """
 
+import asyncio
+import traceback
+
 from fastapi import APIRouter, Depends
 from src.models.response.base_response import BaseResponse
 from src.services.dependencies import get_report_service
@@ -47,4 +50,11 @@ async def generate_reports(
         )
     except Exception as exc:
         logger.error("Error in generate_reports endpoint", error=str(exc))
+        asyncio.create_task(log_error_to_db(
+            error_message=str(exc),
+            error_function="generate_reports",
+            error_file="src/routes/report_route.py",
+            stack_trace=traceback.format_exc(),
+            created_by="system",
+        ))
         raise

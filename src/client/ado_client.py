@@ -1,5 +1,8 @@
 """Azure DevOps REST API client for fetching pipeline data."""
 
+import asyncio
+import traceback
+
 import httpx
 
 from src.utils.logger import logger
@@ -116,6 +119,13 @@ class AdoClient:
                 status_code=exc.response.status_code,
                 detail=exc.response.text[:500],
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="_get_list",
+                error_file="src/client/ado_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             return []
         except httpx.RequestError as exc:
             logger.error(
@@ -123,4 +133,11 @@ class AdoClient:
                 url=url,
                 error=str(exc),
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="_get_list",
+                error_file="src/client/ado_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             return []

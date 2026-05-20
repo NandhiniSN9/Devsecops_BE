@@ -2,6 +2,9 @@
 Filter route for retrieving dropdown filter options.
 """
 
+import asyncio
+import traceback
+
 from fastapi import APIRouter, Depends, Response
 from src.models.response.base_response import BaseResponse
 from src.services.dependencies import get_filter_service
@@ -39,4 +42,11 @@ async def get_filters(response: Response,filter_service: FilterService = Depends
         )
     except Exception as exc:
         logger.error("Error in get_filters endpoint", error=str(exc))
+        asyncio.create_task(log_error_to_db(
+            error_message=str(exc),
+            error_function="get_filters",
+            error_file="src/routes/filter_route.py",
+            stack_trace=traceback.format_exc(),
+            created_by="system",
+        ))
         raise

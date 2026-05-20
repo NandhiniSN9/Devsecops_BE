@@ -3,6 +3,9 @@
 Uses aioboto3 for async S3 operations with configurable bucket and region.
 """
 
+import asyncio
+import traceback
+
 import aioboto3
 from src.utils.logger import logger
 
@@ -83,6 +86,13 @@ class S3Client:
                 "Failed to upload file to S3",
                 extra={"s3_key": s3_key, "error": str(exc)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="upload_file",
+                error_file="src/client/s3_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise RuntimeError(f"S3 upload failed: {exc}") from exc
 
     async def generate_presigned_url(self, s3_key: str) -> str:
@@ -113,4 +123,11 @@ class S3Client:
                 "Failed to generate pre-signed URL",
                 extra={"s3_key": s3_key, "error": str(exc)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="generate_presigned_url",
+                error_file="src/client/s3_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise RuntimeError(f"Pre-signed URL generation failed: {exc}") from exc

@@ -5,6 +5,9 @@ before every API call and sends emails via the /users/{sender}/sendMail endpoint
 No token caching — each operation gets a fresh token to guarantee validity.
 """
 
+import asyncio
+import traceback
+
 import httpx
 
 from src.utils.logger import logger
@@ -84,9 +87,46 @@ class GraphClient:
             raise
         except httpx.TimeoutException as exc:
             logger.error("Timeout acquiring Graph API token", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="_acquire_token",
+                error_file="src/client/graph_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise RuntimeError(f"Graph API token acquisition timed out: {exc}") from exc
         except Exception as exc:
             logger.error("Unexpected error in _acquire_token", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="_acquire_token",
+                error_file="src/client/graph_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
+            raise
+
+    async def get_token(self) -> str:
+        """Get a valid access token, acquiring one if needed.
+
+        Returns:
+            The access token string.
+        """
+        try:
+            if not self._access_token:
+                return await self._acquire_token()
+            return self._access_token
+        except RuntimeError:
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_token", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_token",
+                error_file="src/client/graph_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def send_email(
@@ -150,4 +190,11 @@ class GraphClient:
             return False
         except Exception as exc:
             logger.error("Unexpected error in send_email", to=to_email, error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="send_email",
+                error_file="src/client/graph_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise

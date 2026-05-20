@@ -1,5 +1,8 @@
 """Overview route for retrieving consolidated KPI metrics and status distribution."""
 
+import asyncio
+import traceback
+
 from fastapi import APIRouter, Depends, Query
 
 from src.models.response.base_response import BaseResponse
@@ -37,4 +40,11 @@ async def get_overview(
         )
     except Exception as exc:
         logger.error("Error in get_overview endpoint", error=str(exc))
+        asyncio.create_task(log_error_to_db(
+            error_message=str(exc),
+            error_function="get_overview",
+            error_file="src/routes/overview_route.py",
+            stack_trace=traceback.format_exc(),
+            created_by="system",
+        ))
         raise

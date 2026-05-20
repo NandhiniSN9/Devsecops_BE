@@ -4,6 +4,8 @@ Computes KPI counts live from the projects table and retrieves
 historical snapshots from kpi_history for trend calculation.
 """
 
+import asyncio
+import traceback
 import uuid
 from datetime import datetime, timedelta
 
@@ -89,9 +91,23 @@ class OverviewRepository:
 
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_live_counts", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_live_counts",
+                error_file="src/repositories/overview_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_live_counts", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_live_counts",
+                error_file="src/repositories/overview_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_historical_counts(self, days_ago: int) -> dict | None:
@@ -159,9 +175,23 @@ class OverviewRepository:
 
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_historical_counts", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_historical_counts",
+                error_file="src/repositories/overview_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_historical_counts", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_historical_counts",
+                error_file="src/repositories/overview_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_last_synced(self) -> datetime | None:
@@ -176,9 +206,23 @@ class OverviewRepository:
             return result.scalar_one_or_none()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_last_synced", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_last_synced",
+                error_file="src/repositories/overview_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_last_synced", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_last_synced",
+                error_file="src/repositories/overview_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def is_sync_in_progress(self) -> bool:
@@ -198,7 +242,21 @@ class OverviewRepository:
             return count > 0
         except SQLAlchemyError as db_exc:
             logger.error("Database error in is_sync_in_progress", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="is_sync_in_progress",
+                error_file="src/repositories/overview_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in is_sync_in_progress", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="is_sync_in_progress",
+                error_file="src/repositories/overview_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise

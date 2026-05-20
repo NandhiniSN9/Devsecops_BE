@@ -4,6 +4,8 @@ Consolidates specialization, status, and client queries into a single
 repository since they all serve as filter/dropdown data for the frontend.
 """
 
+import asyncio
+import traceback
 import uuid
 from sqlalchemy import String, distinct, func, select, union
 from sqlalchemy.exc import SQLAlchemyError
@@ -34,9 +36,23 @@ class ClientRepository:
             return list(result.scalars().all())
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_active_specializations", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_active_specializations",
+                error_file="src/repositories/filters_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_active_specializations", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_active_specializations",
+                error_file="src/repositories/filters_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_active_statuses(self) -> list[Status]:
@@ -47,9 +63,23 @@ class ClientRepository:
             return list(result.scalars().all())
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_active_statuses", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_active_statuses",
+                error_file="src/repositories/filters_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_active_statuses", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_active_statuses",
+                error_file="src/repositories/filters_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_active_clients(self) -> list[dict]:
@@ -97,7 +127,21 @@ class ClientRepository:
             ]
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_active_clients", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_active_clients",
+                error_file="src/repositories/filters_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_active_clients", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_active_clients",
+                error_file="src/repositories/filters_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise

@@ -4,6 +4,8 @@ Provides project listing with filtering, sorting, pagination,
 and project action operations (mark not applicable, mark complete).
 """
 
+import asyncio
+import traceback
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -122,6 +124,13 @@ class ProjectsRepository:
 
         except Exception as e:
             logger.exception("Failed to fetch projects", extra={"error": str(e)})
+            asyncio.create_task(log_error_to_db(
+                error_message=str(e),
+                error_function="get_projects",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_repositories_for_project(self, project_id: uuid.UUID) -> list[Repository]:
@@ -151,6 +160,13 @@ class ProjectsRepository:
                 "Failed to fetch repositories for project",
                 extra={"project_id": str(project_id), "error": str(e)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(e),
+                error_function="get_repositories_for_project",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
 
@@ -176,6 +192,13 @@ class ProjectsRepository:
                 "Failed to fetch project by id",
                 extra={"project_id": str(project_id), "error": str(e)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(e),
+                error_function="get_project_by_id",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_status_by_name(self, status_name: str) -> Status | None:
@@ -200,6 +223,13 @@ class ProjectsRepository:
                 "Failed to fetch status by name",
                 extra={"status_name": status_name, "error": str(e)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(e),
+                error_function="get_status_by_name",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def update_project_not_applicable(
@@ -228,11 +258,18 @@ class ProjectsRepository:
             )
             await self._session.execute(stmt)
 
-        except Exception:
+        except Exception as exc:
             logger.exception(
                 "Failed to update project to not-applicable",
                 extra={"project_id": str(project_id)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="update_project_not_applicable",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
 
@@ -264,6 +301,7 @@ class ProjectsRepository:
                     status_id=status_id,
                     modified_at=now_naive,
                     modified_by=modified_by,
+                    
                 )
             )
             await self._session.execute(stmt)
@@ -283,11 +321,18 @@ class ProjectsRepository:
             )
             await self._session.execute(ticket_stmt)
 
-        except Exception:
+        except Exception as exc:
             logger.exception(
                 "Failed to update project to complete",
                 extra={"project_id": str(project_id)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="update_project_complete",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
 
@@ -325,11 +370,18 @@ class ProjectsRepository:
             jira_ticket.created_by = created_by
             self._session.add(jira_ticket)
 
-        except Exception:
+        except Exception as exc:
             logger.exception(
                 "Failed to create local jira_ticket record",
                 extra={"project_id": str(project_id), "jira_id": jira_id},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="create_jira_ticket",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def commit(self) -> None:
@@ -338,6 +390,13 @@ class ProjectsRepository:
             await self._session.commit()
         except Exception as e:
             logger.exception("Failed to commit transaction", extra={"error": str(e)})
+            asyncio.create_task(log_error_to_db(
+                error_message=str(e),
+                error_function="commit",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def rollback(self) -> None:
@@ -347,6 +406,13 @@ class ProjectsRepository:
 
         except Exception as e:
             logger.exception("Failed to rollback transaction", extra={"error": str(e)})
+            asyncio.create_task(log_error_to_db(
+                error_message=str(e),
+                error_function="rollback",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_status_name_for_project(self, project: Project) -> str | None:
@@ -392,6 +458,13 @@ class ProjectsRepository:
                 "Failed to fetch status name for project",
                 extra={"project_id": str(project.project_id), "error": str(e)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(e),
+                error_function="get_status_name_for_project",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_not_applicable_details(self, project_id: uuid.UUID) -> dict | None:
@@ -427,4 +500,11 @@ class ProjectsRepository:
                 "Failed to fetch not_applicable_details",
                 extra={"project_id": str(project_id), "error": str(e)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(e),
+                error_function="get_not_applicable_details",
+                error_file="src/repositories/projects_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise

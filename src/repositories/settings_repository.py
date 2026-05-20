@@ -3,6 +3,8 @@
 Provides CRUD operations for settings and email recipient management.
 """
 
+import asyncio
+import traceback
 import uuid
 from datetime import datetime
 from sqlalchemy import select
@@ -38,9 +40,23 @@ class SettingsRepository:
             return result.scalar_one_or_none()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_specialization", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_specialization",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_specialization", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_specialization",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_settings_by_specialization(self, specialization_id: uuid.UUID) -> Setting | None:
@@ -61,9 +77,23 @@ class SettingsRepository:
             return result.scalar_one_or_none()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_settings_by_specialization", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_settings_by_specialization",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_settings_by_specialization", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_settings_by_specialization",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_email_recipients(self, specialization_id: uuid.UUID) -> list[EmailRecipient]:
@@ -84,9 +114,23 @@ class SettingsRepository:
             return list(result.scalars().all())
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_email_recipients", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_email_recipients",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_email_recipients", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_email_recipients",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def update_setting_fields(
@@ -114,9 +158,23 @@ class SettingsRepository:
             return setting
         except SQLAlchemyError as db_exc:
             logger.error("Database error in update_setting_fields", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="update_setting_fields",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in update_setting_fields", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="update_setting_fields",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def add_email_recipient(
@@ -151,9 +209,23 @@ class SettingsRepository:
             return recipient
         except SQLAlchemyError as db_exc:
             logger.error("Database error in add_email_recipient", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="add_email_recipient",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in add_email_recipient", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="add_email_recipient",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_recipient_by_id(self, email_recipient_id: uuid.UUID) -> EmailRecipient | None:
@@ -174,9 +246,23 @@ class SettingsRepository:
             return result.scalar_one_or_none()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_recipient_by_id", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_recipient_by_id",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_recipient_by_id", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_recipient_by_id",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def check_duplicate_recipient(
@@ -200,9 +286,23 @@ class SettingsRepository:
             return result.scalar_one_or_none()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in check_duplicate_recipient", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="check_duplicate_recipient",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in check_duplicate_recipient", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="check_duplicate_recipient",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def reactivate_recipient(
@@ -221,9 +321,23 @@ class SettingsRepository:
             await self._session.flush()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in reactivate_recipient", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="reactivate_recipient",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in reactivate_recipient", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="reactivate_recipient",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def soft_delete_recipient(
@@ -242,7 +356,21 @@ class SettingsRepository:
             await self._session.flush()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in soft_delete_recipient", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="soft_delete_recipient",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in soft_delete_recipient", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="soft_delete_recipient",
+                error_file="src/repositories/settings_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise

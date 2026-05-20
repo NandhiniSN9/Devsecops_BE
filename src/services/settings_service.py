@@ -1,5 +1,7 @@
 """Settings service for managing specialization configuration and email recipients."""
 
+import asyncio
+import traceback
 import uuid
 from sqlalchemy.exc import SQLAlchemyError
 from src.models.request.settings_request import EmailRecipientAction, SettingsUpdateRequest
@@ -69,9 +71,23 @@ class SettingsService:
             raise
         except SQLAlchemyError as db_exc:
             logger.error("Database error retrieving settings", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_settings",
+                error_file="src/services/settings_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error retrieving settings", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_settings",
+                error_file="src/services/settings_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def update_settings(self, request: SettingsUpdateRequest) -> SettingsDataResponse:
@@ -131,9 +147,23 @@ class SettingsService:
             raise
         except SQLAlchemyError as db_exc:
             logger.error("Database error updating settings", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="update_settings",
+                error_file="src/services/settings_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error updating settings", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="update_settings",
+                error_file="src/services/settings_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def _process_recipient_actions(
@@ -203,9 +233,23 @@ class SettingsService:
             raise
         except SQLAlchemyError as db_exc:
             logger.error("Database error in _process_recipient_actions", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="_process_recipient_actions",
+                error_file="src/services/settings_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in _process_recipient_actions", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="_process_recipient_actions",
+                error_file="src/services/settings_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     @staticmethod

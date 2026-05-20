@@ -1,6 +1,8 @@
 """Jira REST API client for email validation and bug creation."""
 
+import asyncio
 import base64
+import traceback
 from dataclasses import dataclass
 
 import httpx
@@ -109,6 +111,13 @@ class JiraClient:
                 "Unexpected error during Jira email validation",
                 extra={"email": email, "error": str(exc)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="validate_email",
+                error_file="src/client/jira_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             return False
 
     async def create_bug(
@@ -236,6 +245,13 @@ class JiraClient:
                     "project_id": str(project_id),
                 },
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="create_bug",
+                error_file="src/client/jira_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
         except httpx.HTTPError as exc:
@@ -243,4 +259,11 @@ class JiraClient:
                 "Jira bug creation failed due to network error",
                 extra={"error": str(exc), "project_id": str(project_id)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="create_bug",
+                error_file="src/client/jira_client.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise

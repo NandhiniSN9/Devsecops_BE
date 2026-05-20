@@ -4,6 +4,8 @@ Computes live project counts from the database and calculates
 trends by comparing current counts with historical snapshots.
 """
 
+import asyncio
+import traceback
 import uuid
 
 from src.models.request.overview_request import PeriodEnum
@@ -85,6 +87,13 @@ class OverviewService:
             raise
         except Exception as exc:
             logger.error("Error computing overview data", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_overview",
+                error_file="src/services/overview_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     def _validate_period(self, period: str | None) -> str:
@@ -179,6 +188,13 @@ class OverviewService:
 
         except Exception as exc:
             logger.error("Error building metrics", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="_build_metrics",
+                error_file="src/services/overview_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     @staticmethod
@@ -243,4 +259,11 @@ class OverviewService:
 
         except Exception as exc:
             logger.error("Error building status distribution", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="_build_status_distribution",
+                error_file="src/services/overview_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise

@@ -1,5 +1,8 @@
 """Service for retrieving filter dropdown options."""
 
+import asyncio
+import traceback
+
 from sqlalchemy.exc import SQLAlchemyError
 from src.models.response.filter_response import FilterItemResponse, FiltersDataResponse
 from src.repositories.filters_repository import ClientRepository
@@ -69,7 +72,21 @@ class FilterService:
 
         except SQLAlchemyError as db_exc:
             logger.error("Database error retrieving filters", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_filters",
+                error_file="src/services/filter_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error retrieving filters", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_filters",
+                error_file="src/services/filter_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise

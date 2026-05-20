@@ -1,11 +1,15 @@
 """Projects route for listing projects and performing project actions."""
 
+import asyncio
+import traceback
+
 from fastapi import APIRouter, Depends, Query, Request
 
 from src.models.request.projects_request import ProjectActionRequest
 from src.models.response.base_response import BaseResponse
 from src.services.dependencies import get_projects_service
 from src.services.projects_service import ProjectsService
+from src.utils.logger import logger
 
 router = APIRouter(prefix="")
 
@@ -42,18 +46,29 @@ async def get_projects(
     Returns:
         BaseResponse with projects list and pagination metadata.
     """
-    return await projects_service.get_projects(
-        period=period,
-        search=search,
-        status=status,
-        client=client,
-        specialization=specialization,
-        min_overdue_days=min_overdue_days,
-        offset=offset,
-        limit=limit,
-        sort_by=sort_by,
-        sort_order=sort_order,
-    )
+    try:
+        return await projects_service.get_projects(
+            period=period,
+            search=search,
+            status=status,
+            client=client,
+            specialization=specialization,
+            min_overdue_days=min_overdue_days,
+            offset=offset,
+            limit=limit,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
+    except Exception as exc:
+        logger.error("Error in get_projects endpoint", error=str(exc))
+        asyncio.create_task(log_error_to_db(
+            error_message=str(exc),
+            error_function="get_projects",
+            error_file="src/routes/projects_route.py",
+            stack_trace=traceback.format_exc(),
+            created_by="system",
+        ))
+        raise
 
 
 @router.post("/projects/action")
@@ -78,12 +93,23 @@ async def perform_project_action(
     # Extract user identifier from request state (set by auth middleware)
     user_id = getattr(request.state, "user_id", None) or getattr(request.state, "email", "system")
 
-    return await projects_service.perform_action(
-        project_id=body.project_id,
-        project_name=body.project_name,
-        action=body.action,
-        reason_category=body.reason_category,
-        comments=body.comments,
-        evidence_file=None,
-        user_id=user_id,
-    )
+    try:
+        return await projects_service.perform_action(
+            project_id=body.project_id,
+            project_name=body.project_name,
+            action=body.action,
+            reason_category=body.reason_category,
+            comments=body.comments,
+            evidence_file=None,
+            user_id=user_id,
+        )
+    except Exception as exc:
+        logger.error("Error in perform_project_action endpoint", error=str(exc))
+        asyncio.create_task(log_error_to_db(
+            error_message=str(exc),
+            error_function="perform_project_action",
+            error_file="src/routes/projects_route.py",
+            stack_trace=traceback.format_exc(),
+            created_by="system",
+        ))
+        raise

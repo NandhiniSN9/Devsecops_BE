@@ -7,7 +7,10 @@ Provides endpoints for receiving webhook data from ServiceNow:
 Both endpoints authenticate via encrypted token with ServiceNow email validation.
 """
 
+import asyncio
 import json
+import traceback
+
 from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, Request
 from src.models.request.servicenow_request import SyncDevSecOpsTicketsRequest, SyncProjectRequest
@@ -36,47 +39,60 @@ async def _validate_servicenow_auth(request: Request) -> str:
     Raises:
         AuthenticationError: If token is missing, invalid, or email doesn't match.
     """
-    trace_id = getattr(request.state, "trace_id", "unknown")
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        logger.warning(
-            "Missing or invalid Authorization header for ServiceNow sync",
-            trace_id=trace_id,
-            path=request.url.path,
-        )
-        raise AuthenticationError("Authentication token is missing or expired")
-
-    token = auth_header[len("Bearer ") :]
-    settings = get_settings()
-
-    # Decrypt token and extract email
     try:
-        fernet = Fernet(settings.TOKEN_PRIVATE_KEY.encode())
-        decrypted_bytes = fernet.decrypt(token.encode())
-        payload = json.loads(decrypted_bytes.decode())
-        email = payload.get("email", "")
-    except (InvalidToken, ValueError, json.JSONDecodeError) as exc:
-        logger.warning(
-            "ServiceNow token decryption failed",
-            trace_id=trace_id,
-            error=str(exc),
-        )
-        raise AuthenticationError("Authentication token is missing or expired")
+        trace_id = getattr(request.state, "trace_id", "unknown")
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            logger.warning(
+                "Missing or invalid Authorization header for ServiceNow sync",
+                trace_id=trace_id,
+                path=request.url.path,
+            )
+            raise AuthenticationError("Authentication token is missing or expired")
 
-    if not email or not email.strip():
-        logger.warning("Empty email in ServiceNow token payload", trace_id=trace_id)
-        raise AuthenticationError("Authentication failed or user not found in Jira")
+        token = auth_header[len("Bearer ") :]
+        settings = get_settings()
 
-    # Validate email against allowed ServiceNow service account
-    if email.strip().lower() != settings.SERVICENOW_ALLOWED_EMAIL.strip().lower():
-        logger.warning(
-            "ServiceNow email validation failed",
-            trace_id=trace_id,
-            email=email,
-        )
-        raise AuthenticationError("Insufficient permissions: servicenow_sync role required")
+        # Decrypt token and extract email
+        try:
+            fernet = Fernet(settings.TOKEN_PRIVATE_KEY.encode())
+            decrypted_bytes = fernet.decrypt(token.encode())
+            payload = json.loads(decrypted_bytes.decode())
+            email = payload.get("email", "")
+        except (InvalidToken, ValueError, json.JSONDecodeError) as exc:
+            logger.warning(
+                "ServiceNow token decryption failed",
+                trace_id=trace_id,
+                error=str(exc),
+            )
+            raise AuthenticationError("Authentication token is missing or expired")
 
-    return email.strip()
+        if not email or not email.strip():
+            logger.warning("Empty email in ServiceNow token payload", trace_id=trace_id)
+            raise AuthenticationError("Authentication failed or user not found in Jira")
+
+        # Validate email against allowed ServiceNow service account
+        if email.strip().lower() != settings.SERVICENOW_ALLOWED_EMAIL.strip().lower():
+            logger.warning(
+                "ServiceNow email validation failed",
+                trace_id=trace_id,
+                email=email,
+            )
+            raise AuthenticationError("Insufficient permissions: servicenow_sync role required")
+
+        return email.strip()
+    except AuthenticationError:
+        raise
+    except Exception as exc:
+        logger.error("Error in _validate_servicenow_auth", error=str(exc))
+        asyncio.create_task(log_error_to_db(
+            error_message=str(exc),
+            error_function="_validate_servicenow_auth",
+            error_file="src/routes/servicenow_route.py",
+            stack_trace=traceback.format_exc(),
+            created_by="system",
+        ))
+        raise
 
 
 @router.post("/projects")
@@ -117,6 +133,13 @@ async def sync_projects(
         )
     except Exception as exc:
         logger.error("Error in sync_projects endpoint", error=str(exc))
+        asyncio.create_task(log_error_to_db(
+            error_message=str(exc),
+            error_function="sync_projects",
+            error_file="src/routes/servicenow_route.py",
+            stack_trace=traceback.format_exc(),
+            created_by="system",
+        ))
         raise
 
 
@@ -160,4 +183,11 @@ async def sync_devsecops_tickets(
         )
     except Exception as exc:
         logger.error("Error in sync_devsecops_tickets endpoint", error=str(exc))
+        asyncio.create_task(log_error_to_db(
+            error_message=str(exc),
+            error_function="sync_devsecops_tickets",
+            error_file="src/routes/servicenow_route.py",
+            stack_trace=traceback.format_exc(),
+            created_by="system",
+        ))
         raise

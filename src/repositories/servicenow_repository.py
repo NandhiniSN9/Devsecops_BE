@@ -4,6 +4,8 @@ Provides project lookup/creation, ticket insertion, repository insertion,
 and reference data resolution for the ServiceNow integration endpoints.
 """
 
+import asyncio
+import traceback
 import uuid
 from datetime import datetime
 from sqlalchemy import func, or_, select
@@ -42,9 +44,23 @@ class ServiceNowRepository:
             return result.scalar_one_or_none()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_project_by_sn_project_id", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_project_by_sn_project_id",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_project_by_sn_project_id", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_project_by_sn_project_id",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_project_by_name(self, project_name: str) -> Project | None:
@@ -65,9 +81,23 @@ class ServiceNowRepository:
             return result.scalars().first()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_project_by_name", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_project_by_name",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_project_by_name", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_project_by_name",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_project_by_client(self, client: str) -> Project | None:
@@ -88,9 +118,23 @@ class ServiceNowRepository:
             return result.scalars().first()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_project_by_client", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_project_by_client",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_project_by_client", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_project_by_client",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_project_by_normalized_name(self, ticket_project_name: str) -> Project | None:
@@ -120,9 +164,23 @@ class ServiceNowRepository:
             return None
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_project_by_normalized_name", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_project_by_normalized_name",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_project_by_normalized_name", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_project_by_normalized_name",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_default_project(self) -> Project | None:
@@ -142,9 +200,23 @@ class ServiceNowRepository:
             return result.scalars().first()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_default_project", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_default_project",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_default_project", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_default_project",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_inactive_status(self) -> Status | None:
@@ -162,9 +234,23 @@ class ServiceNowRepository:
             return result.scalar_one_or_none()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_inactive_status", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_inactive_status",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_inactive_status", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_inactive_status",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_specialization_by_name(self, specialization_name: str) -> Specialization | None:
@@ -185,9 +271,23 @@ class ServiceNowRepository:
             return result.scalar_one_or_none()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_specialization_by_name", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_specialization_by_name",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_specialization_by_name", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_specialization_by_name",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def create_project(self, project: Project) -> Project:
@@ -205,9 +305,23 @@ class ServiceNowRepository:
             return project
         except SQLAlchemyError as db_exc:
             logger.error("Database error in create_project", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="create_project",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in create_project", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="create_project",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def update_project(
@@ -235,9 +349,23 @@ class ServiceNowRepository:
             return project
         except SQLAlchemyError as db_exc:
             logger.error("Database error in update_project", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="update_project",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in update_project", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="update_project",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def create_ticket(self, ticket: DevsecopsTicket) -> DevsecopsTicket:
@@ -255,9 +383,23 @@ class ServiceNowRepository:
             return ticket
         except SQLAlchemyError as db_exc:
             logger.error("Database error in create_ticket", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="create_ticket",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in create_ticket", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="create_ticket",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_ticket_by_sn_or_devsec_id(
@@ -277,9 +419,23 @@ class ServiceNowRepository:
             return result.scalars().first()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_ticket_by_sn_or_devsec_id", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_ticket_by_sn_or_devsec_id",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_ticket_by_sn_or_devsec_id", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_ticket_by_sn_or_devsec_id",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def update_ticket(
@@ -313,9 +469,23 @@ class ServiceNowRepository:
             return ticket
         except SQLAlchemyError as db_exc:
             logger.error("Database error in update_ticket", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="update_ticket",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in update_ticket", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="update_ticket",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_repository_by_name_and_ticket(self, repo_name: str, ticket_id: uuid.UUID) -> Repository | None:
@@ -338,9 +508,23 @@ class ServiceNowRepository:
             return result.scalar_one_or_none()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_repository_by_name_and_ticket", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_repository_by_name_and_ticket",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_repository_by_name_and_ticket", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_repository_by_name_and_ticket",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_repository_by_ado_repo_id_and_ticket(
@@ -365,9 +549,23 @@ class ServiceNowRepository:
             return result.scalars().first()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_repository_by_ado_repo_id_and_ticket", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_repository_by_ado_repo_id_and_ticket",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_repository_by_ado_repo_id_and_ticket", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_repository_by_ado_repo_id_and_ticket",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def update_repository(
@@ -387,9 +585,23 @@ class ServiceNowRepository:
             return repository
         except SQLAlchemyError as db_exc:
             logger.error("Database error in update_repository", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="update_repository",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in update_repository", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="update_repository",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def create_repository(self, repository: Repository) -> Repository:
@@ -407,9 +619,23 @@ class ServiceNowRepository:
             return repository
         except SQLAlchemyError as db_exc:
             logger.error("Database error in create_repository", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="create_repository",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in create_repository", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="create_repository",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def mark_project_onboarded(self, project: Project, modified_by: str) -> None:
@@ -426,7 +652,21 @@ class ServiceNowRepository:
             await self._session.flush()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in mark_project_onboarded", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="mark_project_onboarded",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in mark_project_onboarded", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="mark_project_onboarded",
+                error_file="src/repositories/servicenow_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise

@@ -1,5 +1,7 @@
 """Projects service for listing projects and performing project actions."""
 
+import asyncio
+import traceback
 import uuid
 from datetime import datetime, timezone
 
@@ -71,93 +73,106 @@ class ProjectsService:
         Raises:
             InvalidParameterError: If any parameter is invalid.
         """
-        # Validate parameters
-        validated_period = self._validate_period(period)
-        validated_sort_by = self._validate_sort_by(sort_by)
-        validated_sort_order = self._validate_sort_order(sort_order)
-        self._validate_offset(offset)
-        self._validate_limit(limit)
+        try:
+            # Validate parameters
+            validated_period = self._validate_period(period)
+            validated_sort_by = self._validate_sort_by(sort_by)
+            validated_sort_order = self._validate_sort_order(sort_order)
+            self._validate_offset(offset)
+            self._validate_limit(limit)
 
-        period_days = PROJECTS_PERIOD_DAYS_MAP.get(validated_period, 0)
+            period_days = PROJECTS_PERIOD_DAYS_MAP.get(validated_period, 0)
 
-        # Parse filter values
-        status_ids = self._parse_uuid_csv(status)
-        client_ids = self._parse_csv(client)
-        specialization_ids = self._parse_uuid_csv(specialization)
+            # Parse filter values
+            status_ids = self._parse_uuid_csv(status)
+            client_ids = self._parse_csv(client)
+            specialization_ids = self._parse_uuid_csv(specialization)
 
-        # Fetch projects from repository
-        projects, total_items = await self._projects_repo.get_projects(
-            period_days=period_days,
-            search=search,
-            status_ids=status_ids,
-            client_ids=client_ids,
-            specialization_ids=specialization_ids,
-            min_overdue_days=min_overdue_days,
-            offset=offset,
-            limit=limit,
-            sort_by=validated_sort_by,
-            sort_order=validated_sort_order,
-        )
-
-        # Build response items with nested repositories
-        project_items: list[ProjectItemResponse] = []
-        for project in projects:
-            repositories = await self._projects_repo.get_repositories_for_project(project.project_id)
-            status_name = await self._projects_repo.get_status_name_for_project(project)
-
-            repo_items = [
-                RepositoryItemResponse(
-                    id=repo.repository_id,
-                    name=repo.repository_name,
-                    onboarded_date=repo.created_at.date() if repo.created_at else None,
-                    status=self._determine_repo_status(repo),
-                )
-                for repo in repositories
-            ]
-
-            at_risk_overdue = self._calculate_at_risk_overdue(project, repo_items)
-
-            # Fetch not_applicable_details when status is "Not Applicable"
-            not_applicable_details = None
-            if status_name == "Not Applicable":
-                not_applicable_details_data = await self._projects_repo.get_not_applicable_details(
-                    project.project_id
-                )
-                if not_applicable_details_data:
-                    not_applicable_details = NotApplicableDetailsResponse(
-                        **not_applicable_details_data
-                    )
-
-            project_items.append(
-                ProjectItemResponse(
-                    id=project.project_id,
-                    name=project.project_name,
-                    client_name=project.client,
-                    project_type=project.project_type,
-                    onboarded_date=project.onboarded_date,
-                    repository_count=len(repo_items),
-                    status=status_name or "Unknown",
-                    overdue_days=at_risk_overdue,
-                    repositories=repo_items,
-                    not_applicable_details=not_applicable_details,
-                )
-            )
-
-        data = ProjectsListDataResponse(
-            projects=project_items,
-            pagination=PaginationResponse(
+            # Fetch projects from repository
+            projects, total_items = await self._projects_repo.get_projects(
+                period_days=period_days,
+                search=search,
+                status_ids=status_ids,
+                client_ids=client_ids,
+                specialization_ids=specialization_ids,
+                min_overdue_days=min_overdue_days,
                 offset=offset,
                 limit=limit,
-                total_items=total_items,
-            ),
-        )
+                sort_by=validated_sort_by,
+                sort_order=validated_sort_order,
+            )
 
-        return BaseResponse(
-            status_code=200,
-            status="success",
-            message="Projects retrieved successfully",
-            data=data.model_dump(),
-        )
+            # Build response items with nested repositories
+            project_items: list[ProjectItemResponse] = []
+            for project in projects:
+                repositories = await self._projects_repo.get_repositories_for_project(project.project_id)
+                status_name = await self._projects_repo.get_status_name_for_project(project)
+
+                repo_items = [
+                    RepositoryItemResponse(
+                        id=repo.repository_id,
+                        name=repo.repository_name,
+                        onboarded_date=repo.created_at.date() if repo.created_at else None,
+                        status=self._determine_repo_status(repo),
+                    )
+                    for repo in repositories
+                ]
+
+                at_risk_overdue = self._calculate_at_risk_overdue(project, repo_items)
+
+                # Fetch not_applicable_details when status is "Not Applicable"
+                not_applicable_details = None
+                if status_name == "Not Applicable":
+                    not_applicable_details_data = await self._projects_repo.get_not_applicable_details(
+                        project.project_id
+                    )
+                    if not_applicable_details_data:
+                        not_applicable_details = NotApplicableDetailsResponse(
+                            **not_applicable_details_data
+                        )
+
+                project_items.append(
+                    ProjectItemResponse(
+                        id=project.project_id,
+                        name=project.project_name,
+                        client_name=project.client,
+                        project_type=project.project_type,
+                        onboarded_date=project.onboarded_date,
+                        repository_count=len(repo_items),
+                        status=status_name or "Unknown",
+                        overdue_days=at_risk_overdue,
+                        repositories=repo_items,
+                        not_applicable_details=not_applicable_details,
+                    )
+                )
+
+            data = ProjectsListDataResponse(
+                projects=project_items,
+                pagination=PaginationResponse(
+                    offset=offset,
+                    limit=limit,
+                    total_items=total_items,
+                ),
+            )
+
+            return BaseResponse(
+                status_code=200,
+                status="success",
+                message="Projects retrieved successfully",
+                data=data.model_dump(),
+            )
+        except InvalidParameterError:
+            raise
+        except Exception as exc:
+            logger.error("Error in get_projects", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_projects",
+                error_file="src/services/projects_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
+            raise
 
     async def perform_action(
         self,
@@ -188,43 +203,56 @@ class ProjectsService:
             InvalidParameterError: If validation fails.
             NotFoundError: If project not found.
         """
-        # Validate project_id
-        parsed_project_id = self._validate_project_id(project_id)
+        try:
+            # Validate project_id
+            parsed_project_id = self._validate_project_id(project_id)
 
-        # Validate action
-        self._validate_action(action)
+            # Validate action
+            self._validate_action(action)
 
-        # Check project exists
-        project = await self._projects_repo.get_project_by_id(parsed_project_id)
-        if project is None:
-            raise NotFoundError("Project not found")
+            # Check project exists
+            project = await self._projects_repo.get_project_by_id(parsed_project_id)
+            if project is None:
+                raise NotFoundError("Project not found")
 
-        response_data: dict = {
-            "project_id": str(parsed_project_id),
-            "project_name": project_name,
-        }
+            response_data: dict = {
+                "project_id": str(parsed_project_id),
+                "project_name": project_name,
+            }
 
-        if action == ProjectActionEnum.MARK_NOT_APPLICABLE:
-            evidence_url = await self._mark_not_applicable(
-                parsed_project_id,
-                project_name,
-                reason_category,
-                comments,
-                evidence_file,
-                user_id,
+            if action == ProjectActionEnum.MARK_NOT_APPLICABLE:
+                evidence_url = await self._mark_not_applicable(
+                    parsed_project_id,
+                    project_name,
+                    reason_category,
+                    comments,
+                    evidence_file,
+                    user_id,
+                )
+                if evidence_url:
+                    response_data["evidence_url"] = evidence_url
+
+            elif action == ProjectActionEnum.MARK_COMPLETE:
+                await self._mark_complete(parsed_project_id, project_name, user_id)
+
+            return BaseResponse(
+                status_code=200,
+                status="success",
+                message="Action performed successfully",
+                data=response_data,
             )
-            if evidence_url:
-                response_data["evidence_url"] = evidence_url
-
-        elif action == ProjectActionEnum.MARK_COMPLETE:
-            await self._mark_complete(parsed_project_id, project_name, user_id)
-
-        return BaseResponse(
-            status_code=200,
-            status="success",
-            message="Action performed successfully",
-            data=response_data,
-        )
+        except (InvalidParameterError, NotFoundError):
+            raise
+        except Exception as exc:
+            logger.error("Error in perform_action", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="perform_action",
+                error_file="src/services/projects_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
+            raise
 
     # ------------------------------------------------------------------
     # Private action handlers
@@ -315,7 +343,7 @@ class ProjectsService:
 
             await self._projects_repo.commit()
 
-        except Exception:
+        except Exception as exc:
             await self._projects_repo.rollback()
             logger.exception(
                 "DB update failed after Jira bug creation; rolled back",
@@ -324,6 +352,13 @@ class ProjectsService:
                     "jira_id": jira_result.jira_id,
                 },
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="_mark_not_applicable",
+                error_file="src/services/projects_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
         return evidence_url
@@ -365,12 +400,19 @@ class ProjectsService:
                 extra={"project_id": str(project_id), "project_name": project_name},
             )
 
-        except Exception:
+        except Exception as exc:
             await self._projects_repo.rollback()
             logger.exception(
                 "Failed to mark project complete",
                 extra={"project_id": str(project_id)},
             )
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="_mark_complete",
+                error_file="src/services/projects_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def _upload_evidence(self, file: object, project_id: uuid.UUID) -> str:
@@ -389,27 +431,38 @@ class ProjectsService:
         Returns:
             A time-limited pre-signed S3 URL for downloading the evidence file.
         """
-        timestamp = int(datetime.now(timezone.utc).timestamp())
-        safe_filename = file.filename or "evidence"
-        s3_key = f"evidence/{project_id}/{timestamp}_{safe_filename}"
+        try:
+            timestamp = int(datetime.now(timezone.utc).timestamp())
+            safe_filename = file.filename or "evidence"
+            s3_key = f"evidence/{project_id}/{timestamp}_{safe_filename}"
 
-        # Use the declared content type; fall back to octet-stream
-        content_type = file.content_type or "application/octet-stream"
+            # Use the declared content type; fall back to octet-stream
+            content_type = file.content_type or "application/octet-stream"
 
-        file_bytes = await file.read()
-        await self._s3_client.upload_file(file_bytes, s3_key, content_type=content_type)
-        presigned_url = await self._s3_client.generate_presigned_url(s3_key)
+            file_bytes = await file.read()
+            await self._s3_client.upload_file(file_bytes, s3_key, content_type=content_type)
+            presigned_url = await self._s3_client.generate_presigned_url(s3_key)
 
-        logger.info(
-            "Evidence file uploaded to S3",
-            extra={
-                "project_id": str(project_id),
-                "s3_key": s3_key,
-                "content_type": content_type,
-                "size_bytes": len(file_bytes),
-            },
-        )
-        return presigned_url
+            logger.info(
+                "Evidence file uploaded to S3",
+                extra={
+                    "project_id": str(project_id),
+                    "s3_key": s3_key,
+                    "content_type": content_type,
+                    "size_bytes": len(file_bytes),
+                },
+            )
+            return presigned_url
+        except Exception as exc:
+            logger.error("Error in _upload_evidence", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="_upload_evidence",
+                error_file="src/services/projects_service.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
+            raise
 
     # ------------------------------------------------------------------
     # Static validators

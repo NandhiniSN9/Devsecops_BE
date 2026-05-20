@@ -1,18 +1,10 @@
 """Repository for persisting error logs to the database."""
 
 import asyncio
-
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.repositories.schema.error_log import ErrorLog
 from src.utils.logger import logger
-
-# Maximum length for text fields before truncation
-_MAX_TEXT_LENGTH = 65_535
-
-# Timeout for DB insert operations (seconds)
-_DB_INSERT_TIMEOUT = 10
 
 
 class ErrorLogRepository:
@@ -40,6 +32,11 @@ class ErrorLogRepository:
         from the global exception handler to ensure non-blocking execution.
         """
         try:
+            # Maximum length for text fields before truncation
+            _MAX_TEXT_LENGTH = 65_535
+            # Timeout for DB insert operations (seconds)
+            _DB_INSERT_TIMEOUT = 10
+
             truncated_message = error_message[:_MAX_TEXT_LENGTH]
             truncated_stack_trace = stack_trace[:_MAX_TEXT_LENGTH]
 

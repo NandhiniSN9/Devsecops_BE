@@ -5,6 +5,8 @@ email recipients, email history, KPI data, at-risk projects,
 and cron job tracking for the email notification service.
 """
 
+import asyncio
+import traceback
 import uuid
 from datetime import datetime
 from sqlalchemy import func
@@ -40,9 +42,23 @@ class ReportRepository:
             return list(result.scalars().all())
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_active_specializations", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_active_specializations",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_active_specializations", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_active_specializations",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_settings_by_specialization_id(self, specialization_id: uuid.UUID) -> Setting | None:
@@ -63,9 +79,23 @@ class ReportRepository:
             return result.scalars().first()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_settings_by_specialization_id", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_settings_by_specialization_id",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_settings_by_specialization_id", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_settings_by_specialization_id",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_last_sent_email_history(self, setting_id: uuid.UUID, email_type: str) -> EmailHistory | None:
@@ -94,9 +124,23 @@ class ReportRepository:
             return result.scalars().first()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_last_sent_email_history", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_last_sent_email_history",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_last_sent_email_history", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_last_sent_email_history",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_email_template_by_name(self, template_name: str) -> EmailTemplate | None:
@@ -117,9 +161,23 @@ class ReportRepository:
             return result.scalars().first()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_email_template_by_name", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_email_template_by_name",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_email_template_by_name", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_email_template_by_name",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_active_recipients_by_specialization(self, specialization_id: uuid.UUID) -> list[EmailRecipient]:
@@ -140,9 +198,23 @@ class ReportRepository:
             return list(result.scalars().all())
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_active_recipients_by_specialization", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_active_recipients_by_specialization",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_active_recipients_by_specialization", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_active_recipients_by_specialization",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_kpi_history_by_specialization(self, specialization_id: uuid.UUID) -> KpiHistory | None:
@@ -168,9 +240,23 @@ class ReportRepository:
             return result.scalars().first()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_kpi_history_by_specialization", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_kpi_history_by_specialization",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_kpi_history_by_specialization", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_kpi_history_by_specialization",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def get_at_risk_projects(self, at_risk_threshold: int) -> list[Project]:
@@ -198,9 +284,23 @@ class ReportRepository:
             return list(result.scalars().all())
         except SQLAlchemyError as db_exc:
             logger.error("Database error in get_at_risk_projects", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_at_risk_projects",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in get_at_risk_projects", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_at_risk_projects",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def create_email_history(self, email_history: EmailHistory) -> EmailHistory:
@@ -218,9 +318,23 @@ class ReportRepository:
             return email_history
         except SQLAlchemyError as db_exc:
             logger.error("Database error in create_email_history", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="create_email_history",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in create_email_history", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="create_email_history",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def create_cron_job(self, cron_job: CronJob) -> CronJob:
@@ -238,9 +352,23 @@ class ReportRepository:
             return cron_job
         except SQLAlchemyError as db_exc:
             logger.error("Database error in create_cron_job", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="create_cron_job",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in create_cron_job", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="create_cron_job",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
 
     async def update_cron_job_status(self, cron_id: uuid.UUID, sync_status: str) -> None:
@@ -264,7 +392,21 @@ class ReportRepository:
             await self._session.flush()
         except SQLAlchemyError as db_exc:
             logger.error("Database error in update_cron_job_status", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="update_cron_job_status",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise
         except Exception as exc:
             logger.error("Unexpected error in update_cron_job_status", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="update_cron_job_status",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
             raise

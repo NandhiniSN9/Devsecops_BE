@@ -1,5 +1,8 @@
 """Settings route for retrieving and updating specialization configuration."""
 
+import asyncio
+import traceback
+
 from fastapi import APIRouter, Depends
 from src.models.request.settings_request import SettingsUpdateRequest
 from src.models.response.base_response import BaseResponse
@@ -35,6 +38,13 @@ async def get_settings(
         )
     except Exception as exc:
         logger.error("Error in get_settings endpoint", error=str(exc))
+        asyncio.create_task(log_error_to_db(
+            error_message=str(exc),
+            error_function="get_settings",
+            error_file="src/routes/settings_route.py",
+            stack_trace=traceback.format_exc(),
+            created_by="system",
+        ))
         raise
 
 
@@ -63,4 +73,11 @@ async def update_settings(
         )
     except Exception as exc:
         logger.error("Error in update_settings endpoint", error=str(exc))
+        asyncio.create_task(log_error_to_db(
+            error_message=str(exc),
+            error_function="update_settings",
+            error_file="src/routes/settings_route.py",
+            stack_trace=traceback.format_exc(),
+            created_by="system",
+        ))
         raise
