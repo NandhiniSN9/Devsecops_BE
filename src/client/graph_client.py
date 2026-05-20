@@ -10,6 +10,7 @@ import traceback
 
 import httpx
 
+from src.utils.helpers import log_error_to_db
 from src.utils.logger import logger
 
 # Microsoft Graph API constants
@@ -109,25 +110,13 @@ class GraphClient:
     async def get_token(self) -> str:
         """Get a valid access token, acquiring one if needed.
 
+        Note: This method always acquires a fresh token as per the design
+        (no caching). The _access_token attribute is not used.
+
         Returns:
             The access token string.
         """
-        try:
-            if not self._access_token:
-                return await self._acquire_token()
-            return self._access_token
-        except RuntimeError:
-            raise
-        except Exception as exc:
-            logger.error("Unexpected error in get_token", error=str(exc))
-            asyncio.create_task(log_error_to_db(
-                error_message=str(exc),
-                error_function="get_token",
-                error_file="src/client/graph_client.py",
-                stack_trace=traceback.format_exc(),
-                created_by="system",
-            ))
-            raise
+        return await self._acquire_token()
 
     async def send_email(
         self,

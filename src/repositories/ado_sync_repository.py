@@ -17,6 +17,7 @@ from src.repositories.schema.pull_request import PullRequest
 from src.repositories.schema.repository import Repository
 from src.repositories.schema.security_scan import SecurityScan
 from src.repositories.schema.status import Status
+from src.utils.helpers import log_error_to_db
 from src.utils.logger import logger
 
 class AdoSyncRepository:
@@ -96,22 +97,56 @@ class AdoSyncRepository:
             ))
             raise
 
-    async def get_applicable_projects(self) -> list[Project]:
-        """Get applicable active projects."""
+    async def get_applicable_tickets(self) -> list[DevsecopsTicket]:
+        """Get all applicable active devsecops tickets for syncing.
+
+        Returns tickets that are applicable and active, with their
+        associated project and specialization information.
+        """
         try:
-            logger.debug("Inside get_applicable_projects function")
-            stmt = select(Project).where(
+            logger.debug("Inside get_applicable_tickets function")
+            stmt = select(DevsecopsTicket).join(
+                Project, DevsecopsTicket.project_id == Project.project_id
+            ).where(
                 Project.is_applicable == True,  # noqa: E712
                 Project.is_active == 1,
-            ).limit(5)  # TODO: Remove limit after testing
+                DevsecopsTicket.is_active == 1,
+            )
 
             result = await self._session.execute(stmt)
             return list(result.scalars().all())
         except Exception as exc:
-            logger.error("Error in get_applicable_projects", error=str(exc))
+            logger.error("Error in get_applicable_tickets", error=str(exc))
             asyncio.create_task(log_error_to_db(
                 error_message=str(exc),
-                error_function="get_applicable_projects",
+                error_function="get_applicable_tickets",
+                error_file="src/repositories/ado_sync_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
+            raise
+
+    async def get_repositories_for_ticket(self, ticket_id: uuid.UUID) -> list[Repository]:
+        """Get active repositories linked to a specific ticket.
+
+        Args:
+            ticket_id: The devsecops ticket UUID.
+
+        Returns:
+            List of Repository objects linked to the ticket.
+        """
+        try:
+            stmt = select(Repository).where(
+                Repository.ticket_id == ticket_id,
+                Repository.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return list(result.scalars().all())
+        except Exception as exc:
+            logger.error("Error in get_repositories_for_ticket", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_repositories_for_ticket",
                 error_file="src/repositories/ado_sync_repository.py",
                 stack_trace=traceback.format_exc(),
                 created_by="system",

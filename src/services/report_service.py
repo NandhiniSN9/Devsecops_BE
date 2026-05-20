@@ -8,7 +8,7 @@ Uses Microsoft Graph API for email delivery and WeasyPrint for PDF generation.
 import asyncio
 import traceback
 import uuid
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from io import BytesIO
 from bs4 import BeautifulSoup
 from src.client.graph_client import GraphClient

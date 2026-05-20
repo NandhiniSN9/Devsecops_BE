@@ -17,6 +17,7 @@ from src.repositories.schema.jira_ticket import JiraTicket
 from src.repositories.schema.project import Project
 from src.repositories.schema.repository import Repository
 from src.repositories.schema.status import Status
+from src.utils.helpers import log_error_to_db
 from src.utils.logger import logger
 
 
@@ -67,9 +68,11 @@ class ProjectsRepository:
                 cutoff_date = datetime.utcnow().date() - timedelta(days=period_days)
                 base_query = base_query.where(Project.onboarded_date >= cutoff_date)
 
-            # Search filter
+            # Search filter - sanitize search input to prevent SQL injection
             if search:
-                base_query = base_query.where(Project.project_name.ilike(f"%{search}%"))
+                # Escape special characters in LIKE pattern
+                sanitized_search = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+                base_query = base_query.where(Project.project_name.ilike(f"%{sanitized_search}%"))
 
             # Status filter
             if status_ids:
@@ -92,10 +95,10 @@ class ProjectsRepository:
                     )
                 )
 
-            # Minimum overdue days filter
+            # Minimum overdue days filter - use ORM expression to prevent SQL injection
             if min_overdue_days is not None and min_overdue_days > 0:
                 base_query = base_query.where(
-                    text(f"(CURRENT_DATE - projects.onboarded_date) >= {min_overdue_days}")
+                    func.current_date() - Project.onboarded_date >= min_overdue_days
                 )
 
             # Count total items before pagination

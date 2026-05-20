@@ -14,6 +14,7 @@ from src.repositories.schema.pipeline_run import PipelineRun
 from src.repositories.schema.pull_request import PullRequest
 from src.repositories.schema.security_scan import SecurityScan
 from src.settings import get_settings
+from src.utils.helpers import log_error_to_db
 from src.utils.logger import logger
 
 # Service identifier
@@ -168,6 +169,37 @@ class AdoSyncService:
             )
             await self._repo.commit()
             logger.error("ADO sync failed", cron_id=str(cron_id), error=str(exc))
+
+    async def _sync_repository_with_semaphore(
+        self, semaphore: asyncio.Semaphore, repo_id: uuid.UUID, ado_repo_id: str, project_name: str
+    ) -> bool:
+        """Wrapper for _sync_repository that uses semaphore for rate limiting.
+
+        Args:
+            semaphore: Asyncio semaphore for concurrency control.
+            repo_id: Repository UUID.
+            ado_repo_id: ADO repository ID.
+            project_name: ADO project name.
+
+        Returns:
+            True if sync succeeded, False otherwise.
+        """
+        async with semaphore:
+            try:
+                repository = await self._repo.get_repository_by_id(repo_id)
+                if not repository:
+                    logger.warning("Repository not found", repository_id=str(repo_id))
+                    return False
+                await self._sync_repository(repository, project_name)
+                return True
+            except Exception as exc:
+                logger.error(
+                    "Repository sync error",
+                    repository_id=str(repo_id),
+                    ado_repo_id=ado_repo_id,
+                    error=str(exc),
+                )
+                return False
 
     async def _sync_repository(self, repository, project_name: str) -> None:
         """Sync all data types for a single repository.

@@ -85,7 +85,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             raise
 
         except Exception as e:
-            logger.warning("auth_middleware.py", "dispatch()")
+            logger.error("Unexpected error in auth middleware", trace_id=trace_id, error=str(e))
+            raise AuthenticationError("Authentication failed due to server error")
 
     def _decrypt_and_extract_payload(self, token: str, trace_id: str) -> dict | None:
         """Decrypt the token and extract the full payload dict.

@@ -79,10 +79,7 @@ class JiraClient:
         try:
             settings = get_settings()
             url = f"{settings.JIRA_BASE_URL}/rest/api/2/user/search"
-            headers = {
-                "Authorization": f"Bearer {settings.JIRA_API_TOKEN}",
-                "Accept": "application/json",
-            }
+            headers = self._common_headers()
             params = {"username": email}
             async with httpx.AsyncClient(timeout=JIRA_VALIDATION_TIMEOUT) as client:
                 response = await client.get(url, headers=headers, params=params)
