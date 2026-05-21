@@ -25,6 +25,7 @@ class DevsecopsTicket(Base):
     sn_project_id: Mapped[str | None] = mapped_column(String(255))
     devsec_project_id: Mapped[str | None] = mapped_column(String(255))
     project_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    project_type: Mapped[str | None] = mapped_column(String(255))
     client: Mapped[str | None] = mapped_column(String(255))
     requested_by: Mapped[str | None] = mapped_column(String(255))
     approver: Mapped[str | None] = mapped_column(String(255))

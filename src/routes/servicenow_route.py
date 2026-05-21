@@ -7,13 +7,11 @@ Provides endpoints for receiving webhook data from ServiceNow:
 Both endpoints authenticate via encrypted token with ServiceNow email validation.
 """
 
-import asyncio
 import json
-import traceback
 
 from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, Request
-from src.models.request.servicenow_request import SyncDevSecOpsTicketsRequest, SyncProjectRequest
+from src.models.request.servicenow_request import SyncDevSecOpsTicketItemRequest, SyncProjectRequest
 from src.models.response.base_response import BaseResponse
 from src.services.dependencies import get_servicenow_service
 from src.services.servicenow_service import ServiceNowService
@@ -85,13 +83,6 @@ async def _validate_servicenow_auth(request: Request) -> str:
         raise
     except Exception as exc:
         logger.error("Error in _validate_servicenow_auth", error=str(exc))
-        asyncio.create_task(log_error_to_db(
-            error_message=str(exc),
-            error_function="_validate_servicenow_auth",
-            error_file="src/routes/servicenow_route.py",
-            stack_trace=traceback.format_exc(),
-            created_by="system",
-        ))
         raise
 
 
@@ -133,31 +124,20 @@ async def sync_projects(
         )
     except Exception as exc:
         logger.error("Error in sync_projects endpoint", error=str(exc))
-        asyncio.create_task(log_error_to_db(
-            error_message=str(exc),
-            error_function="sync_projects",
-            error_file="src/routes/servicenow_route.py",
-            stack_trace=traceback.format_exc(),
-            created_by="system",
-        ))
         raise
 
 
 @router.post("/devsecops-tickets")
 async def sync_devsecops_tickets(
     request: Request,
-    body: SyncDevSecOpsTicketsRequest,
+    body: SyncDevSecOpsTicketItemRequest,
     servicenow_service: ServiceNowService = Depends(get_servicenow_service),
 ) -> BaseResponse:
-    """Ingest DevSecOps ticket data from ServiceNow webhook.
-
-    Receives ticket data with associated repositories and inserts records.
-    Supports partial success — valid tickets are processed while invalid
-    ones are logged and skipped.
+    """Ingest a single DevSecOps ticket from ServiceNow webhook.
 
     Args:
         request: The incoming FastAPI request.
-        body: Validated SyncDevSecOpsTicketsRequest payload.
+        body: Single ticket object.
         servicenow_service: Injected ServiceNowService instance.
 
     Returns:
@@ -168,12 +148,12 @@ async def sync_devsecops_tickets(
         trace_id = getattr(request.state, "trace_id", "unknown")
 
         logger.info(
-            "Processing ServiceNow DevSecOps tickets sync",
+            "Processing ServiceNow DevSecOps ticket sync",
             trace_id=trace_id,
-            ticket_count=len(body.tickets),
+            sn_project_id=body.sn_project_id,
         )
 
-        result = await servicenow_service.sync_devsecops_tickets(body, created_by)
+        result = await servicenow_service.sync_single_devsecops_ticket(body, created_by)
 
         return BaseResponse(
             status_code=200,
@@ -183,11 +163,4 @@ async def sync_devsecops_tickets(
         )
     except Exception as exc:
         logger.error("Error in sync_devsecops_tickets endpoint", error=str(exc))
-        asyncio.create_task(log_error_to_db(
-            error_message=str(exc),
-            error_function="sync_devsecops_tickets",
-            error_file="src/routes/servicenow_route.py",
-            stack_trace=traceback.format_exc(),
-            created_by="system",
-        ))
         raise

@@ -82,8 +82,8 @@ class SyncDevSecOpsTicketItemRequest(BaseModel):
 
     model_config = ConfigDict(strict=False, populate_by_name=True)
 
-    sn_project_id: str = Field(min_length=1)
-    """ServiceNow project identifier (used for project resolution)."""
+    sn_project_id: str | None = None
+    """ServiceNow project identifier (optional — used for project resolution)."""
 
     ado_project_id: str | None = None
     """Azure DevOps project identifier."""
@@ -95,7 +95,7 @@ class SyncDevSecOpsTicketItemRequest(BaseModel):
     """Type of the project (client/internal)."""
 
     client: str | None = None
-    """Client name."""
+    """Client name (optional)."""
 
     repositories: list[RepositoryItemRequest] | None = None
     """Repositories associated with the ticket."""
