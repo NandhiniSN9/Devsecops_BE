@@ -5,6 +5,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# Load secrets from AWS Secrets Manager BEFORE any settings are read.
+# No-op when AWS_SECRET_NAME is not set (local dev uses .env instead).
+from src.secrets import load_secrets_into_env
+load_secrets_into_env()
+
 from src.migrations.migration import run_migration
 from src.routes import (
     ado_sync_route,
