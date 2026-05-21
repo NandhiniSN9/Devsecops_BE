@@ -154,12 +154,9 @@ class TestSyncAdoData:
 
         await service.run_sync(cron_id)
 
-        mock_repo.soft_delete_pipeline_runs.assert_called_once()
-        mock_repo.soft_delete_commits.assert_called_once()
-        mock_repo.soft_delete_pull_requests.assert_called_once()
-        mock_repo.insert_pipeline_runs.assert_called_once()
-        mock_repo.insert_commits.assert_called_once()
-        mock_repo.insert_pull_requests.assert_called_once()
+        mock_repo.upsert_pipeline_runs.assert_called_once()
+        mock_repo.upsert_commits.assert_called_once()
+        mock_repo.upsert_pull_requests.assert_called_once()
         mock_repo.update_repository_metrics.assert_called_once()
 
     @pytest.mark.asyncio

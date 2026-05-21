@@ -15,7 +15,7 @@
   - The `GET /api/v1/projects` endpoint returns a paginated list of projects with id, name, onboardedDate, repositoryCount, status, and nested repositories array.
   - The endpoint supports filtering by search text, status, client, specialization, and period.
   - The endpoint supports sorting by project name or onboarded date in ascending or descending order.
-  - The `POST /api/v1/projects/action` endpoint marks a project as "Not Applicable" with reason_category, comments, and optional evidence_file, creating a Jira ticket record.
+  - The `POST /api/v1/projects/action` endpoint marks a project as "Not Applicable" with reason_category, comments, and optional evidence_url, creating a Jira ticket record.
   - The `POST /api/v1/projects/action` endpoint marks a project as "Complete", updating status to Completed and setting completed_at.
   - Invalid inputs return HTTP 400 with descriptive validation error messages.
   - Non-existent projects return HTTP 404.
@@ -170,7 +170,7 @@ The system shall support marking a project as "Not Applicable" through the `POST
 | `action` | String | Yes | Must be `mark_not_applicable` |
 | `reason_category` | String | Yes (for this action) | Reason category explaining why the project is not applicable |
 | `comments` | String | Yes (for this action) | Detailed comments explaining the reason |
-| `evidence_file` | Binary | No | Optional evidence file attachment supporting the decision |
+| `evidence_url` | Binary | No | Optional evidence file attachment supporting the decision |
 
 ##### Processing Logic:
 1. Validate the request body using Pydantic model. Return HTTP 400 for missing required fields.
@@ -183,7 +183,7 @@ The system shall support marking a project as "Not Applicable" through the `POST
    - Set `status_id` to the "Not Applicable" status UUID
    - Set `modified_at = NOW()`
    - Set `modified_by` to the authenticated user identifier
-7. If `evidence_file` is provided, upload it to external storage (e.g., S3) and obtain the URL.
+7. If `evidence_url` is provided, upload it to external storage (e.g., S3) and obtain the URL.
 8. Create a new record in the `jira_tickets` table:
    - `jira_ticket_id`: Auto-generated UUID
    - `project_id`: The project UUID
@@ -222,7 +222,7 @@ The system shall support marking a project as "Not Applicable" through the `POST
 - The project status is updated to "Not Applicable" in the `statuses` lookup.
 - A new record is created in `jira_tickets` with the reason_category, comments, and evidence_url.
 - Missing `reason_category` or `comments` returns HTTP 400 with a descriptive error message.
-- Optional `evidence_file` is uploaded and its URL stored in the Jira ticket record.
+- Optional `evidence_url` is uploaded and its URL stored in the Jira ticket record.
 - Non-existent `project_id` returns HTTP 404 with message "Project not found".
 - The operation is atomic — if any step fails, the entire transaction is rolled back.
 
@@ -274,7 +274,7 @@ The system shall support marking a project as "Complete" through the `POST /api/
 ##### Acceptance Criteria:
 - A valid request with action `mark_complete` updates the project status to "Completed".
 - The `completed_at` field is set to the current timestamp.
-- No additional fields (reason_category, comments, evidence_file) are required for this action.
+- No additional fields (reason_category, comments, evidence_url) are required for this action.
 - Non-existent `project_id` returns HTTP 404 with message "Project not found".
 - The `modified_at` timestamp is updated on the project record.
 
@@ -649,7 +649,7 @@ All Projects API endpoints require a valid JWT Bearer token in the `Authorizatio
 - Pagination support with configurable offset and limit, returning totalItems count
 - Nested repository expansion within each project (id, name, onboardedDate, status)
 - Implementation of `POST /api/v1/projects/action` endpoint for project lifecycle actions
-- Mark Not Applicable action: updates is_applicable flag, changes status, creates Jira ticket record with reason_category, comments, and optional evidence_file
+- Mark Not Applicable action: updates is_applicable flag, changes status, creates Jira ticket record with reason_category, comments, and optional evidence_url
 - Mark Complete action: updates project status to Completed and sets completed_at timestamp
 - Evidence file upload handling via multipart/form-data with external storage
 - JWT Bearer token authentication for both endpoints (shared middleware)

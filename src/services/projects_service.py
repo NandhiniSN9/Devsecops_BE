@@ -5,6 +5,8 @@ import traceback
 import uuid
 from datetime import datetime, timezone
 
+from fastapi import UploadFile
+
 from src.client.jira_client import JiraClient
 from src.client.s3_client import S3Client
 from src.models.request.projects_request import (
@@ -181,7 +183,7 @@ class ProjectsService:
         action: str,
         reason_category: str | None,
         comments: str | None,
-        evidence_file: None,
+        evidence_file: UploadFile | None,
         user_id: str,
     ) -> BaseResponse:
         """Perform an action on a project (mark not applicable or mark complete).
@@ -264,7 +266,7 @@ class ProjectsService:
         project_name: str,
         reason_category: str | None,
         comments: str | None,
-        evidence_file: None,
+        evidence_file: UploadFile | None,
         user_id: str,
     ) -> str | None:
         """Handle mark_not_applicable action.

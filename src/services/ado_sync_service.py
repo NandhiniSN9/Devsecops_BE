@@ -33,6 +33,7 @@ class AdoSyncService:
         self._repo = repo
         self._ado_client = ado_client
         self._concurrency = get_settings().ADO_SYNC_CONCURRENCY
+        self._record_limit = get_settings().ADO_SYNC_RECORD_LIMIT
 
     async def initiate_sync(self) -> dict:
         """Check for pending sync and create cron job record.
@@ -202,7 +203,13 @@ class AdoSyncService:
                 return False
 
     async def _sync_repository(self, repository, project_name: str) -> None:
-        """Sync all data types for a single repository.
+        """Sync all data types for a single repository using upsert logic.
+
+        Fetches up to ADO_SYNC_RECORD_LIMIT records per data type from ADO.
+        For each record:
+        - If it already exists in DB (matched by natural key), update it in place.
+        - If it is new, insert it.
+        - Records in DB that are not in the incoming batch remain untouched.
 
         Args:
             repository: Repository ORM object with ado_repo_id.
@@ -211,22 +218,27 @@ class AdoSyncService:
         try:
             repo_id = repository.repository_id
             ado_repo_id = repository.ado_repo_id
+            limit = self._record_limit
 
-            logger.info("Syncing repository", repository_id=str(repo_id), ado_repo_id=ado_repo_id, project=project_name)
+            logger.info(
+                "Syncing repository",
+                repository_id=str(repo_id),
+                ado_repo_id=ado_repo_id,
+                project=project_name,
+                record_limit=limit,
+            )
 
-            # Fetch data from ADO
+            # Fetch data from ADO (limit applied here)
             ado_runs = await self._ado_client.get_pipeline_runs(ado_repo_id, project=project_name)
             ado_commits = await self._ado_client.get_commits(ado_repo_id, project=project_name)
             ado_prs = await self._ado_client.get_pull_requests(ado_repo_id, project=project_name)
 
-            # Soft-delete existing records
-            await self._repo.soft_delete_pipeline_runs(repo_id)
-            await self._repo.soft_delete_commits(repo_id)
-            await self._repo.soft_delete_pull_requests(repo_id)
-            await self._repo.soft_delete_security_scans(repo_id)
-            await self._repo.soft_delete_artifacts_for_repository(repo_id)
+            # Apply record limit — take only the most recent N records
+            ado_runs = ado_runs[:limit]
+            ado_commits = ado_commits[:limit]
+            ado_prs = ado_prs[:limit]
 
-            # Insert new pipeline runs
+            # Build pipeline run ORM objects and upsert
             pipeline_run_records = []
             for run in ado_runs:
                 pipeline_run_records.append(
@@ -241,9 +253,9 @@ class AdoSyncService:
                     )
                 )
             if pipeline_run_records:
-                await self._repo.insert_pipeline_runs(pipeline_run_records)
+                await self._repo.upsert_pipeline_runs(pipeline_run_records)
 
-            # Insert new commits
+            # Build commit ORM objects and upsert
             commit_records = []
             for commit in ado_commits:
                 author_info = commit.get("author", {})
@@ -258,9 +270,9 @@ class AdoSyncService:
                     )
                 )
             if commit_records:
-                await self._repo.insert_commits(commit_records)
+                await self._repo.upsert_commits(commit_records)
 
-            # Insert new pull requests
+            # Build pull request ORM objects and upsert
             pr_records = []
             for pr in ado_prs:
                 created_by_info = pr.get("createdBy", {})
@@ -275,14 +287,15 @@ class AdoSyncService:
                     )
                 )
             if pr_records:
-                await self._repo.insert_pull_requests(pr_records)
+                await self._repo.upsert_pull_requests(pr_records)
 
-            # Fetch and insert artifacts from the most recent build
+            # Fetch and upsert artifacts from the most recent build
             if ado_runs and pipeline_run_records:
                 most_recent_build = ado_runs[0]
                 build_id = most_recent_build.get("id")
                 if build_id:
                     ado_artifacts = await self._ado_client.get_build_artifacts(build_id, project=project_name)
+                    ado_artifacts = ado_artifacts[:limit]
                     artifact_records = []
                     for art in ado_artifacts:
                         resource = art.get("resource", {})
@@ -299,24 +312,28 @@ class AdoSyncService:
                             )
                         )
                     if artifact_records:
-                        await self._repo.insert_artifacts(artifact_records)
+                        await self._repo.upsert_artifacts(artifact_records)
 
             # Update repository aggregate metrics
-            total_runs = repository.pipeline_runs_count or 0
-            total_runs += len(pipeline_run_records)
             passed_count = sum(1 for r in pipeline_run_records if r.status == "passed")
             success_rate = round((passed_count / len(pipeline_run_records)) * 100, 1) if pipeline_run_records else 0.0
             last_run_at = pipeline_run_records[0].triggered_at if pipeline_run_records else repository.last_run_at
 
             await self._repo.update_repository_metrics(
                 repository_id=repo_id,
-                pipeline_runs_count=total_runs,
+                pipeline_runs_count=len(pipeline_run_records),
                 success_rate=success_rate,
                 last_run_at=last_run_at,
             )
 
             await self._repo.commit()
-            logger.info("Repository sync completed", repository_id=str(repo_id))
+            logger.info(
+                "Repository sync completed",
+                repository_id=str(repo_id),
+                runs=len(pipeline_run_records),
+                commits=len(commit_records),
+                prs=len(pr_records),
+            )
         except Exception as exc:
             logger.error("Error in _sync_repository", error=str(exc))
             asyncio.create_task(log_error_to_db(
@@ -331,22 +348,14 @@ class AdoSyncService:
     async def _update_kpi_histories(
         self, spec_ids: set[uuid.UUID]
     ) -> None:
-        """Update ticket timestamps and KPI history for affected specializations.
+        """Update KPI history for affected specializations.
 
-        For each specialization:
-        1. Evaluate and update completed_at / at_risk_at on devsecops_tickets
-        2. Create a new KPI history snapshot
+        For each specialization, creates a new KPI history snapshot.
 
         Args:
-            project_info_list: List of (project_id, project_name) tuples.
+            spec_ids: Set of specialization UUIDs to update.
         """
         try:
-            spec_ids: set[uuid.UUID] = set()
-
-            for project_id, _ in project_info_list:
-                project_spec_ids = await self._repo.get_specialization_ids_for_project(project_id)
-                spec_ids.update(project_spec_ids)
-
             for spec_id in spec_ids:
                 try:
                     await self._create_kpi_snapshot(spec_id)

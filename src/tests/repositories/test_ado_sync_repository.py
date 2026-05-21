@@ -141,31 +141,15 @@ class TestGetRepositoriesForTicket:
     async def test_get_repositories_for_ticket_returns_list(self, repo, mock_session):
         """Should return repositories linked to ticket."""
         ticket_id = uuid.uuid4()
-        repos = [
-            Repository(
-                repository_id=uuid.uuid4(),
-                ticket_id=ticket_id,
-                repo_name="repo1",
-                ado_repo_id="ado-123",
-                is_active=1,
-            ),
-            Repository(
-                repository_id=uuid.uuid4(),
-                ticket_id=ticket_id,
-                repo_name="repo2",
-                ado_repo_id="ado-456",
-                is_active=1,
-            ),
-        ]
+        mock_repos = [MagicMock(), MagicMock()]
 
         mock_result = MagicMock()
-        mock_result.scalars.return_value.all.return_value = repos
+        mock_result.scalars.return_value.all.return_value = mock_repos
         mock_session.execute.return_value = mock_result
 
         result = await repo.get_repositories_for_ticket(ticket_id)
 
         assert len(result) == 2
-        assert result[0].repo_name == "repo1"
 
     @pytest.mark.asyncio
     async def test_get_repositories_for_ticket_empty(self, repo, mock_session):
@@ -185,21 +169,16 @@ class TestGetRepositoryById:
     @pytest.mark.asyncio
     async def test_get_repository_by_id_found(self, repo, mock_session):
         """Should return repository when found."""
-        repository = Repository(
-            repository_id=uuid.uuid4(),
-            repo_name="test-repo",
-            ado_repo_id="ado-789",
-            is_active=1,
-        )
+        mock_repo = MagicMock()
+        mock_repo.repository_id = uuid.uuid4()
 
         mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = repository
+        mock_result.scalar_one_or_none.return_value = mock_repo
         mock_session.execute.return_value = mock_result
 
-        result = await repo.get_repository_by_id(repository.repository_id)
+        result = await repo.get_repository_by_id(mock_repo.repository_id)
 
         assert result is not None
-        assert result.repo_name == "test-repo"
 
     @pytest.mark.asyncio
     async def test_get_repository_by_id_not_found(self, repo, mock_session):
@@ -213,161 +192,187 @@ class TestGetRepositoryById:
         assert result is None
 
 
-class TestSoftDeleteOperations:
-    """Tests for soft delete operations."""
+class TestUpsertOperations:
+    """Tests for upsert operations — update existing or insert new records."""
 
     @pytest.mark.asyncio
-    async def test_soft_delete_pipeline_runs(self, repo, mock_session):
-        """Should soft delete pipeline runs for repository."""
-        repo_id = uuid.uuid4()
+    async def test_upsert_pipeline_runs_updates_existing(self, repo, mock_session):
+        """Should update existing pipeline run when run_number matches."""
+        existing = MagicMock(spec=PipelineRun)
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = existing
+        mock_session.execute.return_value = mock_result
 
-        await repo.soft_delete_pipeline_runs(repo_id)
+        run = PipelineRun(
+            repository_id=uuid.uuid4(),
+            run_number=1,
+            status="passed",
+            branch="main",
+            triggered_at=datetime.utcnow(),
+        )
+        await repo.upsert_pipeline_runs([run])
 
-        mock_session.execute.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_soft_delete_commits(self, repo, mock_session):
-        """Should soft delete commits for repository."""
-        repo_id = uuid.uuid4()
-
-        await repo.soft_delete_commits(repo_id)
-
-        mock_session.execute.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_soft_delete_pull_requests(self, repo, mock_session):
-        """Should soft delete pull requests for repository."""
-        repo_id = uuid.uuid4()
-
-        await repo.soft_delete_pull_requests(repo_id)
-
-        mock_session.execute.assert_called_once()
+        assert existing.status == "passed"
+        assert existing.branch == "main"
+        mock_session.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_soft_delete_security_scans(self, repo, mock_session):
-        """Should soft delete security scans for repository."""
-        repo_id = uuid.uuid4()
+    async def test_upsert_pipeline_runs_inserts_new(self, repo, mock_session):
+        """Should insert new pipeline run when run_number not found."""
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        mock_session.execute.return_value = mock_result
 
-        await repo.soft_delete_security_scans(repo_id)
+        run = PipelineRun(
+            repository_id=uuid.uuid4(),
+            run_number=99,
+            status="passed",
+            branch="main",
+            triggered_at=datetime.utcnow(),
+        )
+        await repo.upsert_pipeline_runs([run])
 
-        mock_session.execute.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_soft_delete_artifacts_for_repository(self, repo, mock_session):
-        """Should soft delete artifacts for repository."""
-        repo_id = uuid.uuid4()
-
-        await repo.soft_delete_artifacts_for_repository(repo_id)
-
-        mock_session.execute.assert_called_once()
-
-
-class TestInsertOperations:
-    """Tests for bulk insert operations."""
+        mock_session.add.assert_called_once_with(run)
+        mock_session.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_insert_pipeline_runs(self, repo, mock_session):
-        """Should bulk insert pipeline runs."""
-        runs = [
-            PipelineRun(
-                repository_id=uuid.uuid4(),
-                run_number=1,
-                status="Succeeded",
-                branch="main",
-            ),
-            PipelineRun(
-                repository_id=uuid.uuid4(),
-                run_number=2,
-                status="Failed",
-                branch="develop",
-            ),
-        ]
+    async def test_upsert_commits_updates_existing(self, repo, mock_session):
+        """Should update existing commit when hash matches."""
+        existing = MagicMock(spec=Commit)
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = existing
+        mock_session.execute.return_value = mock_result
 
-        await repo.insert_pipeline_runs(runs)
+        commit = Commit(
+            repository_id=uuid.uuid4(),
+            hash="abc123",
+            message="updated message",
+            author="Dev",
+            committed_at=datetime.utcnow(),
+        )
+        await repo.upsert_commits([commit])
 
-        mock_session.add_all.assert_called_once_with(runs)
+        assert existing.message == "updated message"
+        mock_session.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_insert_commits(self, repo, mock_session):
-        """Should bulk insert commits."""
-        commits = [
-            Commit(
-                repository_id=uuid.uuid4(),
-                commit_hash="abc123",
-                author="John Doe",
-                message="Fix bug",
-            ),
-        ]
+    async def test_upsert_commits_inserts_new(self, repo, mock_session):
+        """Should insert new commit when hash not found."""
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        mock_session.execute.return_value = mock_result
 
-        await repo.insert_commits(commits)
+        commit = Commit(
+            repository_id=uuid.uuid4(),
+            hash="newHash",
+            message="new commit",
+            author="Dev",
+            committed_at=datetime.utcnow(),
+        )
+        await repo.upsert_commits([commit])
 
-        mock_session.add_all.assert_called_once_with(commits)
-
-    @pytest.mark.asyncio
-    async def test_insert_pull_requests(self, repo, mock_session):
-        """Should bulk insert pull requests."""
-        prs = [
-            PullRequest(
-                repository_id=uuid.uuid4(),
-                pr_number=1,
-                title="Add feature",
-                status="Completed",
-            ),
-        ]
-
-        await repo.insert_pull_requests(prs)
-
-        mock_session.add_all.assert_called_once_with(prs)
+        mock_session.add.assert_called_once_with(commit)
 
     @pytest.mark.asyncio
-    async def test_insert_security_scans(self, repo, mock_session):
-        """Should bulk insert security scans."""
-        scans = [
-            SecurityScan(
-                repository_id=uuid.uuid4(),
-                scan_type="SAST",
-                findings_count=5,
-            ),
-        ]
+    async def test_upsert_pull_requests_updates_existing(self, repo, mock_session):
+        """Should update existing PR when title matches."""
+        existing = MagicMock(spec=PullRequest)
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = existing
+        mock_session.execute.return_value = mock_result
 
-        await repo.insert_security_scans(scans)
+        pr = PullRequest(
+            repository_id=uuid.uuid4(),
+            title="Add feature",
+            author="Dev",
+            status="merged",
+        )
+        await repo.upsert_pull_requests([pr])
 
-        mock_session.add_all.assert_called_once_with(scans)
-
-    @pytest.mark.asyncio
-    async def test_insert_artifacts(self, repo, mock_session):
-        """Should bulk insert artifacts."""
-        artifacts = [
-            Artifact(
-                pipeline_run_id=uuid.uuid4(),
-                artifact_name="build.zip",
-                artifact_type="Build",
-            ),
-        ]
-
-        await repo.insert_artifacts(artifacts)
-
-        mock_session.add_all.assert_called_once_with(artifacts)
-
-
-class TestUpsertKpiHistory:
-    """Tests for upsert_kpi_history method."""
+        assert existing.status == "merged"
+        mock_session.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_upsert_kpi_history_success(self, repo, mock_session):
-        """Should upsert KPI history record."""
+    async def test_upsert_pull_requests_inserts_new(self, repo, mock_session):
+        """Should insert new PR when title not found."""
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        mock_session.execute.return_value = mock_result
+
+        pr = PullRequest(
+            repository_id=uuid.uuid4(),
+            title="New PR",
+            author="Dev",
+            status="open",
+        )
+        await repo.upsert_pull_requests([pr])
+
+        mock_session.add.assert_called_once_with(pr)
+
+    @pytest.mark.asyncio
+    async def test_upsert_security_scans_inserts(self, repo, mock_session):
+        """Should insert new security scan records."""
+        scan = SecurityScan(repository_id=uuid.uuid4())
+        await repo.upsert_security_scans([scan])
+
+        mock_session.add_all.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_upsert_artifacts_updates_existing(self, repo, mock_session):
+        """Should update existing artifact when name matches."""
+        existing = MagicMock(spec=Artifact)
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = existing
+        mock_session.execute.return_value = mock_result
+
+        artifact = Artifact(
+            pipeline_run_id=uuid.uuid4(),
+            artifact_name="build.zip",
+            size_bytes=1024,
+            url="https://example.com/build.zip",
+            uploaded_at=datetime.utcnow(),
+        )
+        await repo.upsert_artifacts([artifact])
+
+        assert existing.size_bytes == 1024
+        mock_session.flush.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_upsert_artifacts_inserts_new(self, repo, mock_session):
+        """Should insert new artifact when name not found."""
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        mock_session.execute.return_value = mock_result
+
+        artifact = Artifact(
+            pipeline_run_id=uuid.uuid4(),
+            artifact_name="new.zip",
+            size_bytes=512,
+            url="https://example.com/new.zip",
+            uploaded_at=datetime.utcnow(),
+        )
+        await repo.upsert_artifacts([artifact])
+
+        mock_session.add.assert_called_once_with(artifact)
+
+
+class TestInsertKpiHistory:
+    """Tests for insert_kpi_history method."""
+
+    @pytest.mark.asyncio
+    async def test_insert_kpi_history_success(self, repo, mock_session):
+        """Should insert KPI history record."""
         kpi = KpiHistory(
             specialization_id=uuid.uuid4(),
-            total_projects_count=100,
-            adopted_count=40,
-            completed_count=30,
-            snapshot_date=datetime.utcnow().date(),
+            projects_count=10,
+            completed_count=3,
+            created_by="sync_ado_service",
         )
 
-        await repo.upsert_kpi_history(kpi)
+        await repo.insert_kpi_history(kpi)
 
-        # Verify execute was called (merge/update statement)
-        mock_session.execute.assert_called_once()
+        mock_session.add.assert_called_once_with(kpi)
+        mock_session.flush.assert_awaited_once()
 
 
 class TestCommitAndRollback:

@@ -3,9 +3,9 @@
 import asyncio
 import traceback
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile
 
-from src.models.request.projects_request import ProjectActionRequest
+from src.models.request.projects_request import ProjectActionEnum
 from src.models.response.base_response import BaseResponse
 from src.services.dependencies import get_projects_service
 from src.services.projects_service import ProjectsService
@@ -74,33 +74,50 @@ async def get_projects(
 @router.post("/projects/action")
 async def perform_project_action(
     request: Request,
-    body: ProjectActionRequest,
+    project_id: str = Form(...),
+    project_name: str = Form(...),
+    action: str = Form(...),
+    reason_category: str | None = Form(default=None),
+    comments: str | None = Form(default=None),
+    evidence_url: UploadFile | None = File(default=None),
     projects_service: ProjectsService = Depends(get_projects_service),
 ) -> BaseResponse:
     """Perform an action on a project (mark_not_applicable or mark_complete).
 
-    Accepts a JSON body with project_id, project_name, action, and optional
-    reason_category, comments, and evidence_url fields.
+    Accepts multipart/form-data with project_id, project_name, action, and
+    optional reason_category, comments, and evidence_url fields.
 
     Args:
         request: The incoming request (for extracting user context).
-        body: JSON request body with action details.
+        project_id: UUID of the project.
+        project_name: Human-readable name of the project.
+        action: Action to perform — mark_complete or mark_not_applicable.
+        reason_category: Required when action is mark_not_applicable.
+        comments: Required when action is mark_not_applicable.
+        evidence_url: Optional evidence file upload (mark_not_applicable only).
         projects_service: Injected ProjectsService instance.
 
     Returns:
         BaseResponse with project_id, project_name, and optional evidence_url.
     """
+    # Validate required fields for mark_not_applicable at the route level
+    if action == ProjectActionEnum.MARK_NOT_APPLICABLE:
+        if not reason_category or not reason_category.strip():
+            raise HTTPException(status_code=422, detail="reason_category is required for mark_not_applicable action")
+        if not comments or not comments.strip():
+            raise HTTPException(status_code=422, detail="comments is required for mark_not_applicable action")
+
     # Extract user identifier from request state (set by auth middleware)
     user_id = getattr(request.state, "user_id", None) or getattr(request.state, "email", "system")
 
     try:
         return await projects_service.perform_action(
-            project_id=body.project_id,
-            project_name=body.project_name,
-            action=body.action,
-            reason_category=body.reason_category,
-            comments=body.comments,
-            evidence_file=None,
+            project_id=project_id,
+            project_name=project_name,
+            action=action,
+            reason_category=reason_category,
+            comments=comments,
+            evidence_file=evidence_url,
             user_id=user_id,
         )
     except Exception as exc:

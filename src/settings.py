@@ -91,6 +91,7 @@ class Settings(BaseSettings):
     ADO_ORG_URL: str = ""
     ADO_PAT: str = ""
     ADO_SYNC_CONCURRENCY: int = 5  # Max parallel repository syncs
+    ADO_SYNC_RECORD_LIMIT: int = 5  # Max records per data type to upsert per repository sync
 
     # Jira Labs Hub service account for bug creation
     JIRA_SERVICE_ACCOUNT_EMAIL: str = "svc_jira.tools@zeb.co"

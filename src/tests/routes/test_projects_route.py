@@ -176,7 +176,7 @@ class TestProjectAction:
         self, client, mock_projects_service
     ):
         """Should return 200 when marking project as not applicable."""
-        mock_projects_service.perform_project_action.return_value = BaseResponse(
+        mock_projects_service.perform_action.return_value = BaseResponse(
             status_code=200,
             status="success",
             message="Project marked as not applicable",
@@ -184,9 +184,10 @@ class TestProjectAction:
         )
 
         # Create mock file
-        files = {"evidence_file": ("test.pdf", b"fake pdf content", "application/pdf")}
+        files = {"evidence_url": ("test.pdf", b"fake pdf content", "application/pdf")}
         data = {
             "project_id": str(uuid.uuid4()),
+            "project_name": "Test Project",
             "action": "mark_not_applicable",
             "reason_category": "No longer needed",
             "comments": "Project cancelled",
@@ -202,7 +203,7 @@ class TestProjectAction:
         self, client, mock_projects_service
     ):
         """Should return 200 when marking project as complete."""
-        mock_projects_service.perform_project_action.return_value = BaseResponse(
+        mock_projects_service.perform_action.return_value = BaseResponse(
             status_code=200,
             status="success",
             message="Project marked as completed",
@@ -211,6 +212,7 @@ class TestProjectAction:
 
         data = {
             "project_id": str(uuid.uuid4()),
+            "project_name": "Test Project",
             "action": "mark_complete",
         }
 
@@ -220,11 +222,11 @@ class TestProjectAction:
         body = response.json()
         assert body["status"] == "success"
 
-    def test_project_action_without_evidence_file(
+    def test_project_action_without_evidence_url(
         self, client, mock_projects_service
     ):
         """Should allow marking not applicable without evidence file."""
-        mock_projects_service.perform_project_action.return_value = BaseResponse(
+        mock_projects_service.perform_action.return_value = BaseResponse(
             status_code=200,
             status="success",
             message="Project marked as not applicable",
@@ -233,6 +235,7 @@ class TestProjectAction:
 
         data = {
             "project_id": str(uuid.uuid4()),
+            "project_name": "Test Project",
             "action": "mark_not_applicable",
             "reason_category": "Test reason",
             "comments": "Test comments",

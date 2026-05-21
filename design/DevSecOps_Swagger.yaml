@@ -1081,7 +1081,7 @@ components:
           type: string
           description: Comments explaining the reason (required for mark_not_applicable)
           example: "Project Wavefront has been marked as not applicable due to client restrictions."
-        evidence_file:
+        evidence_url:
           type: string
           format: binary
           description: Evidence file attachment (optional, for mark_not_applicable)

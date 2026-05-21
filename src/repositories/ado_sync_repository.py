@@ -195,199 +195,165 @@ class AdoSyncRepository:
             ))
             raise
 
-    async def soft_delete_pipeline_runs(self, repository_id: uuid.UUID) -> None:
-        """Soft-delete all active pipeline runs for a repository."""
+    async def upsert_pipeline_runs(self, runs: list[PipelineRun]) -> None:
+        """Upsert pipeline run records matched by (repository_id, run_number).
+
+        Existing active records with the same run_number are updated in place.
+        New records are inserted. Records not in the incoming list are untouched.
+        """
         try:
-            stmt = (
-                update(PipelineRun)
-                .where(
-                    PipelineRun.repository_id == repository_id,
+            now = datetime.utcnow()
+            for run in runs:
+                stmt = select(PipelineRun).where(
+                    PipelineRun.repository_id == run.repository_id,
+                    PipelineRun.run_number == run.run_number,
                     PipelineRun.is_active == 1,
                 )
-                .values(is_active=0, modified_at=datetime.utcnow())
-            )
-            await self._session.execute(stmt)
+                result = await self._session.execute(stmt)
+                existing = result.scalar_one_or_none()
+                if existing:
+                    existing.status = run.status
+                    existing.branch = run.branch
+                    existing.duration_seconds = run.duration_seconds
+                    existing.triggered_at = run.triggered_at
+                    existing.modified_at = now
+                    existing.modified_by = run.created_by
+                else:
+                    self._session.add(run)
+            await self._session.flush()
         except Exception as exc:
-            logger.error("Error in soft_delete_pipeline_runs", error=str(exc))
+            logger.error("Error in upsert_pipeline_runs", error=str(exc))
             asyncio.create_task(log_error_to_db(
                 error_message=str(exc),
-                error_function="soft_delete_pipeline_runs",
+                error_function="upsert_pipeline_runs",
                 error_file="src/repositories/ado_sync_repository.py",
                 stack_trace=traceback.format_exc(),
                 created_by="system",
             ))
             raise
 
-    async def soft_delete_commits(self, repository_id: uuid.UUID) -> None:
-        """Soft-delete all active commits for a repository."""
+    async def upsert_commits(self, commits: list[Commit]) -> None:
+        """Upsert commit records matched by (repository_id, hash).
+
+        Existing active commits with the same hash are updated in place.
+        New commits are inserted. Commits not in the incoming list are untouched.
+        """
         try:
-            stmt = (
-                update(Commit)
-                .where(
-                    Commit.repository_id == repository_id,
+            now = datetime.utcnow()
+            for commit in commits:
+                stmt = select(Commit).where(
+                    Commit.repository_id == commit.repository_id,
+                    Commit.hash == commit.hash,
                     Commit.is_active == 1,
                 )
-                .values(is_active=0, modified_at=datetime.utcnow())
-            )
-            await self._session.execute(stmt)
+                result = await self._session.execute(stmt)
+                existing = result.scalar_one_or_none()
+                if existing:
+                    existing.message = commit.message
+                    existing.author = commit.author
+                    existing.committed_at = commit.committed_at
+                    existing.modified_at = now
+                    existing.modified_by = commit.created_by
+                else:
+                    self._session.add(commit)
+            await self._session.flush()
         except Exception as exc:
-            logger.error("Error in soft_delete_commits", error=str(exc))
+            logger.error("Error in upsert_commits", error=str(exc))
             asyncio.create_task(log_error_to_db(
                 error_message=str(exc),
-                error_function="soft_delete_commits",
+                error_function="upsert_commits",
                 error_file="src/repositories/ado_sync_repository.py",
                 stack_trace=traceback.format_exc(),
                 created_by="system",
             ))
             raise
 
-    async def soft_delete_pull_requests(self, repository_id: uuid.UUID) -> None:
-        """Soft-delete all active pull requests for a repository."""
+    async def upsert_pull_requests(self, prs: list[PullRequest]) -> None:
+        """Upsert pull request records matched by (repository_id, title).
+
+        Existing active PRs with the same title are updated in place.
+        New PRs are inserted. PRs not in the incoming list are untouched.
+        """
         try:
-            stmt = (
-                update(PullRequest)
-                .where(
-                    PullRequest.repository_id == repository_id,
+            now = datetime.utcnow()
+            for pr in prs:
+                stmt = select(PullRequest).where(
+                    PullRequest.repository_id == pr.repository_id,
+                    PullRequest.title == pr.title,
                     PullRequest.is_active == 1,
                 )
-                .values(is_active=0, modified_at=datetime.utcnow())
-            )
-            await self._session.execute(stmt)
-        except Exception as exc:
-            logger.error("Error in soft_delete_pull_requests", error=str(exc))
-            asyncio.create_task(log_error_to_db(
-                error_message=str(exc),
-                error_function="soft_delete_pull_requests",
-                error_file="src/repositories/ado_sync_repository.py",
-                stack_trace=traceback.format_exc(),
-                created_by="system",
-            ))
-            raise
-
-    async def soft_delete_security_scans(self, repository_id: uuid.UUID) -> None:
-        """Soft-delete all active security scans for a repository."""
-        try:
-            stmt = (
-                update(SecurityScan)
-                .where(
-                    SecurityScan.repository_id == repository_id,
-                    SecurityScan.is_active == 1,
-                )
-                .values(is_active=0, modified_at=datetime.utcnow())
-            )
-            await self._session.execute(stmt)
-        except Exception as exc:
-            logger.error("Error in soft_delete_security_scans", error=str(exc))
-            asyncio.create_task(log_error_to_db(
-                error_message=str(exc),
-                error_function="soft_delete_security_scans",
-                error_file="src/repositories/ado_sync_repository.py",
-                stack_trace=traceback.format_exc(),
-                created_by="system",
-            ))
-            raise
-
-    async def soft_delete_artifacts_for_repository(self, repository_id: uuid.UUID) -> None:
-        """Soft-delete all active artifacts linked to a repository's pipeline runs."""
-        try:
-            pipeline_run_ids = select(PipelineRun.pipeline_run_id).where(
-                PipelineRun.repository_id == repository_id,
-                PipelineRun.is_active == 1,
-            )
-            stmt = (
-                update(Artifact)
-                .where(
-                    Artifact.pipeline_run_id.in_(pipeline_run_ids),
-                    Artifact.is_active == 1,
-                )
-                .values(is_active=0, modified_at=datetime.utcnow())
-            )
-            await self._session.execute(stmt)
-        except Exception as exc:
-            logger.error("Error in soft_delete_artifacts_for_repository", error=str(exc))
-            asyncio.create_task(log_error_to_db(
-                error_message=str(exc),
-                error_function="soft_delete_artifacts_for_repository",
-                error_file="src/repositories/ado_sync_repository.py",
-                stack_trace=traceback.format_exc(),
-                created_by="system",
-            ))
-            raise
-
-    async def insert_pipeline_runs(self, runs: list[PipelineRun]) -> None:
-        """Bulk insert pipeline run records."""
-        try:
-            self._session.add_all(runs)
+                result = await self._session.execute(stmt)
+                existing = result.scalar_one_or_none()
+                if existing:
+                    existing.author = pr.author
+                    existing.status = pr.status
+                    existing.updated_at = pr.updated_at
+                    existing.modified_at = now
+                    existing.modified_by = pr.created_by
+                else:
+                    self._session.add(pr)
             await self._session.flush()
         except Exception as exc:
-            logger.error("Error in insert_pipeline_runs", error=str(exc))
+            logger.error("Error in upsert_pull_requests", error=str(exc))
             asyncio.create_task(log_error_to_db(
                 error_message=str(exc),
-                error_function="insert_pipeline_runs",
+                error_function="upsert_pull_requests",
                 error_file="src/repositories/ado_sync_repository.py",
                 stack_trace=traceback.format_exc(),
                 created_by="system",
             ))
             raise
 
-    async def insert_commits(self, commits: list[Commit]) -> None:
-        """Bulk insert commit records."""
-        try:
-            self._session.add_all(commits)
-            await self._session.flush()
-        except Exception as exc:
-            logger.error("Error in insert_commits", error=str(exc))
-            asyncio.create_task(log_error_to_db(
-                error_message=str(exc),
-                error_function="insert_commits",
-                error_file="src/repositories/ado_sync_repository.py",
-                stack_trace=traceback.format_exc(),
-                created_by="system",
-            ))
-            raise
+    async def upsert_security_scans(self, scans: list[SecurityScan]) -> None:
+        """Insert new security scan records.
 
-    async def insert_pull_requests(self, prs: list[PullRequest]) -> None:
-        """Bulk insert pull request records."""
-        try:
-            self._session.add_all(prs)
-            await self._session.flush()
-        except Exception as exc:
-            logger.error("Error in insert_pull_requests", error=str(exc))
-            asyncio.create_task(log_error_to_db(
-                error_message=str(exc),
-                error_function="insert_pull_requests",
-                error_file="src/repositories/ado_sync_repository.py",
-                stack_trace=traceback.format_exc(),
-                created_by="system",
-            ))
-            raise
-
-    async def insert_security_scans(self, scans: list[SecurityScan]) -> None:
-        """Bulk insert security scan records."""
+        Security scans have no natural unique key from ADO, so each sync
+        inserts new records. Existing records remain untouched.
+        """
         try:
             self._session.add_all(scans)
             await self._session.flush()
         except Exception as exc:
-            logger.error("Error in insert_security_scans", error=str(exc))
+            logger.error("Error in upsert_security_scans", error=str(exc))
             asyncio.create_task(log_error_to_db(
                 error_message=str(exc),
-                error_function="insert_security_scans",
+                error_function="upsert_security_scans",
                 error_file="src/repositories/ado_sync_repository.py",
                 stack_trace=traceback.format_exc(),
                 created_by="system",
             ))
             raise
 
-    async def insert_artifacts(self, artifacts: list[Artifact]) -> None:
-        """Bulk insert artifact records."""
+    async def upsert_artifacts(self, artifacts: list[Artifact]) -> None:
+        """Upsert artifact records matched by (pipeline_run_id, artifact_name).
+
+        Existing active artifacts with the same name on the same pipeline run
+        are updated in place. New artifacts are inserted. Others are untouched.
+        """
         try:
-            self._session.add_all(artifacts)
+            now = datetime.utcnow()
+            for artifact in artifacts:
+                stmt = select(Artifact).where(
+                    Artifact.pipeline_run_id == artifact.pipeline_run_id,
+                    Artifact.artifact_name == artifact.artifact_name,
+                    Artifact.is_active == 1,
+                )
+                result = await self._session.execute(stmt)
+                existing = result.scalar_one_or_none()
+                if existing:
+                    existing.size_bytes = artifact.size_bytes
+                    existing.url = artifact.url
+                    existing.uploaded_at = artifact.uploaded_at
+                    existing.modified_at = now
+                    existing.modified_by = artifact.created_by
+                else:
+                    self._session.add(artifact)
             await self._session.flush()
         except Exception as exc:
-            logger.error("Error in insert_artifacts", error=str(exc))
+            logger.error("Error in upsert_artifacts", error=str(exc))
             asyncio.create_task(log_error_to_db(
                 error_message=str(exc),
-                error_function="insert_artifacts",
+                error_function="upsert_artifacts",
                 error_file="src/repositories/ado_sync_repository.py",
                 stack_trace=traceback.format_exc(),
                 created_by="system",
