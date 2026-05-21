@@ -76,10 +76,1046 @@ INSERT INTO email_recipient (email_recipient_id, setting_id, specialization_id, 
 -- =============================================
 -- 8. email_templates
 -- =============================================
+-- NOTE: Full HTML templates are too large for inline SQL.
+-- Use scripts/update_email_templates.py to load templates from files, or
+-- run src/migrations/email_templates_seed.sql separately after initial seed.
+-- The templates below are placeholders that will be replaced by the update script.
+
 INSERT INTO email_templates (email_template_id, template_name, template_content, created_by, is_active) VALUES
 ('b8000000-0000-0000-0000-000000000001', 'Weekly Digest', '<h1>Weekly DevSecOps Digest</h1><p>Here is your weekly summary of project metrics and pipeline health.</p>', 'seed_script', 1),
 ('b8000000-0000-0000-0000-000000000002', 'At Risk Alert', '<h1>At Risk Alert</h1><p>The following projects have been flagged as at risk and require immediate attention.</p>', 'seed_script', 1),
-('b8000000-0000-0000-0000-000000000003', 'Daily Summary', '<h1>Daily Summary</h1><p>Your daily overview of pipeline runs, security scans, and project status changes.</p>', 'seed_script', 1);
+('b8000000-0000-0000-0000-000000000003', 'Daily Summary', '<h1>Daily Summary</h1><p>Your daily overview of pipeline runs, security scans, and project status changes.</p>', 'seed_script', 1),
+(
+  'b8000000-0000-0000-0000-000000000004',
+  'Weekly Summary Report',
+  '<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Weekly DevSecOps Report - {{ specialization_name }}</title>
+        <style>
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, ''Helvetica Neue'', Arial, sans-serif;
+                line-height: 1.6;
+                color: #2c3e50;
+                background: #f8f9fa;
+            }
+
+            .page-wrapper {
+                max-width: 900px;
+                margin: 0 auto;
+                background: white;
+            }
+
+            /* Header with company branding */
+            .report-header {
+                background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+                padding: 40px 50px;
+                color: white;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .report-header::before {
+                content: '''';
+                position: absolute;
+                top: -50%;
+                right: -10%;
+                width: 300px;
+                height: 300px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+            }
+
+            .company-logo {
+                width: 180px;
+                height: 50px;
+                background: white;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 20px;
+                color: #1e3a8a;
+                margin-bottom: 25px;
+                letter-spacing: -0.5px;
+            }
+
+            .report-title {
+                font-size: 34px;
+                font-weight: 700;
+                margin-bottom: 12px;
+                letter-spacing: -0.5px;
+            }
+
+            .report-subtitle {
+                font-size: 18px;
+                opacity: 0.95;
+                font-weight: 400;
+            }
+
+            .report-meta {
+                margin-top: 20px;
+                display: flex;
+                gap: 30px;
+                font-size: 14px;
+            }
+
+            .meta-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .meta-icon {
+                font-size: 16px;
+            }
+
+            /* Content area */
+            .report-content {
+                padding: 50px;
+            }
+
+            .section {
+                margin-bottom: 45px;
+            }
+
+            .section-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 25px;
+                padding-bottom: 12px;
+                border-bottom: 3px solid #e5e7eb;
+            }
+
+            .section-icon {
+                font-size: 24px;
+                width: 40px;
+                height: 40px;
+                background: #eff6ff;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .section-title {
+                font-size: 24px;
+                font-weight: 700;
+                color: #1e3a8a;
+            }
+
+            /* Metrics grid */
+            .metrics-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+
+            .metric-card {
+                background: white;
+                border: 2px solid #e5e7eb;
+                border-radius: 12px;
+                padding: 25px;
+                text-align: center;
+                transition: transform 0.2s;
+            }
+
+            .metric-card:hover {
+                transform: translateY(-2px);
+                border-color: #3b82f6;
+            }
+
+            .metric-value {
+                font-size: 42px;
+                font-weight: 700;
+                color: #1e3a8a;
+                margin-bottom: 8px;
+                line-height: 1;
+            }
+
+            .metric-label {
+                font-size: 14px;
+                color: #6b7280;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-weight: 600;
+            }
+
+            .metric-card.success .metric-value { color: #059669; }
+            .metric-card.warning .metric-value { color: #dc2626; }
+            .metric-card.info .metric-value { color: #3b82f6; }
+
+            /* Statistics */
+            .stats-container {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+
+            .stat-box {
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 10px;
+                border-left: 4px solid #3b82f6;
+            }
+
+            .stat-label {
+                font-size: 13px;
+                color: #6b7280;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+
+            .stat-value {
+                font-size: 32px;
+                font-weight: 700;
+                color: #1e3a8a;
+            }
+
+            .stat-value-small {
+                font-size: 28px;
+            }
+
+            /* Project table */
+            .project-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                overflow: hidden;
+            }
+
+            .project-table thead {
+                background: #1e3a8a;
+                color: white;
+            }
+
+            .project-table th {
+                padding: 16px;
+                text-align: left;
+                font-weight: 600;
+                font-size: 13px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .project-table td {
+                padding: 16px;
+                border-top: 1px solid #e5e7eb;
+                font-size: 14px;
+            }
+
+            .project-table tbody tr:hover {
+                background: #f8f9fa;
+            }
+
+            .project-name {
+                font-weight: 600;
+                color: #1e3a8a;
+            }
+
+            .status-badge {
+                display: inline-block;
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            .status-active {
+                background: #d1fae5;
+                color: #065f46;
+            }
+
+            .status-completed {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            .status-at-risk {
+                background: #fee2e2;
+                color: #991b1b;
+            }
+
+            .success-rate {
+                font-weight: 600;
+                color: #059669;
+            }
+
+            /* Footer */
+            .report-footer {
+                background: #f8f9fa;
+                padding: 30px 50px;
+                border-top: 3px solid #e5e7eb;
+                margin-top: 40px;
+            }
+
+            .footer-content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .footer-company {
+                font-weight: 600;
+                color: #1e3a8a;
+                font-size: 16px;
+            }
+
+            .footer-timestamp {
+                font-size: 13px;
+                color: #6b7280;
+            }
+
+            .footer-link {
+                color: #3b82f6;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+            .footer-disclaimer {
+                margin-top: 15px;
+                font-size: 12px;
+                color: #9ca3af;
+                text-align: center;
+            }
+
+            @media print {
+                .report-header::before {
+                    display: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page-wrapper">
+            <!-- Header with Branding -->
+            <div class="report-header">
+                <div class="company-logo">ZEB COMPANY</div>
+                <h1 class="report-title">Weekly DevSecOps Report</h1>
+                <p class="report-subtitle">{{ specialization_name }} Team Performance & Insights</p>
+                <div class="report-meta">
+                    <div class="meta-item">
+                        <span class="meta-icon">📅</span>
+                        <span>{{ start_date }} - {{ end_date }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-icon">📊</span>
+                        <span>Week {{ report_date }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="report-content">
+                <!-- Key Metrics Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-icon">📈</div>
+                        <h2 class="section-title">Key Performance Indicators</h2>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-card success">
+                            <div class="metric-value">{{ total_projects }}</div>
+                            <div class="metric-label">Total Projects</div>
+                        </div>
+                        <div class="metric-card info">
+                            <div class="metric-value">{{ active_projects }}</div>
+                            <div class="metric-label">Active</div>
+                        </div>
+                        <div class="metric-card success">
+                            <div class="metric-value">{{ completed_projects }}</div>
+                            <div class="metric-label">Completed</div>
+                        </div>
+                        <div class="metric-card warning">
+                            <div class="metric-value">{{ at_risk_count }}</div>
+                            <div class="metric-label">At Risk</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Statistics -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-icon">🎯</div>
+                        <h2 class="section-title">Performance Metrics</h2>
+                    </div>
+
+                    <div class="stats-container">
+                        <div class="stat-box">
+                            <div class="stat-label">Adoption Rate</div>
+                            <div class="stat-value">{{ adoption_rate }}%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Pipeline Success</div>
+                            <div class="stat-value">{{ pipeline_success_rate }}%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Security Scans Passed</div>
+                            <div class="stat-value stat-value-small">{{ security_scans_passed }}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Week Over Week Change</div>
+                            <div class="stat-value stat-value-small" style="color: #059669;">+12%</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if top_projects %}
+                <!-- Top Performing Projects -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-icon">🏆</div>
+                        <h2 class="section-title">Top Performing Projects</h2>
+                    </div>
+
+                    <table class="project-table">
+                        <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Client</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Success Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in top_projects %}
+                            <tr>
+                                <td class="project-name">{{ project.project_name }}</td>
+                                <td>{{ project.client }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ project.status|lower|replace('' '', ''-'') }}">
+                                        {{ project.status }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span class="success-rate">{{ project.success_rate }}%</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Footer -->
+            <div class="report-footer">
+                <div class="footer-content">
+                    <div>
+                        <div class="footer-company">ZEB Company</div>
+                        <div class="footer-timestamp">Generated on {{ generated_at }}</div>
+                    </div>
+                    <div>
+                        <a href="{{ dashboard_url }}" class="footer-link">View Dashboard →</a>
+                    </div>
+                </div>
+                <div class="footer-disclaimer">
+                    This is an automated report generated by the DevSecOps Platform. For questions or concerns, please contact your platform administrator.
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>',
+    'seed_script',
+    1
+),
+(
+  'b8000000-0000-0000-0000-000000000005',
+  'At Risk Report',
+  '<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>At Risk Projects Alert - {{ specialization_name }}</title>
+        <style>
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, ''Helvetica Neue'', Arial, sans-serif;
+                line-height: 1.6;
+                color: #2c3e50;
+                background: #f8f9fa;
+            }
+
+            .page-wrapper {
+                max-width: 900px;
+                margin: 0 auto;
+                background: white;
+            }
+
+            /* Header with warning styling */
+            .report-header {
+                background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+                padding: 40px 50px;
+                color: white;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .report-header::before {
+                content: '''';
+                position: absolute;
+                top: -30%;
+                right: -5%;
+                width: 250px;
+                height: 250px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+            }
+
+            .company-logo {
+                width: 180px;
+                height: 50px;
+                background: white;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 20px;
+                color: #dc2626;
+                margin-bottom: 25px;
+                letter-spacing: -0.5px;
+            }
+
+            .report-title {
+                font-size: 34px;
+                font-weight: 700;
+                margin-bottom: 12px;
+                letter-spacing: -0.5px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .alert-badge {
+                background: rgba(255, 255, 255, 0.3);
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 14px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-weight: 600;
+            }
+
+            .report-subtitle {
+                font-size: 18px;
+                opacity: 0.95;
+                font-weight: 400;
+            }
+
+            .report-meta {
+                margin-top: 20px;
+                display: flex;
+                gap: 30px;
+                font-size: 14px;
+            }
+
+            .meta-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            /* Alert banner */
+            .alert-banner {
+                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                border-left: 6px solid #f59e0b;
+                padding: 30px;
+                margin: 30px 50px;
+                border-radius: 10px;
+            }
+
+            .alert-content {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .alert-icon {
+                font-size: 48px;
+                line-height: 1;
+            }
+
+            .alert-text h3 {
+                font-size: 22px;
+                color: #92400e;
+                margin-bottom: 8px;
+                font-weight: 700;
+            }
+
+            .alert-text p {
+                font-size: 15px;
+                color: #78350f;
+                line-height: 1.5;
+            }
+
+            .severity-badge {
+                display: inline-block;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 13px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-top: 10px;
+            }
+
+            .severity-critical {
+                background: #dc2626;
+                color: white;
+            }
+
+            .severity-high {
+                background: #f59e0b;
+                color: white;
+            }
+
+            .severity-medium {
+                background: #fbbf24;
+                color: #78350f;
+            }
+
+            /* Content area */
+            .report-content {
+                padding: 50px;
+            }
+
+            .section {
+                margin-bottom: 45px;
+            }
+
+            .section-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 25px;
+                padding-bottom: 12px;
+                border-bottom: 3px solid #e5e7eb;
+            }
+
+            .section-icon {
+                font-size: 24px;
+                width: 40px;
+                height: 40px;
+                background: #fee2e2;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .section-title {
+                font-size: 24px;
+                font-weight: 700;
+                color: #dc2626;
+            }
+
+            /* Summary card */
+            .summary-card {
+                background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+                color: white;
+                padding: 40px;
+                border-radius: 12px;
+                text-align: center;
+                margin-bottom: 40px;
+            }
+
+            .summary-count {
+                font-size: 72px;
+                font-weight: 700;
+                line-height: 1;
+                margin-bottom: 15px;
+            }
+
+            .summary-label {
+                font-size: 20px;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                opacity: 0.95;
+            }
+
+            /* Projects table */
+            .projects-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                border: 2px solid #fecaca;
+                border-radius: 10px;
+                overflow: hidden;
+            }
+
+            .projects-table thead {
+                background: #dc2626;
+                color: white;
+            }
+
+            .projects-table th {
+                padding: 16px;
+                text-align: left;
+                font-weight: 600;
+                font-size: 13px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .projects-table td {
+                padding: 16px;
+                border-top: 1px solid #fecaca;
+                font-size: 14px;
+            }
+
+            .projects-table tbody tr:nth-child(even) {
+                background: #fef2f2;
+            }
+
+            .projects-table tbody tr:hover {
+                background: #fee2e2;
+            }
+
+            .project-name {
+                font-weight: 600;
+                color: #dc2626;
+                font-size: 15px;
+            }
+
+            .overdue-badge {
+                display: inline-block;
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 13px;
+                font-weight: 700;
+                background: #dc2626;
+                color: white;
+            }
+
+            .overdue-critical {
+                background: #7f1d1d;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.7;
+                }
+            }
+
+            /* Action items */
+            .action-section {
+                background: #fef2f2;
+                border-left: 6px solid #dc2626;
+                padding: 30px;
+                border-radius: 10px;
+            }
+
+            .action-section h3 {
+                font-size: 20px;
+                color: #dc2626;
+                margin-bottom: 20px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .action-list {
+                list-style: none;
+            }
+
+            .action-item {
+                padding: 15px 0;
+                border-bottom: 1px solid #fecaca;
+                display: flex;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .action-item:last-child {
+                border-bottom: none;
+            }
+
+            .action-number {
+                background: #dc2626;
+                color: white;
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+
+            .action-content {
+                flex: 1;
+            }
+
+            .action-title {
+                font-weight: 700;
+                color: #991b1b;
+                margin-bottom: 4px;
+                font-size: 15px;
+            }
+
+            .action-description {
+                color: #7f1d1d;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            /* Footer */
+            .report-footer {
+                background: #f8f9fa;
+                padding: 30px 50px;
+                border-top: 3px solid #e5e7eb;
+                margin-top: 40px;
+            }
+
+            .footer-content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .footer-company {
+                font-weight: 600;
+                color: #dc2626;
+                font-size: 16px;
+            }
+
+            .footer-timestamp {
+                font-size: 13px;
+                color: #6b7280;
+            }
+
+            .footer-link {
+                color: #dc2626;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+            .footer-disclaimer {
+                margin-top: 15px;
+                font-size: 12px;
+                color: #9ca3af;
+                text-align: center;
+            }
+
+            @media print {
+                .report-header::before {
+                    display: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page-wrapper">
+            <!-- Header -->
+            <div class="report-header">
+                <div class="company-logo">ZEB COMPANY</div>
+                <h1 class="report-title">
+                    ⚠️ At Risk Alert
+                    {% if at_risk_count > 5 %}
+                    <span class="alert-badge">Critical</span>
+                    {% elif at_risk_count > 2 %}
+                    <span class="alert-badge">High</span>
+                    {% else %}
+                    <span class="alert-badge">Medium</span>
+                    {% endif %}
+                </h1>
+                <p class="report-subtitle">{{ specialization_name }} - Immediate Attention Required</p>
+                <div class="report-meta">
+                    <div class="meta-item">
+                        <span>📅</span>
+                        <span>{{ report_date }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span>⏰</span>
+                        <span>Action Required</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Banner -->
+            <div class="alert-banner">
+                <div class="alert-content">
+                    <div class="alert-icon">🚨</div>
+                    <div class="alert-text">
+                        <h3>Critical Action Required</h3>
+                        <p>
+                            {{ at_risk_count }} project{{ ''s'' if at_risk_count != 1 else '''' }}
+                            {% if at_risk_count == 1 %}is{% else %}are{% endif %} currently at risk
+                            and require immediate attention. These projects have exceeded their onboarding
+                            timeline and may impact delivery commitments.
+                        </p>
+                        {% if at_risk_count > 5 %}
+                        <span class="severity-badge severity-critical">Critical Severity</span>
+                        {% elif at_risk_count > 2 %}
+                        <span class="severity-badge severity-high">High Severity</span>
+                        {% else %}
+                        <span class="severity-badge severity-medium">Medium Severity</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="report-content">
+                <!-- Summary -->
+                <div class="summary-card">
+                    <div class="summary-count">{{ at_risk_count }}</div>
+                    <div class="summary-label">Projects At Risk</div>
+                </div>
+
+                {% if projects %}
+                <!-- Projects Table -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-icon">📋</div>
+                        <h2 class="section-title">At Risk Projects Details</h2>
+                    </div>
+
+                    <table class="projects-table">
+                        <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Client</th>
+                                <th>Onboarded Date</th>
+                                <th style="text-align: center;">Days Overdue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td class="project-name">{{ project.project_name }}</td>
+                                <td>{{ project.client or ''N/A'' }}</td>
+                                <td>{{ project.onboarded_date }}</td>
+                                <td style="text-align: center;">
+                                    <span class="overdue-badge {% if project.days_overdue > 30 %}overdue-critical{% endif %}">
+                                        {{ project.days_overdue }} days
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                <!-- Action Items -->
+                <div class="section">
+                    <div class="action-section">
+                        <h3>📋 Recommended Actions</h3>
+                        <ul class="action-list">
+                            <li class="action-item">
+                                <div class="action-number">1</div>
+                                <div class="action-content">
+                                    <div class="action-title">Immediate Review</div>
+                                    <div class="action-description">
+                                        Schedule meetings with project leads for critically overdue projects (>30 days) within the next 24 hours.
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="action-item">
+                                <div class="action-number">2</div>
+                                <div class="action-content">
+                                    <div class="action-title">Status Update</div>
+                                    <div class="action-description">
+                                        Request detailed status updates from project owners and identify blockers preventing progress.
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="action-item">
+                                <div class="action-number">3</div>
+                                <div class="action-content">
+                                    <div class="action-title">Resource Assessment</div>
+                                    <div class="action-description">
+                                        Evaluate if additional resources, training, or support is needed to bring projects back on track.
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="action-item">
+                                <div class="action-number">4</div>
+                                <div class="action-content">
+                                    <div class="action-title">Timeline Review</div>
+                                    <div class="action-description">
+                                        Update project timelines based on current status and communicate revised expectations to stakeholders.
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="action-item">
+                                <div class="action-number">5</div>
+                                <div class="action-content">
+                                    <div class="action-title">Stakeholder Communication</div>
+                                    <div class="action-description">
+                                        Inform relevant stakeholders about project status and proposed mitigation plans.
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="report-footer">
+                <div class="footer-content">
+                    <div>
+                        <div class="footer-company">ZEB Company</div>
+                        <div class="footer-timestamp">Generated on {{ generated_at }}</div>
+                    </div>
+                    <div>
+                        <a href="{{ dashboard_url }}" class="footer-link">View Dashboard →</a>
+                    </div>
+                </div>
+                <div class="footer-disclaimer">
+                    This is an automated alert generated by the DevSecOps Platform. Please do not reply to this notification.
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>',
+    'seed_script',
+    1
+);
+
 
 -- =============================================
 -- 9. email_history

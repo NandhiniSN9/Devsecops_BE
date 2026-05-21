@@ -259,6 +259,51 @@ class ReportRepository:
             ))
             raise
 
+    async def get_projects_by_specialization(self, specialization_id: uuid.UUID) -> list[Project]:
+        """Fetch all active projects for a specialization.
+
+        Args:
+            specialization_id: The specialization UUID.
+
+        Returns:
+            List of active Project records.
+        """
+        try:
+            from src.repositories.schema.devsecops_ticket import DevsecopsTicket
+
+            # Join projects with devsecops_tickets to filter by specialization
+            stmt = (
+                select(Project)
+                .join(DevsecopsTicket, Project.project_id == DevsecopsTicket.project_id)
+                .where(
+                    DevsecopsTicket.specialization_id == specialization_id,
+                    Project.is_active == 1,
+                    DevsecopsTicket.is_active == 1,
+                )
+            )
+            result = await self._session.execute(stmt)
+            return list(result.scalars().all())
+        except SQLAlchemyError as db_exc:
+            logger.error("Database error in get_projects_by_specialization", error=str(db_exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(db_exc),
+                error_function="get_projects_by_specialization",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
+            raise
+        except Exception as exc:
+            logger.error("Unexpected error in get_projects_by_specialization", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_projects_by_specialization",
+                error_file="src/repositories/report_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
+            raise
+
     async def get_at_risk_projects(self, at_risk_threshold: int) -> list[Project]:
         """Fetch projects that are at risk (days since onboarding exceeds threshold).
 

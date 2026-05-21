@@ -25,10 +25,15 @@ def _setup_logging() -> None:
         structlog.processors.UnicodeDecoder(),
     ]
 
+    # Use clean ConsoleRenderer for development, JSON for production
+    # Set LOG_FORMAT=json in environment to force JSON output
+    import os
+    use_json = os.getenv("LOG_FORMAT", "").lower() == "json"
+
     structlog.configure(
         processors=[
             *shared_processors,
-            structlog.dev.ConsoleRenderer() if sys.stderr.isatty() else structlog.processors.JSONRenderer(),
+            structlog.processors.JSONRenderer() if use_json else structlog.dev.ConsoleRenderer(),
         ],
         wrapper_class=structlog.stdlib.BoundLogger,
         context_class=dict,
@@ -40,7 +45,7 @@ def _setup_logging() -> None:
     formatter = structlog.stdlib.ProcessorFormatter(
         processors=[
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            structlog.processors.JSONRenderer(),
+            structlog.processors.JSONRenderer() if use_json else structlog.dev.ConsoleRenderer(),
         ],
         foreign_pre_chain=shared_processors,
     )
