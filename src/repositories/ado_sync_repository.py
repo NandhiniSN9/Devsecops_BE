@@ -16,6 +16,7 @@ from src.repositories.schema.project import Project
 from src.repositories.schema.pull_request import PullRequest
 from src.repositories.schema.repository import Repository
 from src.repositories.schema.security_scan import SecurityScan
+from src.repositories.schema.specialization import Specialization
 from src.repositories.schema.status import Status
 from src.utils.helpers import log_error_to_db
 from src.utils.logger import logger
@@ -366,19 +367,24 @@ class AdoSyncRepository:
         pipeline_runs_count: int,
         success_rate: float,
         last_run_at: datetime | None,
+        repo_status: str | None = None,
     ) -> None:
-        """Update repository aggregate metrics after sync."""
+        """Update repository aggregate metrics and repo_status after sync."""
         try:
+            values: dict = {
+                "pipeline_runs_count": pipeline_runs_count,
+                "success_rate": success_rate,
+                "last_run_at": last_run_at,
+                "modified_at": datetime.utcnow(),
+                "modified_by": "sync_ado_service",
+            }
+            if repo_status is not None:
+                values["repo_status"] = repo_status
+
             stmt = (
                 update(Repository)
                 .where(Repository.repository_id == repository_id)
-                .values(
-                    pipeline_runs_count=pipeline_runs_count,
-                    success_rate=success_rate,
-                    last_run_at=last_run_at,
-                    modified_at=datetime.utcnow(),
-                    modified_by="sync_ado_service",
-                )
+                .values(**values)
             )
             await self._session.execute(stmt)
         except Exception as exc:
@@ -392,20 +398,141 @@ class AdoSyncRepository:
             ))
             raise
 
-    async def get_specialization_ids_for_project(self, project_id: uuid.UUID) -> list[uuid.UUID]:
-        """Get distinct specialization IDs linked to a project."""
+    async def get_specialization_ids_from_repositories(
+        self, repository_ids: list[uuid.UUID]
+    ) -> set[uuid.UUID]:
+        """Resolve valid specialization UUIDs from repositories' specialization_names CSV column.
+
+        Each repository stores a comma-separated list of specialization names
+        (e.g. "FE,DevSecOps"). This method:
+        1. Reads the specialization_names CSV from each repository.
+        2. Splits and strips each name.
+        3. Looks up matching specialization_id from the specializations table by name.
+        4. Returns the set of valid specialization UUIDs found.
+
+        Args:
+            repository_ids: List of repository UUIDs to read specialization names from.
+
+        Returns:
+            Set of valid specialization UUIDs matched by name.
+        """
         try:
-            stmt = (
-                select(DevsecopsTicket.specialization_id)
+            if not repository_ids:
+                return set()
+
+            # Fetch specialization_names CSV from repositories
+            stmt = select(Repository.specialization_names).where(
+                Repository.repository_id.in_(repository_ids),
+                Repository.is_active == 1,
+                Repository.specialization_names.isnot(None),
+            )
+            result = await self._session.execute(stmt)
+            csv_values = result.scalars().all()
+
+            # Parse all specialization names from CSV strings
+            candidate_names: set[str] = set()
+            for csv in csv_values:
+                if not csv:
+                    continue
+                for part in csv.split(","):
+                    name = part.strip()
+                    if name:
+                        candidate_names.add(name)
+
+            if not candidate_names:
+                return set()
+
+            # Look up specialization_id by name (case-insensitive match)
+            valid_stmt = select(Specialization.specialization_id).where(
+                Specialization.specialization_name.in_(candidate_names),
+                Specialization.is_active == 1,
+            )
+            valid_result = await self._session.execute(valid_stmt)
+            return set(valid_result.scalars().all())
+
+        except Exception as exc:
+            logger.error("Error in get_specialization_ids_from_repositories", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_specialization_ids_from_repositories",
+                error_file="src/repositories/ado_sync_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
+            raise
+
+    async def get_specialization_ids_by_names(
+        self, names: set[str]
+    ) -> set[uuid.UUID]:
+        """Resolve specialization UUIDs from a set of specialization names.
+
+        Args:
+            names: Set of specialization name strings to look up.
+
+        Returns:
+            Set of matching specialization UUIDs.
+        """
+        try:
+            if not names:
+                return set()
+            stmt = select(Specialization.specialization_id).where(
+                Specialization.specialization_name.in_(names),
+                Specialization.is_active == 1,
+            )
+            result = await self._session.execute(stmt)
+            return set(result.scalars().all())
+        except Exception as exc:
+            logger.error("Error in get_specialization_ids_by_names", error=str(exc))
+            asyncio.create_task(log_error_to_db(
+                error_message=str(exc),
+                error_function="get_specialization_ids_by_names",
+                error_file="src/repositories/ado_sync_repository.py",
+                stack_trace=traceback.format_exc(),
+                created_by="system",
+            ))
+            raise
+
+    async def get_specialization_ids_for_project(self, project_id: uuid.UUID) -> list[uuid.UUID]:
+        """Get distinct specialization UUIDs linked to a project via repositories.specialization_names.
+
+        Reads specialization_names CSV from all repositories linked to the project,
+        matches against specializations table by name, returns the UUIDs.
+        """
+        try:
+            # Get specialization_names CSV from repositories linked to this project
+            name_stmt = (
+                select(Repository.specialization_names)
+                .join(DevsecopsTicket, Repository.ticket_id == DevsecopsTicket.ticket_id)
                 .where(
                     DevsecopsTicket.project_id == project_id,
                     DevsecopsTicket.is_active == 1,
-                    DevsecopsTicket.specialization_id.isnot(None),
+                    Repository.is_active == 1,
+                    Repository.specialization_names.isnot(None),
                 )
-                .distinct()
             )
-            result = await self._session.execute(stmt)
-            return list(result.scalars().all())
+            name_result = await self._session.execute(name_stmt)
+            csv_values = name_result.scalars().all()
+
+            # Parse all names from CSV strings
+            candidate_names: set[str] = set()
+            for csv in csv_values:
+                if not csv:
+                    continue
+                for part in csv.split(","):
+                    name = part.strip()
+                    if name:
+                        candidate_names.add(name)
+
+            if not candidate_names:
+                return []
+
+            # Lookup specialization_id by name
+            id_stmt = select(Specialization.specialization_id).where(
+                Specialization.specialization_name.in_(candidate_names),
+                Specialization.is_active == 1,
+            )
+            id_result = await self._session.execute(id_stmt)
+            return list(id_result.scalars().all())
         except Exception as exc:
             logger.error("Error in get_specialization_ids_for_project", error=str(exc))
             asyncio.create_task(log_error_to_db(
@@ -420,21 +547,46 @@ class AdoSyncRepository:
     async def get_project_counts_by_status(
         self, specialization_id: uuid.UUID
     ) -> dict[str, int]:
-        """Get current project counts grouped by status name for a specialization."""
+        """Get current project counts grouped by status name for a specialization.
+
+        Filters projects whose linked repositories have the specialization name
+        (from repositories.specialization_names CSV) matching the given specialization_id.
+        """
         try:
+            # Resolve specialization name from ID
+            spec_name_stmt = select(Specialization.specialization_name).where(
+                Specialization.specialization_id == specialization_id,
+                Specialization.is_active == 1,
+            )
+            spec_name_result = await self._session.execute(spec_name_stmt)
+            specialization_name = spec_name_result.scalar_one_or_none()
+
+            if not specialization_name:
+                return {}
+
+            # Find project_ids linked to repositories that have this specialization name
+            # repositories.specialization_names is a CSV like "FE,DevSecOps"
+            # Use LIKE to match the name within the CSV
+            repo_project_stmt = (
+                select(DevsecopsTicket.project_id)
+                .join(Repository, Repository.ticket_id == DevsecopsTicket.ticket_id)
+                .where(
+                    DevsecopsTicket.is_active == 1,
+                    DevsecopsTicket.project_id.isnot(None),
+                    Repository.is_active == 1,
+                    Repository.specialization_names.isnot(None),
+                    Repository.specialization_names.like(f"%{specialization_name}%"),
+                )
+                .distinct()
+            )
+
             stmt = (
                 select(Status.status_name, Project.project_id)
                 .join(Status, Project.status_id == Status.status_id, isouter=True)
                 .where(
                     Project.is_applicable == True,  # noqa: E712
                     Project.is_active == 1,
-                    Project.project_id.in_(
-                        select(DevsecopsTicket.project_id).where(
-                            DevsecopsTicket.specialization_id == specialization_id,
-                            DevsecopsTicket.is_active == 1,
-                            DevsecopsTicket.project_id.isnot(None),
-                        )
-                    ),
+                    Project.project_id.in_(repo_project_stmt),
                 )
             )
             result = await self._session.execute(stmt)

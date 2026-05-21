@@ -102,13 +102,13 @@ class TestGetApplicableTickets:
             DevsecopsTicket(
                 ticket_id=uuid.uuid4(),
                 project_id=uuid.uuid4(),
-                specialization_id=uuid.uuid4(),
+                specialization_name="DevSecOps",
                 is_active=1,
             ),
             DevsecopsTicket(
                 ticket_id=uuid.uuid4(),
                 project_id=uuid.uuid4(),
-                specialization_id=uuid.uuid4(),
+                specialization_name="FE",
                 is_active=1,
             ),
         ]

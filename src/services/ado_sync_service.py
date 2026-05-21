@@ -98,13 +98,13 @@ class AdoSyncService:
 
             # Pre-extract ticket info to avoid lazy loading after rollback
             ticket_info_list = [
-                (ticket.ticket_id, ticket.project_name, ticket.specialization_id)
+                (ticket.ticket_id, ticket.project_name)
                 for ticket in tickets
             ]
 
             # Collect all (repo_id, ado_repo_id, project_name) tuples
             sync_tasks_data: list[tuple[uuid.UUID, str, str]] = []
-            for ticket_id, project_name, _ in ticket_info_list:
+            for ticket_id, project_name in ticket_info_list:
                 repositories = await self._repo.get_repositories_for_ticket(ticket_id)
                 for repo in repositories:
                     if repo.ado_repo_id:
@@ -140,13 +140,14 @@ class AdoSyncService:
                     has_errors = True
 
             # Update KPI history only if all syncs passed
+            # Specialization IDs come exclusively from repositories.specialization_names CSV
             if not has_errors:
-                spec_ids: set[uuid.UUID] = {
-                    spec_id
-                    for _, _, spec_id in ticket_info_list
-                    if spec_id is not None
-                }
-                await self._update_kpi_histories(spec_ids)
+                all_repo_ids = [repo_id for repo_id, _, _ in sync_tasks_data]
+                spec_ids = await self._repo.get_specialization_ids_from_repositories(all_repo_ids)
+                if spec_ids:
+                    await self._update_kpi_histories(spec_ids)
+                else:
+                    logger.info("No specialization names found in repositories — skipping KPI update")
 
             # Update cron job status
             final_status = "fail" if has_errors else "success"
@@ -314,16 +315,24 @@ class AdoSyncService:
                     if artifact_records:
                         await self._repo.upsert_artifacts(artifact_records)
 
-            # Update repository aggregate metrics
+            # Update repository aggregate metrics and repo_status
             passed_count = sum(1 for r in pipeline_run_records if r.status == "passed")
             success_rate = round((passed_count / len(pipeline_run_records)) * 100, 1) if pipeline_run_records else 0.0
             last_run_at = pipeline_run_records[0].triggered_at if pipeline_run_records else repository.last_run_at
+
+            # Determine repo_status based on pipeline activity
+            if pipeline_run_records:
+                latest_status = pipeline_run_records[0].status  # most recent run status
+                repo_status = latest_status  # e.g. passed, failed, running, cancelled
+            else:
+                repo_status = "inactive"
 
             await self._repo.update_repository_metrics(
                 repository_id=repo_id,
                 pipeline_runs_count=len(pipeline_run_records),
                 success_rate=success_rate,
                 last_run_at=last_run_at,
+                repo_status=repo_status,
             )
 
             await self._repo.commit()

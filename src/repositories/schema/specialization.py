@@ -10,7 +10,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.repositories.schema.base import Base
 
 if TYPE_CHECKING:
-    from src.repositories.schema.devsecops_ticket import DevsecopsTicket
     from src.repositories.schema.kpi_history import KpiHistory
     from src.repositories.schema.setting import Setting
 
@@ -28,7 +27,8 @@ class Specialization(Base):
     modified_by: Mapped[str | None] = mapped_column(String(255))
     is_active: Mapped[int | None] = mapped_column(Integer, default=1)
 
-    # Relationships (use string references to avoid circular imports)
+    # Relationships
+    # Note: devsecops_tickets relationship removed — tickets now store specialization_name (string)
+    # instead of specialization_id FK, so no ORM relationship is needed.
     kpi_histories: Mapped[list["KpiHistory"]] = relationship(back_populates="specialization")
-    devsecops_tickets: Mapped[list["DevsecopsTicket"]] = relationship(back_populates="specialization")
     settings: Mapped[list["Setting"]] = relationship(back_populates="specialization")

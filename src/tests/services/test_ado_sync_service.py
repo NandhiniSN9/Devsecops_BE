@@ -158,6 +158,9 @@ class TestSyncAdoData:
         mock_repo.upsert_commits.assert_called_once()
         mock_repo.upsert_pull_requests.assert_called_once()
         mock_repo.update_repository_metrics.assert_called_once()
+        # Verify repo_status was passed
+        call_kwargs = mock_repo.update_repository_metrics.call_args.kwargs
+        assert "repo_status" in call_kwargs
 
     @pytest.mark.asyncio
     async def test_run_sync_handles_repo_failure_gracefully(self, service, mock_repo, mock_ado_client):

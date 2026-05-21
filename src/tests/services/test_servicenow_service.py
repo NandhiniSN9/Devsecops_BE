@@ -61,18 +61,17 @@ def sample_ticket_request():
         tickets=[
             SyncDevSecOpsTicketItemRequest(
                 sn_project_id="SN-PRJ-001",
-                project_name="Test Project",
+                ado_project_name="Test Project",
                 client="ABN AMRO",
-                specialization_name="DevSecOps",
                 repositories=[
                     RepositoryItemRequest(
-                        repo_name="payments-api",
+                        ado_repo_name="payments-api",
                         ado_repo_id="ado-001",
-                        lead_approvers=["lead1@zeb.co", "lead2@zeb.co"],
+                        l1_approvers=["lead1@zeb.co", "lead2@zeb.co"],
+                        specialization=["DevSecOps"],
                     )
                 ],
                 requested_by="requester@zeb.co",
-                approver="approver@zeb.co",
                 requested_at=datetime(2026, 4, 15, 9, 0, 0),
             )
         ]
@@ -259,8 +258,13 @@ class TestSyncDevsecopsTickets:
             tickets=[
                 SyncDevSecOpsTicketItemRequest(
                     sn_project_id="SN-NEW",
-                    project_name="zeb-touchpoint-pj",
-                    specialization_name="DevSecOps",
+                    ado_project_name="zeb-touchpoint-pj",
+                    repositories=[
+                        RepositoryItemRequest(
+                            ado_repo_name="repo1",
+                            specialization=["DevSecOps"],
+                        )
+                    ],
                 )
             ]
         )
@@ -292,8 +296,13 @@ class TestSyncDevsecopsTickets:
             tickets=[
                 SyncDevSecOpsTicketItemRequest(
                     sn_project_id="SN-PRJ-001",
-                    project_name="Test Project",
-                    specialization_name="DevSecOps",
+                    ado_project_name="Test Project",
+                    repositories=[
+                        RepositoryItemRequest(
+                            ado_repo_name="repo1",
+                            specialization=["DevSecOps"],
+                        )
+                    ],
                 )
             ]
         )
@@ -313,13 +322,13 @@ class TestSyncDevsecopsTickets:
             tickets=[
                 SyncDevSecOpsTicketItemRequest(
                     sn_project_id="SN-001",
-                    project_name="Project 1",
-                    specialization_name="Unknown",
+                    ado_project_name="Project 1",
+                    repositories=[RepositoryItemRequest(ado_repo_name="repo1", specialization=["Unknown"])],
                 ),
                 SyncDevSecOpsTicketItemRequest(
                     sn_project_id="SN-002",
-                    project_name="Project 2",
-                    specialization_name="DevSecOps",
+                    ado_project_name="Project 2",
+                    repositories=[RepositoryItemRequest(ado_repo_name="repo2", specialization=["DevSecOps"])],
                 ),
             ]
         )
@@ -406,29 +415,36 @@ class TestSyncDevsecopsTickets:
 
     @pytest.mark.asyncio
     async def test_sync_tickets_no_project_found_skips(self, service, mock_repo):
-        """Should skip ticket when no project can be resolved (including default)."""
+        """Should auto-create project when no project can be resolved."""
         spec = Specialization(specialization_id=uuid.uuid4(), specialization_name="DevSecOps", is_active=1)
         request = SyncDevSecOpsTicketsRequest(
             tickets=[
                 SyncDevSecOpsTicketItemRequest(
                     sn_project_id="SN-UNKNOWN",
-                    project_name="Unknown Project",
-                    specialization_name="DevSecOps",
+                    ado_project_name="Unknown Project",
+                    repositories=[RepositoryItemRequest(ado_repo_name="repo1", specialization=["DevSecOps"])],
                 )
             ]
         )
+        inactive_status = MagicMock()
+        inactive_status.status_id = uuid.uuid4()
         mock_repo.get_specialization_by_name.return_value = spec
         mock_repo.get_project_by_sn_project_id.return_value = None
         mock_repo.get_project_by_name.return_value = None
         mock_repo.get_project_by_normalized_name.return_value = None
         mock_repo.get_project_by_client.return_value = None
-        mock_repo.get_default_project.return_value = None
+        mock_repo.get_inactive_status.return_value = inactive_status
+        mock_repo.create_project.return_value = MagicMock()
+        mock_repo.get_ticket_by_sn_or_devsec_id.return_value = None
+        mock_repo.get_repository_by_ado_repo_id_and_ticket.return_value = None
+        mock_repo.create_ticket.return_value = MagicMock()
+        mock_repo.create_repository.return_value = MagicMock()
 
         result = await service.sync_devsecops_tickets(request, "servicenow@zeb.co")
 
-        assert result["created"] == 0
-        assert result["failed"] == 1
-        mock_repo.create_ticket.assert_not_called()
+        # Service auto-creates project when none found
+        assert result["created"] == 1
+        mock_repo.create_project.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_sync_tickets_exception_counts_as_failed(self, service, mock_repo):
@@ -446,8 +462,8 @@ class TestSyncDevsecopsTickets:
             tickets=[
                 SyncDevSecOpsTicketItemRequest(
                     sn_project_id="SN-PRJ-001",
-                    project_name="Test",
-                    specialization_name="DevSecOps",
+                    ado_project_name="Test",
+                    repositories=[RepositoryItemRequest(ado_repo_name="repo1", specialization=["DevSecOps"])],
                 )
             ]
         )
@@ -479,8 +495,8 @@ class TestSyncDevsecopsTickets:
             tickets=[
                 SyncDevSecOpsTicketItemRequest(
                     sn_project_id="SN-PRJ-001",
-                    project_name="Test Project",
-                    specialization_name="DevSecOps",
+                    ado_project_name="Test Project",
+                    repositories=[RepositoryItemRequest(ado_repo_name="repo1", specialization=["DevSecOps"])],
                     requested_by="new-requester@zeb.co",
                 )
             ]
@@ -497,21 +513,17 @@ class TestSyncDevsecopsTickets:
 
     @pytest.mark.asyncio
     async def test_sync_tickets_fallback_to_default_project(self, service, mock_repo, sample_ticket_request):
-        """Should use default project when all resolution steps fail."""
+        """Should auto-create project when all resolution steps fail."""
         spec = Specialization(specialization_id=uuid.uuid4(), specialization_name="DevSecOps", is_active=1)
-        default_project = Project(
-            project_id=uuid.uuid4(),
-            sn_project_id="DEFAULT",
-            project_name="Default",
-            onboarded_date=date(2026, 1, 1),
-            project_type="Default",
-        )
+        inactive_status = MagicMock()
+        inactive_status.status_id = uuid.uuid4()
         mock_repo.get_specialization_by_name.return_value = spec
         mock_repo.get_project_by_sn_project_id.return_value = None
         mock_repo.get_project_by_name.return_value = None
         mock_repo.get_project_by_normalized_name.return_value = None
         mock_repo.get_project_by_client.return_value = None
-        mock_repo.get_default_project.return_value = default_project
+        mock_repo.get_inactive_status.return_value = inactive_status
+        mock_repo.create_project.return_value = MagicMock()
         mock_repo.get_ticket_by_sn_or_devsec_id.return_value = None
         mock_repo.get_repository_by_ado_repo_id_and_ticket.return_value = None
         mock_repo.create_ticket.return_value = MagicMock()
@@ -520,4 +532,4 @@ class TestSyncDevsecopsTickets:
         result = await service.sync_devsecops_tickets(sample_ticket_request, "servicenow@zeb.co")
 
         assert result["created"] == 1
-        mock_repo.get_default_project.assert_called_once()
+        mock_repo.create_project.assert_called_once()

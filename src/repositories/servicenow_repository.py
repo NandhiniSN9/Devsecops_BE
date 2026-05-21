@@ -135,7 +135,7 @@ class ServiceNowRepository:
 
     async def update_ticket(self, ticket: DevsecopsTicket, specialization_id, project_id, sn_project_id, devsec_project_id, project_name, project_type, client, requested_by, approver, requested_at, modified_by: str) -> DevsecopsTicket:
         try:
-            ticket.specialization_id = specialization_id
+            ticket.specialization_name = specialization_name
             ticket.project_id = project_id
             ticket.sn_project_id = sn_project_id
             ticket.devsec_project_id = devsec_project_id

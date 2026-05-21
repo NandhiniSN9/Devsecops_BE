@@ -134,6 +134,10 @@ class ServiceNowService:
                 )
                 ticket_id = existing_ticket.ticket_id
             else:
+                # Get Inactive status for new ticket
+                inactive_status = await self._repo.get_inactive_status()
+                inactive_status_id = inactive_status.status_id if inactive_status else None
+
                 ticket_id = uuid.uuid4()
                 requested_at = ticket_item.requested_at.replace(tzinfo=None) if ticket_item.requested_at else None
                 new_ticket = DevsecopsTicket(
