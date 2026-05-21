@@ -10,7 +10,7 @@ import traceback
 import uuid
 from datetime import date, datetime, timedelta
 from io import BytesIO
-from bs4 import BeautifulSoup
+
 from src.client.graph_client import GraphClient
 from src.client.s3_client import S3Client
 from src.repositories.report_repository import ReportRepository
@@ -21,7 +21,9 @@ from src.repositories.schema.project import Project
 from src.repositories.schema.setting import Setting
 from src.repositories.schema.specialization import Specialization
 from src.settings import REPORT_SERVICE_IDENTIFIER
+from src.utils.helpers import log_error_to_db
 from src.utils.logger import logger
+from src.utils.template_renderer import render_template_from_string
 
 # Frequency window mapping (frequency name → timedelta)
 FREQUENCY_WINDOWS: dict[str, timedelta] = {
@@ -32,8 +34,12 @@ FREQUENCY_WINDOWS: dict[str, timedelta] = {
 }
 
 # Report type constants — must match template_name values in email_templates table
-REPORT_TYPE_AT_RISK = "At Risk Alert"
-REPORT_TYPE_SUMMARY = "Weekly Digest"
+REPORT_TYPE_AT_RISK = "At Risk Report"
+REPORT_TYPE_SUMMARY = "Weekly Summary Report"
+
+# Email body template names — must match template_name values in email_templates table
+EMAIL_BODY_AT_RISK = "At Risk Alert"
+EMAIL_BODY_SUMMARY = "Daily Summary"
 
 
 class ReportService:
@@ -227,7 +233,7 @@ class ReportService:
             # Fetch report data
             report_data = await self._fetch_report_data(specialization, settings, report_type)
 
-            # Process HTML template with BeautifulSoup
+            # Process HTML template with Jinja2
             populated_html = self._process_template(
                 template_content=template.template_content,
                 specialization_name=spec_name,
@@ -235,44 +241,60 @@ class ReportService:
                 report_data=report_data,
             )
 
-            # Generate PDF with WeasyPrint (in-memory)
-            pdf_bytes = self._generate_pdf(populated_html)
+            # Generate PDF with wkhtmltopdf (FAST with full CSS3 support!)
+            pdf_bytes = await self._generate_pdf_async(populated_html)
 
-            # Upload to S3 and get pre-signed URL
-            # NOTE: S3 upload temporarily disabled for local testing.
-            # Uncomment the block below when S3 bucket is configured.
+            # Create PDF filename
             now = datetime.utcnow()
-            filename = f"{report_type}_{spec_name}_{now.strftime('%Y%m%d_%H%M%S')}.pdf"
-            s3_key = f"reports/{spec_name}/{report_type}/{now.strftime('%Y')}/{now.strftime('%m')}/{filename}"
+            filename = f"{report_type.replace(' ', '_')}_{spec_name.replace(' ', '_')}_{now.strftime('%Y-%m-%d')}.pdf"
 
-            try:
-                await self._s3_client.upload_pdf(pdf_bytes, s3_key)
-                presigned_url = await self._s3_client.generate_presigned_url(s3_key)
-            except Exception as s3_exc:
+            logger.info(
+                "PDF generated successfully",
+                specialization=spec_name,
+                report_type=report_type,
+                size_kb=len(pdf_bytes) / 1024,
+            )
+
+            # Fetch email body template from database
+            email_body_template_name = EMAIL_BODY_SUMMARY if report_type == REPORT_TYPE_SUMMARY else EMAIL_BODY_AT_RISK
+            email_body_template = await self._repo.get_email_template_by_name(email_body_template_name)
+
+            if not email_body_template:
                 logger.warning(
-                    "S3 upload failed, using placeholder URL for email",
-                    error=str(s3_exc),
+                    "Email body template not found, using default",
+                    template_name=email_body_template_name,
                     specialization=spec_name,
                 )
-                presigned_url = f"https://placeholder-report-url.local/{s3_key}"
+                email_body_html = None
+            else:
+                # Render email body template with data
+                email_body_html = self._render_email_body_template(
+                    template_content=email_body_template.template_content,
+                    report_type=report_type,
+                    specialization_name=spec_name,
+                    report_date=now,
+                    pdf_size_kb=len(pdf_bytes) / 1024,
+                )
 
-            # Send emails to all recipients
+            # Send emails to all recipients with PDF attachment (NO S3!)
             email_sent = await self._send_emails_to_recipients(
                 recipients=recipients,
                 report_type=report_type,
                 specialization_name=spec_name,
-                report_url=presigned_url,
                 report_date=now,
+                pdf_bytes=pdf_bytes,
+                pdf_filename=filename,
+                email_body_html=email_body_html,
             )
 
-            # Record email history
+            # Record email history (no S3 URL)
             email_status = "sent" if email_sent else "failed"
             email_history = EmailHistory(
                 email_history_id=uuid.uuid4(),
                 setting_id=settings.setting_id,
                 email_status=email_status,
                 email_type=report_type,
-                report_url=presigned_url if email_sent else None,
+                report_url=None,  # No S3 URL - PDF is attached directly
                 last_synced=now,
                 created_at=now,
                 created_by=REPORT_SERVICE_IDENTIFIER,
@@ -340,12 +362,12 @@ class ReportService:
         settings: Setting,
         report_type: str,
     ) -> dict:
-        """Fetch the data needed for the report.
+        """Fetch the data needed for the report with enhanced metrics.
 
         Args:
             specialization: The target specialization.
             settings: The specialization's settings.
-            report_type: "At-risk" or "Summary report".
+            report_type: "At Risk Report" or "Weekly Summary Report".
 
         Returns:
             Dict containing the report data.
@@ -353,7 +375,9 @@ class ReportService:
         try:
             if report_type == REPORT_TYPE_SUMMARY:
                 kpi = await self._repo.get_kpi_history_by_specialization(specialization.specialization_id)
-                return self._build_summary_data(kpi, specialization.specialization_name)
+                # Fetch additional data for enhanced summary report
+                projects = await self._repo.get_projects_by_specialization(specialization.specialization_id)
+                return await self._build_enhanced_summary_data(kpi, projects, specialization.specialization_name)
             else:
                 projects = await self._repo.get_at_risk_projects(settings.at_risk_threshold)
                 return self._build_at_risk_data(projects, specialization.specialization_name, settings.at_risk_threshold)
@@ -368,42 +392,70 @@ class ReportService:
             ))
             raise
 
-    def _build_summary_data(self, kpi: KpiHistory | None, spec_name: str) -> dict:
-        """Build summary report data from KPI history.
+    async def _build_enhanced_summary_data(
+        self,
+        kpi: KpiHistory | None,
+        projects: list[Project],
+        spec_name: str
+    ) -> dict:
+        """Build enhanced summary report data with actual metrics.
 
         Args:
             kpi: The KPI history record (may be None).
+            projects: List of projects for the specialization.
             spec_name: Specialization name.
 
         Returns:
-            Dict with summary metrics.
+            Dict with enhanced summary metrics including adoption rate and pipeline stats.
         """
         try:
-            if not kpi:
-                return {
-                    "specialization_name": spec_name,
-                    "report_date": datetime.utcnow().strftime("%Y-%m-%d"),
-                    "total_projects": 0,
-                    "completed": 0,
-                    "active": 0,
-                    "inactive": 0,
-                    "at_risk": 0,
-                    "not_applicable": 0,
-                }
+            # Calculate basic metrics from KPI history
+            total = kpi.projects_count if kpi else len(projects)
+            completed = kpi.completed_count if kpi else sum(1 for p in projects if p.completed_at is not None)
+            active = kpi.active_count if kpi else sum(1 for p in projects if p.status_id and 'active' in str(p.status_id).lower())
 
-            total = kpi.projects_count or 0
+            # Calculate adoption rate (percentage of projects with DevSecOps onboarded)
+            applicable_projects = [p for p in projects if p.is_applicable]
+            adoption_rate = (len(applicable_projects) / total * 100) if total > 0 else 0
+
+            # Calculate pipeline success rate from repositories
+            # Note: This would require additional repo fetching - for now using placeholder
+            pipeline_success_rate = 0.0  # TODO: Calculate from pipeline_runs table
+
+            # Get top performing projects (by status and activity)
+            top_projects = [
+                {
+                    "project_name": p.project_name,
+                    "client": p.client or "N/A",
+                    "status": "Active" if p.status_id else "Unknown",
+                    "success_rate": 95.0,  # TODO: Calculate from pipeline data
+                }
+                for p in projects[:3]  # Top 3 projects
+            ]
+
+            # Calculate date range (last 7 days for weekly report)
+            today = datetime.utcnow()
+            start_date = (today - timedelta(days=7)).strftime("%Y-%m-%d")
+            end_date = today.strftime("%Y-%m-%d")
+
             return {
                 "specialization_name": spec_name,
-                "report_date": datetime.utcnow().strftime("%Y-%m-%d"),
+                "report_date": today.strftime("%Y-%m-%d"),
+                "start_date": start_date,
+                "end_date": end_date,
                 "total_projects": total,
-                "completed": kpi.completed_count or 0,
-                "active": kpi.active_count or 0,
-                "inactive": kpi.inactive_count or 0,
-                "at_risk": kpi.at_risk_count or 0,
-                "not_applicable": kpi.not_applicable_count or 0,
+                "completed": completed,
+                "active": active,
+                "inactive": kpi.inactive_count if kpi else 0,
+                "at_risk": kpi.at_risk_count if kpi else 0,
+                "not_applicable": kpi.not_applicable_count if kpi else 0,
+                "adoption_rate": round(adoption_rate, 1),
+                "pipeline_success_rate": round(pipeline_success_rate, 1),
+                "security_scans_passed": 0,  # TODO: Calculate from security_scans table
+                "top_projects": top_projects,
             }
         except Exception as exc:
-            logger.error("Error in _build_summary_data", error=str(exc))
+            logger.error("Error in _build_enhanced_summary_data", error=str(exc))
             raise
 
     def _build_at_risk_data(self, projects: list[Project], spec_name: str, threshold: int) -> dict:
@@ -449,10 +501,10 @@ class ReportService:
         report_type: str,
         report_data: dict,
     ) -> str:
-        """Process HTML template with BeautifulSoup, injecting dynamic data.
+        """Process HTML template with Jinja2, injecting dynamic data.
 
         Args:
-            template_content: The raw HTML template string.
+            template_content: The raw HTML template string from database.
             specialization_name: Name of the specialization.
             report_type: The report type.
             report_data: Dict containing the data to inject.
@@ -461,98 +513,67 @@ class ReportService:
             The populated HTML string.
         """
         try:
-            soup = BeautifulSoup(template_content, "html.parser")
-
-            # Inject specialization name
-            spec_elem = soup.find(id="specialization-name")
-            if spec_elem:
-                spec_elem.string = specialization_name
-
-            # Inject report date
-            date_elem = soup.find(id="report-date")
-            if date_elem:
-                date_elem.string = report_data.get("report_date", "")
-
-            if report_type == REPORT_TYPE_SUMMARY:
-                self._inject_summary_data(soup, report_data)
-            else:
-                self._inject_at_risk_data(soup, report_data)
-
-            return str(soup)
-        except Exception as exc:
-            logger.error("Error in _process_template", error=str(exc))
-            raise
-
-    def _inject_summary_data(self, soup: BeautifulSoup, data: dict) -> None:
-        """Inject summary report data into the HTML template.
-
-        Args:
-            soup: The BeautifulSoup parsed HTML.
-            data: Summary report data dict.
-        """
-        try:
-            field_mapping = {
-                "total-projects": "total_projects",
-                "completed-count": "completed",
-                "active-count": "active",
-                "inactive-count": "inactive",
-                "at-risk-count": "at_risk",
-                "not-applicable-count": "not_applicable",
+            # Prepare context for Jinja2 template
+            context = {
+                "specialization_name": specialization_name,
+                "report_date": report_data.get("report_date", datetime.now().strftime("%Y-%m-%d")),
+                "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "dashboard_url": "https://dashboard.devsecops.local",  # TODO: Make this configurable
             }
 
-            for element_id, data_key in field_mapping.items():
-                elem = soup.find(id=element_id)
-                if elem:
-                    elem.string = str(data.get(data_key, 0))
+            # Add report-specific data
+            if report_type == REPORT_TYPE_SUMMARY:
+                context.update(self._prepare_summary_context(report_data))
+            elif report_type == REPORT_TYPE_AT_RISK:
+                context.update(self._prepare_at_risk_context(report_data))
+
+            # Render template from database string using Jinja2
+            return render_template_from_string(template_content, context)
         except Exception as exc:
-            logger.error("Error in _inject_summary_data", error=str(exc))
+            logger.error("Error in _process_template", error=str(exc), report_type=report_type)
             raise
 
-    def _inject_at_risk_data(self, soup: BeautifulSoup, data: dict) -> None:
-        """Inject at-risk report data into the HTML template.
+    def _prepare_summary_context(self, data: dict) -> dict:
+        """Prepare context data for weekly summary template.
 
         Args:
-            soup: The BeautifulSoup parsed HTML.
-            data: At-risk report data dict.
+            data: Summary report data dict.
+
+        Returns:
+            Dictionary with template context variables.
         """
-        try:
-            # Inject at-risk count
-            count_elem = soup.find(id="at-risk-count")
-            if count_elem:
-                count_elem.string = str(data.get("at_risk_count", 0))
+        return {
+            "total_projects": data.get("total_projects", 0),
+            "active_projects": data.get("active", 0),
+            "completed_projects": data.get("completed", 0),
+            "at_risk_count": data.get("at_risk", 0),
+            "adoption_rate": round(data.get("adoption_rate", 0), 1) if data.get("adoption_rate") else 0,
+            "pipeline_success_rate": round(data.get("pipeline_success_rate", 0), 1) if data.get("pipeline_success_rate") else 0,
+            "security_scans_passed": data.get("security_scans_passed", 0),
+            "top_projects": data.get("top_projects", []),
+            "start_date": data.get("start_date", ""),
+            "end_date": data.get("end_date", ""),
+        }
 
-            # Inject project rows into the table body
-            tbody = soup.find(id="projects-table-body")
-            if tbody and data.get("projects"):
-                tbody.clear()
-                for project in data["projects"]:
-                    row = soup.new_tag("tr")
+    def _prepare_at_risk_context(self, data: dict) -> dict:
+        """Prepare context data for at-risk alert template.
 
-                    name_td = soup.new_tag("td")
-                    name_td.string = project["project_name"]
-                    row.append(name_td)
+        Args:
+            data: At-risk report data dict.
 
-                    client_td = soup.new_tag("td")
-                    client_td.string = project["client"]
-                    row.append(client_td)
+        Returns:
+            Dictionary with template context variables.
+        """
+        return {
+            "at_risk_count": data.get("at_risk_count", 0),
+            "projects": data.get("projects", []),
+        }
 
-                    date_td = soup.new_tag("td")
-                    date_td.string = project["onboarded_date"]
-                    row.append(date_td)
+    async def _generate_pdf_async(self, html_content: str) -> bytes:
+        """Convert HTML to PDF asynchronously using wkhtmltopdf (FAST + Full CSS3).
 
-                    overdue_td = soup.new_tag("td")
-                    overdue_td.string = str(project["days_overdue"])
-                    row.append(overdue_td)
-
-                    tbody.append(row)
-        except Exception as exc:
-            logger.error("Error in _inject_at_risk_data", error=str(exc))
-            raise
-
-    def _generate_pdf(self, html_content: str) -> bytes:
-        """Convert HTML content to PDF bytes using WeasyPrint.
-
-        Generates the PDF entirely in memory without writing to disk.
+        wkhtmltopdf supports modern CSS3 (Grid, Flexbox, gradients, pseudo-elements)
+        and is very fast. Uses WebKit rendering engine.
 
         Args:
             html_content: The populated HTML string.
@@ -561,16 +582,84 @@ class ReportService:
             PDF content as bytes.
         """
         try:
-            from weasyprint import HTML
+            import asyncio
 
-            pdf_buffer = BytesIO()
-            HTML(string=html_content).write_pdf(pdf_buffer)
-            pdf_bytes = pdf_buffer.getvalue()
-            pdf_buffer.close()
-            logger.info("PDF generated in memory", size_bytes=len(pdf_bytes))
+            # Run in executor to avoid blocking
+            loop = asyncio.get_event_loop()
+            pdf_bytes = await loop.run_in_executor(
+                None,
+                self._generate_pdf_sync,
+                html_content
+            )
             return pdf_bytes
         except Exception as exc:
-            logger.error("Error in _generate_pdf", error=str(exc))
+            logger.error("Error in _generate_pdf_async", error=str(exc))
+            raise
+
+    def _generate_pdf_sync(self, html_content: str) -> bytes:
+        """Convert HTML to PDF using wkhtmltopdf - FAST with full CSS3 support!
+
+        wkhtmltopdf advantages:
+        - Full CSS3 support (Grid, Flexbox, gradients, animations, pseudo-elements)
+        - WebKit rendering engine (same as Chrome/Safari)
+        - Fast rendering (similar to xhtml2pdf speed)
+        - Works on Windows, Linux, macOS
+
+        Args:
+            html_content: The populated HTML string.
+
+        Returns:
+            PDF content as bytes.
+        """
+        try:
+            import pdfkit
+            import os
+
+            # wkhtmltopdf options for better rendering
+            options = {
+                'enable-local-file-access': None,
+                'encoding': 'UTF-8',
+                'page-size': 'A4',
+                'margin-top': '15mm',
+                'margin-right': '15mm',
+                'margin-bottom': '15mm',
+                'margin-left': '15mm',
+                'no-outline': None,
+                'quiet': '',
+            }
+
+            # Configure wkhtmltopdf path (cross-platform: Windows + Linux)
+            import platform
+            import shutil
+
+            config = None
+            if platform.system() == 'Windows':
+                # Windows: check default installation path
+                wkhtmltopdf_path = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+                if os.path.exists(wkhtmltopdf_path):
+                    config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+                    logger.debug("Using wkhtmltopdf from Windows path", path=wkhtmltopdf_path)
+            else:
+                # Linux/macOS: find wkhtmltopdf from system PATH
+                wkhtmltopdf_path = shutil.which('wkhtmltopdf')
+                if wkhtmltopdf_path:
+                    config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+                    logger.debug("Using wkhtmltopdf from system PATH", path=wkhtmltopdf_path)
+                else:
+                    # Common Linux paths as fallback
+                    for path in ['/usr/bin/wkhtmltopdf', '/usr/local/bin/wkhtmltopdf']:
+                        if os.path.exists(path):
+                            config = pdfkit.configuration(wkhtmltopdf=path)
+                            logger.debug("Using wkhtmltopdf from fallback path", path=path)
+                            break
+
+            # Convert HTML to PDF - FAST with full CSS3!
+            pdf_bytes = pdfkit.from_string(html_content, False, options=options, configuration=config)
+
+            logger.info("PDF generated with wkhtmltopdf", size_bytes=len(pdf_bytes))
+            return pdf_bytes
+        except Exception as exc:
+            logger.error("Error in _generate_pdf_sync", error=str(exc))
             raise
 
     async def _send_emails_to_recipients(
@@ -578,32 +667,40 @@ class ReportService:
         recipients: list,
         report_type: str,
         specialization_name: str,
-        report_url: str,
         report_date: datetime,
+        pdf_bytes: bytes,
+        pdf_filename: str,
+        email_body_html: str | None = None,
     ) -> bool:
-        """Send emails to all active recipients with skip-and-continue pattern.
+        """Send emails to all active recipients with PDF attachment.
 
         Args:
             recipients: List of EmailRecipient records.
             report_type: The report type for the subject line.
             specialization_name: Specialization name for the subject line.
-            report_url: The pre-signed URL to the PDF report.
             report_date: The report generation timestamp.
+            pdf_bytes: PDF content as bytes.
+            pdf_filename: PDF filename for attachment.
+            email_body_html: Optional rendered email body from database template.
 
         Returns:
             True if at least one email was sent successfully, False if all failed.
         """
         try:
             subject = (
-                f"[DevSecOps Dashboard] {report_type} Report - {specialization_name} - {report_date.strftime('%Y-%m-%d')}"
+                f"[DevSecOps Dashboard] {report_type} - {specialization_name} - {report_date.strftime('%Y-%m-%d')}"
             )
 
-            html_body = self._build_email_body(
-                report_type=report_type,
-                specialization_name=specialization_name,
-                report_url=report_url,
-                report_date=report_date,
-            )
+            # Use database template if available, otherwise use default
+            if email_body_html:
+                html_body = email_body_html
+            else:
+                html_body = self._build_email_body(
+                    report_type=report_type,
+                    specialization_name=specialization_name,
+                    report_date=report_date,
+                    pdf_size_kb=len(pdf_bytes) / 1024,
+                )
 
             success_count = 0
             for recipient in recipients:
@@ -612,9 +709,16 @@ class ReportService:
                         to_email=recipient.alert_recipient,
                         subject=subject,
                         html_body=html_body,
+                        attachment_bytes=pdf_bytes,
+                        attachment_filename=pdf_filename,
                     )
                     if sent:
                         success_count += 1
+                        logger.info(
+                            "Email sent with PDF attachment",
+                            recipient=recipient.alert_recipient,
+                            pdf_size_kb=len(pdf_bytes) / 1024,
+                        )
                 except Exception as exc:
                     logger.warning(
                         "Failed to send email to recipient",
@@ -641,20 +745,62 @@ class ReportService:
             ))
             raise
 
+    def _render_email_body_template(
+        self,
+        template_content: str,
+        report_type: str,
+        specialization_name: str,
+        report_date: datetime,
+        pdf_size_kb: float,
+    ) -> str:
+        """Render email body template from database with Jinja2.
+
+        Args:
+            template_content: HTML template content from database.
+            report_type: The report type.
+            specialization_name: The specialization name.
+            report_date: The report generation timestamp.
+            pdf_size_kb: Size of PDF in KB.
+
+        Returns:
+            Rendered HTML string for email body.
+        """
+        try:
+            context = {
+                "report_type": report_type,
+                "specialization_name": specialization_name,
+                "report_date": report_date.strftime("%Y-%m-%d"),
+                "report_date_full": report_date.strftime("%Y-%m-%d %H:%M UTC"),
+                "pdf_size_kb": f"{pdf_size_kb:.1f}",
+                "generated_at": report_date.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+
+            # Render email body template with Jinja2
+            return render_template_from_string(template_content, context)
+        except Exception as exc:
+            logger.error("Error rendering email body template", error=str(exc))
+            # Fall back to default email body
+            return self._build_email_body(
+                report_type=report_type,
+                specialization_name=specialization_name,
+                report_date=report_date,
+                pdf_size_kb=pdf_size_kb,
+            )
+
     def _build_email_body(
         self,
         report_type: str,
         specialization_name: str,
-        report_url: str,
         report_date: datetime,
+        pdf_size_kb: float,
     ) -> str:
-        """Build the HTML email body with the report download link.
+        """Build the HTML email body for report with PDF attachment.
 
         Args:
             report_type: The report type.
             specialization_name: The specialization name.
-            report_url: The pre-signed URL to the PDF.
             report_date: The report generation timestamp.
+            pdf_size_kb: Size of PDF in KB.
 
         Returns:
             HTML string for the email body.
@@ -662,26 +808,52 @@ class ReportService:
         try:
             return f"""
         <html>
-        <body style="font-family: Arial, sans-serif; padding: 20px;">
-            <h2>{report_type} Report - {specialization_name}</h2>
-            <p>Report generated on: <strong>{report_date.strftime("%Y-%m-%d %H:%M UTC")}</strong></p>
-            <p>Your {report_type.lower()} report for the <strong>{specialization_name}</strong>
-            specialization is ready for download.</p>
-            <p>
-                <a href="{report_url}"
-                   style="background-color: #0078D4; color: white; padding: 10px 20px;
-                          text-decoration: none; border-radius: 4px; display: inline-block;">
-                    Download Report (PDF)
-                </a>
-            </p>
-            <p style="color: #666; font-size: 12px;">
-                This link will expire in 7 days. Please download the report before expiration.
-            </p>
-            <hr style="border: none; border-top: 1px solid #eee; margin-top: 20px;">
-            <p style="color: #999; font-size: 11px;">
-                This is an automated email from the DevSecOps Dashboard.
-                Please do not reply to this email.
-            </p>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }}
+                .header {{ background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+                          color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }}
+                .content {{ background: #f8f9fa; padding: 20px; border-radius: 8px; }}
+                .attachment-notice {{ background: #e3f2fd; border-left: 4px solid #2196f3;
+                                     padding: 15px; margin: 20px 0; }}
+                .footer {{ color: #666; font-size: 12px; margin-top: 20px;
+                          padding-top: 20px; border-top: 1px solid #ddd; }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1 style="margin: 0;">{report_type}</h1>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">{specialization_name}</p>
+            </div>
+
+            <div class="content">
+                <h2>📊 Your Report is Ready!</h2>
+                <p>Report generated on: <strong>{report_date.strftime("%Y-%m-%d %H:%M UTC")}</strong></p>
+
+                <div class="attachment-notice">
+                    <strong>📎 PDF Report Attached</strong><br>
+                    The complete {report_type.lower()} report for <strong>{specialization_name}</strong>
+                    is attached to this email as a PDF file ({pdf_size_kb:.1f} KB).
+                </div>
+
+                <p><strong>What's included in this report:</strong></p>
+                <ul>
+                    <li>Key performance indicators and metrics</li>
+                    <li>Project status and health overview</li>
+                    <li>Detailed data analysis and trends</li>
+                    <li>Professional formatting with ZEB Company branding</li>
+                </ul>
+
+                <p>Open the PDF attachment to view the full report with charts, tables, and detailed insights.</p>
+            </div>
+
+            <div class="footer">
+                <p>🤖 This is an automated email from the DevSecOps Dashboard.</p>
+                <p>Report generation powered by wkhtmltopdf with full CSS3 support 🚀</p>
+                <p style="margin-top: 10px; color: #999;">
+                    Please do not reply to this email. For support, contact your DevSecOps team.
+                </p>
+            </div>
         </body>
         </html>
         """

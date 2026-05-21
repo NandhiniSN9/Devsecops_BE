@@ -6,6 +6,7 @@ No token caching — each operation gets a fresh token to guarantee validity.
 """
 
 import asyncio
+import base64
 import traceback
 
 import httpx
@@ -123,6 +124,8 @@ class GraphClient:
         to_email: str,
         subject: str,
         html_body: str,
+        attachment_bytes: bytes | None = None,
+        attachment_filename: str | None = None,
     ) -> bool:
         """Send an email to a single recipient via Microsoft Graph API.
 
@@ -130,6 +133,8 @@ class GraphClient:
             to_email: Recipient email address.
             subject: Email subject line.
             html_body: HTML content for the email body.
+            attachment_bytes: Optional PDF or file bytes to attach.
+            attachment_filename: Optional filename for the attachment.
 
         Returns:
             True if the email was sent successfully, False otherwise.
@@ -155,11 +160,24 @@ class GraphClient:
                 "saveToSentItems": "false",
             }
 
+            # Add attachment if provided
+            if attachment_bytes and attachment_filename:
+                base64_content = base64.b64encode(attachment_bytes).decode('utf-8')
+                payload["message"]["attachments"] = [
+                    {
+                        "@odata.type": "#microsoft.graph.fileAttachment",
+                        "name": attachment_filename,
+                        "contentType": "application/pdf",
+                        "contentBytes": base64_content,
+                    }
+                ]
+                logger.debug("Attachment added", filename=attachment_filename, size_bytes=len(attachment_bytes))
+
             url = f"{MS_GRAPH_URL}/users/{self._sender_email}/sendMail"
             async with httpx.AsyncClient(timeout=GRAPH_API_TIMEOUT) as client:
                 response = await client.post(url, headers=headers, json=payload)
                 if response.status_code in (200, 202):
-                    logger.info("Email sent successfully", to=to_email, subject=subject)
+                    logger.info("Email sent successfully", to=to_email, subject=subject, has_attachment=bool(attachment_bytes))
                     return True
                 else:
                     error_detail = response.text[:500]
