@@ -395,7 +395,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CommonServerError'
 
-  /api/v1/settings/{specializationId}:
+  /api/v1/settings/{specialization_id}:
     get:
       tags:
         - Settings
@@ -403,7 +403,7 @@ paths:
       description: Returns the settings record for the given specialization, including specialization name and email recipients.
       operationId: getSettings
       parameters:
-        - name: specializationId
+        - name: specialization_id
           in: path
           required: true
           description: UUID of the specialization
